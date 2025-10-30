@@ -1,4 +1,4 @@
-import { Pattern, Cell, Size, Point } from '../types';
+import { Pattern, Cell, Size, Point, Theme } from '../types';
 interface MatrixConfig {
     density: number;
     speed: number;
@@ -7,10 +7,11 @@ interface MatrixConfig {
 export declare class MatrixPattern implements Pattern {
     name: string;
     private config;
+    private theme;
     private columns;
     private charSets;
     private distortions;
-    constructor(config?: Partial<MatrixConfig>);
+    constructor(theme: Theme, config?: Partial<MatrixConfig>);
     private initColumns;
     private createColumn;
     private getRandomChar;

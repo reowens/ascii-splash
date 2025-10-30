@@ -1,4 +1,4 @@
-import { Pattern, Cell, Size, Point } from '../types';
+import { Pattern, Cell, Size, Point, Theme } from '../types';
 interface StarConfig {
     starCount: number;
     speed: number;
@@ -7,10 +7,11 @@ interface StarConfig {
 export declare class StarfieldPattern implements Pattern {
     name: string;
     private config;
+    private theme;
     private stars;
     private starChars;
     private explosions;
-    constructor(config?: Partial<StarConfig>);
+    constructor(theme: Theme, config?: Partial<StarConfig>);
     private initStars;
     private createStar;
     render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void;

@@ -8,13 +8,20 @@ const terminal_kit_1 = __importDefault(require("terminal-kit"));
 const Buffer_1 = require("./Buffer");
 const term = terminal_kit_1.default.terminal;
 class TerminalRenderer {
-    constructor() {
+    constructor(mouseEnabled = true) {
+        this.mouseEnabled = mouseEnabled;
         this.size = { width: term.width, height: term.height };
         this.buffer = new Buffer_1.Buffer(this.size);
         // Setup terminal
         term.clear();
         term.hideCursor();
-        term.grabInput({ mouse: 'motion' });
+        // Enable input (with or without mouse)
+        if (this.mouseEnabled) {
+            term.grabInput({ mouse: 'motion' });
+        }
+        else {
+            term.grabInput({});
+        }
         // Handle resize
         term.on('resize', (width, height) => {
             this.handleResize(width, height);

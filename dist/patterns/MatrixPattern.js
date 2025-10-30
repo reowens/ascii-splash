@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MatrixPattern = void 0;
 class MatrixPattern {
-    constructor(config) {
+    constructor(theme, config) {
         this.name = 'matrix';
         this.columns = [];
         this.charSets = {
@@ -11,6 +11,7 @@ class MatrixPattern {
             mixed: 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜｦﾝ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
         };
         this.distortions = [];
+        this.theme = theme;
         this.config = {
             density: 0.3,
             speed: 1.0,

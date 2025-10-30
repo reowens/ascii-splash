@@ -21,6 +21,7 @@ export declare class QuicksilverPattern implements Pattern {
     onMouseMove(pos: Point): void;
     onMouseClick(pos: Point): void;
     reset(): void;
+    getMetrics(): Record<string, number>;
 }
 export {};
 //# sourceMappingURL=QuicksilverPattern.d.ts.map

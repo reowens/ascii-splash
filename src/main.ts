@@ -1,67 +1,202 @@
 import terminalKit from 'terminal-kit';
+import { Command } from 'commander';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { TerminalRenderer } from './renderer/TerminalRenderer';
 import { AnimationEngine } from './engine/AnimationEngine';
 import { WavePattern } from './patterns/WavePattern';
 import { StarfieldPattern } from './patterns/StarfieldPattern';
 import { MatrixPattern } from './patterns/MatrixPattern';
 import { RainPattern } from './patterns/RainPattern';
-import { Pattern } from './types';
+import { QuicksilverPattern } from './patterns/QuicksilverPattern';
+import { ParticlePattern } from './patterns/ParticlePattern';
+import { SpiralPattern } from './patterns/SpiralPattern';
+import { PlasmaPattern } from './patterns/PlasmaPattern';
+import { Pattern, CliOptions, QualityPreset, ConfigSchema, Theme } from './types';
+import { ConfigLoader } from './config/ConfigLoader';
+import { getTheme, getNextThemeName } from './config/themes';
 
 const term = terminalKit.terminal;
 
-function main() {
-  // Create renderer
-  const renderer = new TerminalRenderer();
+/**
+ * Parse command line arguments
+ */
+function parseCliArguments(): CliOptions {
+  const program = new Command();
   
-  // Quality presets
-  type QualityPreset = 'low' | 'medium' | 'high';
-  let currentQuality: QualityPreset = 'medium';
+  // Read package.json for version
+  const packageJson = JSON.parse(
+    readFileSync(join(__dirname, '..', 'package.json'), 'utf-8')
+  );
   
-  const qualityConfigs = {
-    low: {
-      fps: 15,
-      wave: { layers: 1, amplitude: 3 },
-      starfield: { starCount: 50 },
-      matrix: { density: 0.2 },
-      rain: { density: 0.1 }
-    },
-    medium: {
-      fps: 30,
-      wave: { layers: 3, amplitude: 5 },
-      starfield: { starCount: 100 },
-      matrix: { density: 0.3 },
-      rain: { density: 0.2 }
-    },
-    high: {
-      fps: 60,
-      wave: { layers: 5, amplitude: 7 },
-      starfield: { starCount: 200 },
-      matrix: { density: 0.4 },
-      rain: { density: 0.3 }
+  program
+    .name('splash')
+    .description('A terminal ASCII animation app that adds visual flow to your IDE workspace')
+    .version(packageJson.version);
+  
+  // Pattern selection
+  program.option(
+    '-p, --pattern <name>',
+    'Start with specific pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma)'
+  );
+  
+  // Quality preset
+  program.option(
+    '-q, --quality <preset>',
+    'Set quality preset (low, medium, high)',
+    'medium'
+  );
+  
+  // FPS override
+  program.option(
+    '-f, --fps <number>',
+    'Set custom FPS (10-60)',
+    (value) => {
+      const fps = parseInt(value, 10);
+      if (isNaN(fps) || fps < 10 || fps > 60) {
+        program.error(`FPS must be a number between 10 and 60 (got: ${value})`);
+      }
+      return fps;
     }
+  );
+  
+  // Theme
+  program.option(
+    '-t, --theme <name>',
+    'Set color theme (ocean, matrix, starlight, fire, monochrome)'
+  );
+  
+  // Mouse control
+  program.option(
+    '--no-mouse',
+    'Disable mouse interaction'
+  );
+  
+  program.parse();
+  const options = program.opts();
+  
+  // Validate pattern if provided
+  const validPatterns = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma'];
+  if (options.pattern && !validPatterns.includes(options.pattern.toLowerCase())) {
+    program.error(
+      `Invalid pattern: ${options.pattern}\nValid patterns: ${validPatterns.join(', ')}`
+    );
+  }
+  
+  // Validate quality
+  const validQualities: QualityPreset[] = ['low', 'medium', 'high'];
+  if (options.quality && !validQualities.includes(options.quality.toLowerCase())) {
+    program.error(
+      `Invalid quality: ${options.quality}\nValid qualities: ${validQualities.join(', ')}`
+    );
+  }
+  
+  return {
+    pattern: options.pattern?.toLowerCase(),
+    quality: options.quality?.toLowerCase() as QualityPreset,
+    fps: options.fps,
+    theme: options.theme?.toLowerCase(),
+    mouse: options.mouse
+  };
+}
+
+function main() {
+  // Parse CLI arguments
+  const cliOptions = parseCliArguments();
+  
+  // Load configuration (CLI > config file > defaults)
+  const configLoader = new ConfigLoader();
+  const config = configLoader.load(cliOptions);
+  
+  // Determine mouse enabled state from config
+  const mouseEnabled = config.mouseEnabled !== false;
+  
+  // Create renderer with mouse setting
+  const renderer = new TerminalRenderer(mouseEnabled);
+  
+  // Current quality setting
+  let currentQuality: QualityPreset = config.quality || 'medium';
+  
+  // Quality-based FPS presets (used when quality changes)
+  const qualityFpsPresets = {
+    low: 15,
+    medium: 30,
+    high: 60
   };
   
-  // Create patterns with medium quality
+  // Load theme from config
+  let currentTheme: Theme = getTheme(config.theme);
+  
+  // Create patterns with configuration
   let patterns: Pattern[] = [];
   
-  function createPatternsForQuality(quality: QualityPreset): Pattern[] {
-    const config = qualityConfigs[quality];
+  function createPatternsFromConfig(cfg: ConfigSchema, theme: Theme): Pattern[] {
     return [
-      new WavePattern(config.wave),
-      new StarfieldPattern(config.starfield),
-      new MatrixPattern(config.matrix),
-      new RainPattern(config.rain)
+      new WavePattern(theme, {
+        layers: cfg.patterns?.waves?.layers,
+        amplitude: cfg.patterns?.waves?.amplitude,
+        speed: cfg.patterns?.waves?.speed,
+        frequency: cfg.patterns?.waves?.frequency
+      }),
+      new StarfieldPattern(theme, {
+        starCount: cfg.patterns?.starfield?.starCount,
+        speed: cfg.patterns?.starfield?.speed
+      }),
+      new MatrixPattern(theme, {
+        density: cfg.patterns?.matrix?.columnDensity,
+        speed: cfg.patterns?.matrix?.speed
+      }),
+      new RainPattern({
+        density: cfg.patterns?.rain?.dropCount ? cfg.patterns.rain.dropCount / 500 : undefined,
+        speed: cfg.patterns?.rain?.speed
+      }),
+      new QuicksilverPattern({
+        speed: cfg.patterns?.quicksilver?.speed,
+        flowIntensity: cfg.patterns?.quicksilver?.viscosity,
+        noiseScale: 0.05
+      }),
+      new ParticlePattern(theme, {
+        particleCount: cfg.patterns?.particles?.particleCount,
+        speed: cfg.patterns?.particles?.speed,
+        gravity: cfg.patterns?.particles?.gravity,
+        mouseForce: cfg.patterns?.particles?.mouseForce,
+        spawnRate: cfg.patterns?.particles?.spawnRate
+      }),
+      new SpiralPattern(theme, {
+        spiralCount: cfg.patterns?.spiral?.spiralCount,
+        rotationSpeed: cfg.patterns?.spiral?.rotationSpeed,
+        armLength: cfg.patterns?.spiral?.armLength,
+        density: cfg.patterns?.spiral?.density,
+        expandSpeed: cfg.patterns?.spiral?.expandSpeed
+      }),
+      new PlasmaPattern(theme, {
+        frequency: cfg.patterns?.plasma?.frequency,
+        speed: cfg.patterns?.plasma?.speed,
+        complexity: cfg.patterns?.plasma?.complexity
+      })
     ];
   }
   
-  patterns = createPatternsForQuality(currentQuality);
+  patterns = createPatternsFromConfig(config, currentTheme);
   
+  // Determine starting pattern from config
   let currentPatternIndex = 0;
+  if (config.defaultPattern) {
+    const patternNames = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma'];
+    const index = patternNames.indexOf(config.defaultPattern);
+    if (index >= 0) {
+      currentPatternIndex = index;
+    }
+  }
+  
   let showingHelp = false;
   let debugMode = false;
   
-  // Create animation engine with default pattern
-  const engine = new AnimationEngine(renderer, patterns[currentPatternIndex], qualityConfigs[currentQuality].fps);
+  // Determine initial FPS from config
+  const initialFps = ConfigLoader.getFpsFromConfig(config);
+  
+  // Create animation engine with selected pattern and FPS
+  const engine = new AnimationEngine(renderer, patterns[currentPatternIndex], initialFps);
   
   function switchPattern(index: number) {
     if (index >= 0 && index < patterns.length) {
@@ -73,12 +208,26 @@ function main() {
 
   function setQuality(quality: QualityPreset) {
     currentQuality = quality;
-    patterns = createPatternsForQuality(quality);
-    engine.setFps(qualityConfigs[quality].fps);
+    
+    // Update config with new quality
+    config.quality = quality;
+    patterns = createPatternsFromConfig(config, currentTheme);
+    engine.setFps(qualityFpsPresets[quality]);
     engine.setPattern(patterns[currentPatternIndex]);
     
     const qualityNames = { low: 'LOW (15 FPS)', medium: 'MEDIUM (30 FPS)', high: 'HIGH (60 FPS)' };
     showMessage(`Quality: ${qualityNames[quality]}`);
+  }
+  
+  function cycleTheme() {
+    const nextThemeName = getNextThemeName(currentTheme.name);
+    currentTheme = getTheme(nextThemeName);
+    
+    // Recreate patterns with new theme
+    patterns = createPatternsFromConfig(config, currentTheme);
+    engine.setPattern(patterns[currentPatternIndex]);
+    
+    showMessage(`Theme: ${currentTheme.displayName}`);
   }
 
   function showPatternName(name: string) {
@@ -98,11 +247,12 @@ function main() {
       const helpLines = [
         'KEYBOARD CONTROLS',
         '─────────────────',
-        '1-4      Switch patterns',
+        '1-8      Switch patterns',
         'n/p      Next/Previous pattern',
         'SPACE    Pause/Resume',
         '+/-      Speed up/down',
         '[/]      Quality presets (low/high)',
+        't        Cycle themes',
         '?        Toggle this help',
         'd        Toggle debug info',
         'q/ESC    Quit',
@@ -147,6 +297,8 @@ function main() {
     const lines = [
       `PERFORMANCE DEBUG`,
       `────────────────────────────`,
+      `Pattern: ${currentPattern.name}`,
+      `Theme: ${currentTheme.displayName}`,
       `Quality: ${currentQuality.toUpperCase()}`,
       `FPS: ${metrics.fps.toFixed(1)} / ${metrics.targetFps} (target)`,
       `Frame: ${metrics.frameTime.toFixed(2)}ms`,
@@ -156,8 +308,7 @@ function main() {
       `Changed Cells: ${metrics.changedCells} / ${size.width * size.height}`,
       `Dropped Frames: ${stats.totalDroppedFrames}`,
       `Min/Avg/Max FPS: ${stats.minFps.toFixed(1)} / ${stats.avgFps.toFixed(1)} / ${stats.maxFps.toFixed(1)}`,
-      `Total Frames: ${stats.totalFrames}`,
-      `Pattern: ${currentPattern.name}`
+      `Total Frames: ${stats.totalFrames}`
     ];
 
     // Add pattern-specific metrics if available
@@ -216,6 +367,14 @@ function main() {
       switchPattern(2); // Matrix
     } else if (name === '4') {
       switchPattern(3); // Rain
+    } else if (name === '5') {
+      switchPattern(4); // Quicksilver
+    } else if (name === '6') {
+      switchPattern(5); // Particles
+    } else if (name === '7') {
+      switchPattern(6); // Spiral
+    } else if (name === '8') {
+      switchPattern(7); // Plasma
     }
     // Pattern selection - next/previous
     else if (name === 'n') {
@@ -241,6 +400,10 @@ function main() {
     // Debug toggle
     else if (name === 'd') {
       toggleDebug();
+    }
+    // Theme cycling
+    else if (name === 't') {
+      cycleTheme();
     }
     // Quality presets
     else if (name === '[') {

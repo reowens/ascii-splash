@@ -1,4 +1,4 @@
-import { Pattern, Cell, Size, Point } from '../types';
+import { Pattern, Cell, Size, Point, Theme } from '../types';
 
 interface Star {
   x: number;
@@ -16,11 +16,13 @@ interface StarConfig {
 export class StarfieldPattern implements Pattern {
   name = 'starfield';
   private config: StarConfig;
+  private theme: Theme;
   private stars: Star[] = [];
   private starChars = ['.', '·', '*', '✦', '✧', '★'];
   private explosions: Array<{ x: number; y: number; time: number; particles: Array<{ dx: number; dy: number }> }> = [];
 
-  constructor(config?: Partial<StarConfig>) {
+  constructor(theme: Theme, config?: Partial<StarConfig>) {
+    this.theme = theme;
     this.config = {
       starCount: 100,
       speed: 1.0,
@@ -95,28 +97,28 @@ export class StarfieldPattern implements Pattern {
         // Determine star size based on depth
         const depth = 1 / star.z;
         let charIndex = 0;
-        let color = { r: 100, g: 100, b: 150 };
+        let colorIntensity = 0;
         
         if (depth > 0.9) {
           charIndex = 5; // Closest - biggest
-          color = { r: 255, g: 255, b: 255 };
+          colorIntensity = 1.0;
         } else if (depth > 0.7) {
           charIndex = 4;
-          color = { r: 200, g: 220, b: 255 };
+          colorIntensity = 0.85;
         } else if (depth > 0.5) {
           charIndex = 3;
-          color = { r: 150, g: 180, b: 255 };
+          colorIntensity = 0.65;
         } else if (depth > 0.3) {
           charIndex = 2;
-          color = { r: 120, g: 150, b: 220 };
+          colorIntensity = 0.45;
         } else if (depth > 0.15) {
           charIndex = 1;
-          color = { r: 100, g: 120, b: 180 };
+          colorIntensity = 0.25;
         }
 
         buffer[screenY][screenX] = {
           char: this.starChars[charIndex],
-          color
+          color: this.theme.getColor(colorIntensity)
         };
       }
     }

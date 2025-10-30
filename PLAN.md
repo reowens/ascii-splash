@@ -271,33 +271,109 @@ Space       - Next pattern
 
 ## Development Phases
 
-### Phase 1: Core (MVP)
-- [ ] Basic terminal renderer with double-buffering
-- [ ] Simple animation loop (30 FPS)
-- [ ] One pattern (Waves)
-- [ ] Terminal resize handling
-- [ ] Exit on Ctrl+C
+### Phase 1: Core (MVP) ✅ COMPLETE
+- [x] Basic terminal renderer with double-buffering
+- [x] Simple animation loop (30 FPS)
+- [x] One pattern (Waves)
+- [x] Terminal resize handling
+- [x] Exit on Ctrl+C
 
-### Phase 2: Patterns
-- [ ] Add Starfield pattern
-- [ ] Add Matrix pattern
-- [ ] Add Rain pattern
-- [ ] Pattern switching (keyboard)
-- [ ] Basic config file support
+### Phase 2: Patterns & Performance ✅ COMPLETE
+- [x] Add Starfield pattern
+- [x] Add Matrix pattern
+- [x] Add Rain pattern
+- [x] Add Quicksilver pattern
+- [x] Pattern switching (keyboard)
+- [x] Mouse tracking implementation
+- [x] Mouse-based effects for all patterns
+- [x] Help overlay (? key)
+- [x] Debug overlay (d key)
+- [x] Performance monitoring system
+- [x] Quality presets (LOW/MEDIUM/HIGH)
+- [x] Pattern-specific metrics tracking
 
-### Phase 3: Interactivity
-- [ ] Mouse tracking implementation
-- [ ] Mouse-based effects for all patterns
-- [ ] All keyboard shortcuts
-- [ ] Theme system
-- [ ] Help overlay
+### Phase 3: Configuration & Extensibility 🚧 IN PROGRESS
+**Goal**: Make the app fully customizable via CLI args, config files, and themes
 
-### Phase 4: Polish
-- [ ] Performance optimization
-- [ ] Beautiful default configs
-- [ ] Documentation (README, examples)
-- [ ] npm package setup
-- [ ] Publish to npm
+#### 3.1 CLI Arguments System ✅ COMPLETE
+- [x] Install `commander` dependency
+- [x] Create argument parser in main.ts
+- [x] Support flags:
+  - `--pattern <name>` - Start with specific pattern
+  - `--quality <low|medium|high>` - Set initial quality preset
+  - `--fps <number>` - Custom FPS override
+  - `--theme <name>` - Set color theme
+  - `--no-mouse` - Disable mouse interaction
+  - `--help` - Show usage information
+  - `--version` - Show version
+- [x] Validate and apply CLI args to app state
+- [x] Update README with CLI usage examples
+
+#### 3.2 Configuration File System ✅ COMPLETE
+- [x] Install `conf` dependency (v10 for CommonJS support)
+- [x] Create `src/config/` directory structure
+- [x] Implement `src/config/defaults.ts` - Default configuration values
+- [x] Implement `src/config/ConfigLoader.ts` - Load/save config with merge logic
+- [x] Define config schema/types (ConfigSchema, pattern-specific interfaces)
+- [x] Support configuration for:
+  - Default pattern on startup
+  - Default quality preset
+  - Default FPS
+  - Default theme
+  - Mouse interaction toggle
+  - Pattern-specific configs (speed, density, layers, etc.)
+- [x] Merge priority: CLI args > config file > defaults
+- [x] Create `examples/.splashrc.example` with comprehensive documentation
+- [x] Update README with configuration documentation
+- [x] Test configuration loading and CLI override priority
+
+#### 3.3 Theme System ✅ COMPLETE
+- [x] Implement `src/config/themes.ts` - Theme definitions
+- [x] Define Theme interface (color palettes)
+- [x] Create 5 predefined themes:
+  - Ocean (blues/cyans/teals) - default
+  - Matrix (green monochrome)
+  - Starlight (deep blues/purples/white)
+  - Fire (reds/oranges/yellows)
+  - Monochrome (grays/white)
+- [x] Update all patterns to use theme colors
+- [x] Add theme cycling keyboard shortcut (t key)
+- [x] Add theme to config file support
+- [x] Add --theme CLI argument
+- [x] Display current theme in debug overlay
+
+#### 3.4 Additional Patterns ✅ COMPLETE
+- [x] Implement ParticlePattern (floating particles with physics)
+  - Particle system with velocity/acceleration/gravity
+  - Mouse attraction/repulsion forces (toggle on click)
+  - Boundary bouncing with energy loss
+  - Click creates particle burst (20 particles)
+  - Theme-based coloring by velocity and life
+- [x] Implement SpiralPattern (rotating spiral effect)
+  - Logarithmic spiral generation
+  - Continuous rotation animation
+  - Multiple spiral arms (3 default)
+  - Distance-based intensity coloring
+  - Theme support with gradient interpolation
+- [x] Implement PlasmaPattern (fluid plasma effect)
+  - Four sine wave combination for smooth plasma
+  - Circular and diagonal wave patterns
+  - Theme-based intensity coloring
+  - Continuous organic animation
+- [x] Add new patterns to configuration system
+- [x] Add new patterns to theme system
+- [x] Update keyboard shortcuts (1-8 keys)
+- [x] Add pattern configs to types and defaults
+- [x] Update all documentation
+
+### Phase 4: Polish & Distribution
+- [ ] Add shebang to main.js for binary execution
+- [ ] Test on multiple terminal emulators
+- [ ] Performance profiling and optimization
+- [ ] Comprehensive README documentation
+- [ ] Create demo GIFs/videos
+- [ ] Prepare for npm publish
+- [ ] Publish to npm registry
 
 ## Usage Examples
 

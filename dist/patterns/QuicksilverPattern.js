@@ -182,6 +182,13 @@ class QuicksilverPattern {
         this.ripples = [];
         this.noiseOffset = 0;
     }
+    getMetrics() {
+        return {
+            droplets: this.droplets.length,
+            ripples: this.ripples.length,
+            flowIntensity: this.config.flowIntensity
+        };
+    }
 }
 exports.QuicksilverPattern = QuicksilverPattern;
 //# sourceMappingURL=QuicksilverPattern.js.map

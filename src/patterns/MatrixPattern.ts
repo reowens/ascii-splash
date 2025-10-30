@@ -1,4 +1,4 @@
-import { Pattern, Cell, Size, Point } from '../types';
+import { Pattern, Cell, Size, Point, Theme } from '../types';
 
 interface Column {
   x: number;
@@ -17,6 +17,7 @@ interface MatrixConfig {
 export class MatrixPattern implements Pattern {
   name = 'matrix';
   private config: MatrixConfig;
+  private theme: Theme;
   private columns: Column[] = [];
   private charSets = {
     katakana: 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜｦﾝ',
@@ -25,7 +26,8 @@ export class MatrixPattern implements Pattern {
   };
   private distortions: Array<{ x: number; y: number; radius: number }> = [];
 
-  constructor(config?: Partial<MatrixConfig>) {
+  constructor(theme: Theme, config?: Partial<MatrixConfig>) {
+    this.theme = theme;
     this.config = {
       density: 0.3,
       speed: 1.0,

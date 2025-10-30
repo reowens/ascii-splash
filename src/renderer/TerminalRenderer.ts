@@ -7,15 +7,23 @@ const term = terminalKit.terminal;
 export class TerminalRenderer {
   private buffer: Buffer;
   private size: Size;
+  private mouseEnabled: boolean;
 
-  constructor() {
+  constructor(mouseEnabled: boolean = true) {
+    this.mouseEnabled = mouseEnabled;
     this.size = { width: term.width, height: term.height };
     this.buffer = new Buffer(this.size);
     
     // Setup terminal
     term.clear();
     term.hideCursor();
-    term.grabInput({ mouse: 'motion' });
+    
+    // Enable input (with or without mouse)
+    if (this.mouseEnabled) {
+      term.grabInput({ mouse: 'motion' });
+    } else {
+      term.grabInput({});
+    }
     
     // Handle resize
     term.on('resize', (width: number, height: number) => {

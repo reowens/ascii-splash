@@ -109,13 +109,146 @@ To add a new pattern:
 - terminal-kit calls: Add 1 to x and y before `term.moveTo()`
 - Mouse events: Converted to 0-based in [src/main.ts](src/main.ts) before passing to patterns
 
+## Configuration System
+
+### Overview
+
+ascii-splash has a 3-tier configuration system with clear priority:
+
+**Priority Order** (highest to lowest):
+1. **CLI Arguments** - Passed when running the app
+2. **Config File** - Persistent settings at `~/.config/ascii-splash/.splashrc.json`
+3. **Defaults** - Built-in fallback values in `src/config/defaults.ts`
+
+### Implementation
+
+**ConfigLoader Class** ([src/config/ConfigLoader.ts](src/config/ConfigLoader.ts)):
+- Uses the `conf` package (v10) for cross-platform config file management
+- `load(cliOptions)` - Merges config from all sources with correct priority
+- `save(config)` - Persists settings to config file
+- `getConfigPath()` - Returns path to config file
+- `reset()` - Clears config file, resetting to defaults
+- `getFpsFromConfig(config)` - Resolves FPS from explicit value or quality preset
+
+**Config Schema** ([src/types/index.ts](src/types/index.ts)):
+```typescript
+interface ConfigSchema {
+  // Global settings
+  defaultPattern?: string;
+  quality?: QualityPreset;
+  fps?: number;
+  theme?: string;
+  mouseEnabled?: boolean;
+  
+  // Pattern-specific configurations
+  patterns?: {
+    waves?: WavePatternConfig;
+    starfield?: StarfieldPatternConfig;
+    matrix?: MatrixPatternConfig;
+    rain?: RainPatternConfig;
+    quicksilver?: QuicksilverPatternConfig;
+  };
+}
+```
+
+**Config File Location**:
+- Linux/macOS: `~/.config/ascii-splash/.splashrc.json`
+- Windows: `%APPDATA%\ascii-splash\config.json`
+
+**Usage in main.ts** ([src/main.ts](src/main.ts:98-172)):
+```typescript
+const cliOptions = parseCliArguments();        // Parse CLI
+const configLoader = new ConfigLoader();
+const config = configLoader.load(cliOptions);  // Merge all sources
+
+// Apply config to patterns
+patterns = createPatternsFromConfig(config);
+const initialFps = ConfigLoader.getFpsFromConfig(config);
+```
+
+### Pattern-Specific Configs
+
+Each pattern can have custom settings defined in the config file:
+
+**Example** (`~/.config/ascii-splash/.splashrc.json`):
+```json
+{
+  "patterns": {
+    "waves": {
+      "frequency": 0.1,
+      "amplitude": 3,
+      "layers": 3,
+      "rippleDuration": 2000
+    },
+    "starfield": {
+      "starCount": 300,
+      "speed": 50,
+      "forceFieldRadius": 20
+    }
+  }
+}
+```
+
+See [examples/.splashrc.example](examples/.splashrc.example) for a complete example.
+
+## Theme System
+
+### Overview
+
+The theme system provides 5 predefined color themes that all patterns automatically use. Themes are implemented using color interpolation for smooth gradients.
+
+### Theme Implementation
+
+**Theme Interface** ([src/types/index.ts](src/types/index.ts)):
+```typescript
+interface Theme {
+  name: string;
+  displayName: string;
+  colors: Color[];
+  getColor(intensity: number): Color;
+}
+```
+
+**Theme Definitions** ([src/config/themes.ts](src/config/themes.ts)):
+- **Ocean** (default): Blues, cyans, teals (calm and soothing)
+- **Matrix**: Green monochrome (classic hacker aesthetic)
+- **Starlight**: Deep blues, purples, white (cosmic space)
+- **Fire**: Reds, oranges, yellows (warm and energetic)
+- **Monochrome**: Grayscale gradient (clean and minimal)
+
+### Usage in Patterns
+
+Patterns that support themes (WavePattern, StarfieldPattern, MatrixPattern, ParticlePattern, SpiralPattern, PlasmaPattern) receive a `Theme` object in their constructor:
+
+```typescript
+constructor(theme: Theme, config?: Partial<PatternConfig>) {
+  this.theme = theme;
+  // ...
+}
+
+// In render method, use intensity (0-1) to get colors
+const color = this.theme.getColor(intensity);
+```
+
+The `getColor(intensity)` method uses linear interpolation between the theme's color array to provide smooth gradients.
+
+### Theme Cycling
+
+Press `t` during runtime to cycle through themes. The current theme is:
+- Displayed in the debug overlay (press `d`)
+- Stored in the config file for persistence
+- Can be set via `--theme` CLI argument
+- Recreates all patterns with the new theme when changed
+
 ## Application Controls
 
 **Keyboard:**
-- 1-4: Switch to patterns 1-4
+- 1-8: Switch to patterns 1-8
 - n/p: Next/Previous pattern
 - SPACE: Pause/Resume
 - +/-: Adjust FPS (10-60 range)
+- [/]: Cycle quality presets (LOW/MEDIUM/HIGH)
+- t: Cycle color themes
 - ?: Toggle help overlay
 - d: Toggle debug overlay (shows performance metrics)
 - q/ESC/Ctrl+C: Quit
@@ -129,8 +262,12 @@ To add a new pattern:
 
 ```
 src/
-├── types/index.ts          # Core interfaces (Pattern, Cell, Point, Size)
-├── main.ts                 # Entry point, input handling, UI overlays
+├── types/index.ts          # Core interfaces (Pattern, Cell, ConfigSchema, Theme, etc.)
+├── main.ts                 # Entry point, CLI parsing, input handling, UI overlays
+├── config/
+│   ├── defaults.ts         # Default configuration values
+│   ├── ConfigLoader.ts     # Load/merge config from file and CLI
+│   └── themes.ts           # 5 color themes with interpolation
 ├── renderer/
 │   ├── TerminalRenderer.ts # Terminal setup, resize handling, rendering
 │   └── Buffer.ts           # Double-buffering with dirty tracking
@@ -142,22 +279,44 @@ src/
     ├── StarfieldPattern.ts # 3D starfield with parallax
     ├── MatrixPattern.ts    # Digital rain effect
     ├── RainPattern.ts      # Simple falling droplets
-    └── QuicksilverPattern.ts # Liquid metal flow
+    ├── QuicksilverPattern.ts # Liquid metal flow
+    ├── ParticlePattern.ts  # Physics-based particles
+    ├── SpiralPattern.ts    # Rotating logarithmic spirals
+    └── PlasmaPattern.ts    # Fluid plasma effect
 ```
 
 ## Current Status
 
-**Phase 2 Complete** - 5 interactive patterns working:
-1. Waves - Flowing sine waves with mouse ripples
-2. Starfield - 3D stars with force field mouse interaction
-3. Matrix - Digital rain with distortion effects
-4. Rain - Falling drops with bounce effects
-5. Quicksilver - Metallic liquid flow
+**Phase 3.4 Complete** - 8 patterns with full theme support!
 
-**Phase 3 Goals** (see [PLAN.md](PLAN.md)):
-- Configuration system (~/.splashrc)
-- Theme support
-- Additional patterns (Particles, Spiral, Plasma)
+**Completed Features:**
+1. **8 Interactive Patterns**: Waves, Starfield, Matrix, Rain, Quicksilver, Particles, Spiral, Plasma
+2. **5 Color Themes**: Ocean (default), Matrix, Starlight, Fire, Monochrome
+3. **CLI Arguments System** (Phase 3.1):
+   - Pattern selection via `--pattern`
+   - Quality presets via `--quality`
+   - FPS override via `--fps`
+   - Theme selection via `--theme`
+   - Mouse toggle via `--no-mouse`
+   - Help and version commands
+4. **Configuration File System** (Phase 3.2):
+   - Config file: `~/.config/ascii-splash/.splashrc.json`
+   - Merge priority: CLI args > config file > defaults
+   - Global settings: pattern, quality, FPS, theme, mouse
+   - Pattern-specific settings for all 8 patterns
+   - Example config at `examples/.splashrc.example`
+5. **Theme System** (Phase 3.3):
+   - 5 predefined themes with color interpolation
+   - Live theme cycling with 't' key
+   - Theme visible in debug overlay
+   - Patterns automatically adapt to selected theme
+   - CLI and config file support
+6. **Additional Patterns** (Phase 3.4):
+   - ParticlePattern: Physics-based particles with gravity and mouse interaction
+   - SpiralPattern: Rotating logarithmic spirals with theme coloring
+   - PlasmaPattern: Fluid plasma effect with sine wave combination
+
+**Phase 3 Complete!** Next: Phase 4 - Packaging and distribution (see [PLAN.md](PLAN.md))
 
 ## Testing and Debugging
 

@@ -1,4 +1,4 @@
-import { Pattern, Cell, Size, Point } from '../types';
+import { Pattern, Cell, Size, Point, Theme } from '../types';
 interface WaveConfig {
     speed: number;
     amplitude: number;
@@ -8,9 +8,10 @@ interface WaveConfig {
 export declare class WavePattern implements Pattern {
     name: string;
     private config;
+    private theme;
     private ripples;
     private waveChars;
-    constructor(config?: Partial<WaveConfig>);
+    constructor(theme: Theme, config?: Partial<WaveConfig>);
     render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void;
     onMouseMove(pos: Point): void;
     onMouseClick(pos: Point): void;

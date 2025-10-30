@@ -229,4 +229,12 @@ export class QuicksilverPattern implements Pattern {
     this.ripples = [];
     this.noiseOffset = 0;
   }
+
+  getMetrics(): Record<string, number> {
+    return {
+      droplets: this.droplets.length,
+      ripples: this.ripples.length,
+      flowIntensity: this.config.flowIntensity
+    };
+  }
 }

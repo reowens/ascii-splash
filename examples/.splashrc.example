@@ -1,0 +1,84 @@
+{
+  "$schema": "Configuration file for ascii-splash terminal animation app",
+  
+  "comment": "This is an example configuration file for ascii-splash.",
+  "comment": "Copy this to ~/.config/ascii-splash/.splashrc.json (Linux/macOS) or",
+  "comment": "%APPDATA%/ascii-splash/config.json (Windows) and modify as needed.",
+  "comment": "",
+  "comment": "All settings are optional. Omitted values will use defaults.",
+  "comment": "CLI arguments always take precedence over config file settings.",
+  
+  "defaultPattern": "waves",
+  "quality": "medium",
+  "fps": 30,
+  "theme": "ocean",
+  "mouseEnabled": true,
+  
+  "comment": "Available themes: ocean (default), matrix, starlight, fire, monochrome",
+  
+  "patterns": {
+    "waves": {
+      "comment": "Wave pattern settings",
+      "frequency": 0.1,
+      "amplitude": 3,
+      "speed": 1.0,
+      "layers": 3,
+      "rippleDuration": 2000
+    },
+    
+    "starfield": {
+      "comment": "3D starfield pattern settings",
+      "starCount": 200,
+      "speed": 50,
+      "forceFieldRadius": 15,
+      "forceFieldStrength": 200
+    },
+    
+    "matrix": {
+      "comment": "Matrix rain pattern settings",
+      "columnDensity": 0.1,
+      "speed": 1.0,
+      "fadeTime": 1000,
+      "distortionRadius": 10
+    },
+    
+    "rain": {
+      "comment": "Rain droplets pattern settings",
+      "dropCount": 100,
+      "speed": 1.0,
+      "splashDuration": 500
+    },
+    
+    "quicksilver": {
+      "comment": "Liquid metal flow pattern settings",
+      "blobCount": 15,
+      "speed": 1.0,
+      "viscosity": 0.95,
+      "mousePull": 0.3
+    },
+    
+    "particles": {
+      "comment": "Physics-based particle system settings",
+      "particleCount": 150,
+      "gravity": 0.2,
+      "friction": 0.98,
+      "mouseForce": 5.0,
+      "burstSize": 20
+    },
+    
+    "spiral": {
+      "comment": "Logarithmic spiral pattern settings",
+      "armCount": 3,
+      "rotationSpeed": 0.2,
+      "pointDensity": 2.0,
+      "spreadFactor": 0.1
+    },
+    
+    "plasma": {
+      "comment": "Fluid plasma effect settings",
+      "speed": 1.0,
+      "complexity": 1.0,
+      "scale": 10.0
+    }
+  }
+}

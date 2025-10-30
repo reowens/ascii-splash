@@ -2,10 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WavePattern = void 0;
 class WavePattern {
-    constructor(config) {
+    constructor(theme, config) {
         this.name = 'waves';
         this.ripples = [];
         this.waveChars = ['~', '≈', '∼', '-', '.', ' '];
+        this.theme = theme;
         this.config = {
             speed: 1.0,
             amplitude: 5,
@@ -47,49 +48,30 @@ class WavePattern {
                 }
                 const waveHeight = height / 2 + totalWave;
                 const intensity = Math.abs(y - waveHeight);
-                // Smoother character and color transitions
+                // Map intensity to character and theme color
                 let char = ' ';
-                let color = { r: 0, g: 0, b: 0 };
+                let colorIntensity = 0;
                 if (intensity < 0.5) {
                     char = this.waveChars[0];
-                    color = { r: 255, g: 255, b: 255 }; // White crest
+                    colorIntensity = 1.0; // Brightest (crest)
                 }
                 else if (intensity < 1.5) {
                     char = this.waveChars[1];
-                    const t = (intensity - 0.5) / 1.0;
-                    color = {
-                        r: Math.floor(255 - t * 155),
-                        g: Math.floor(255 - t * 55),
-                        b: 255
-                    };
+                    colorIntensity = 1.0 - (intensity - 0.5) / 1.0 * 0.2; // 1.0 → 0.8
                 }
                 else if (intensity < 2.5) {
                     char = this.waveChars[2];
-                    const t = (intensity - 1.5) / 1.0;
-                    color = {
-                        r: Math.floor(100 - t * 50),
-                        g: Math.floor(200 - t * 50),
-                        b: 255
-                    };
+                    colorIntensity = 0.8 - (intensity - 1.5) / 1.0 * 0.2; // 0.8 → 0.6
                 }
                 else if (intensity < 4) {
                     char = this.waveChars[3];
-                    const t = (intensity - 2.5) / 1.5;
-                    color = {
-                        r: Math.floor(50 - t * 20),
-                        g: Math.floor(150 - t * 50),
-                        b: Math.floor(255 - t * 55)
-                    };
+                    colorIntensity = 0.6 - (intensity - 2.5) / 1.5 * 0.2; // 0.6 → 0.4
                 }
                 else if (intensity < 6) {
                     char = this.waveChars[4];
-                    const t = (intensity - 4) / 2.0;
-                    color = {
-                        r: Math.floor(30 - t * 10),
-                        g: Math.floor(100 - t * 50),
-                        b: Math.floor(200 - t * 50)
-                    };
+                    colorIntensity = 0.4 - (intensity - 4) / 2.0 * 0.2; // 0.4 → 0.2
                 }
+                const color = this.theme.getColor(colorIntensity);
                 buffer[y][x] = { char, color };
             }
         }
