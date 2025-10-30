@@ -63,6 +63,31 @@ export const defaultConfig: ConfigSchema = {
       speed: 1.0,
       complexity: 3,
     },
+    tunnel: {
+      shape: 'circle',
+      ringCount: 12,
+      ringSpacing: 0.5,
+      speed: 1.0,
+      rotationSpeed: 0.2,
+      radius: 15,
+    },
+    lightning: {
+      boltDensity: 0.5,
+      branchProbability: 0.3,
+      branchAngle: 30,
+      fadeTime: 300,
+      strikeInterval: 1500,
+      maxBranches: 3,
+      thickness: 1,
+    },
+    fireworks: {
+      burstSize: 80,
+      launchSpeed: 0.8,
+      gravity: 0.015,
+      fadeRate: 0.02,
+      spawnInterval: 1500,
+      trailLength: 8,
+    },
   },
 };
 

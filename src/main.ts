@@ -12,6 +12,9 @@ import { QuicksilverPattern } from './patterns/QuicksilverPattern';
 import { ParticlePattern } from './patterns/ParticlePattern';
 import { SpiralPattern } from './patterns/SpiralPattern';
 import { PlasmaPattern } from './patterns/PlasmaPattern';
+import { TunnelPattern } from './patterns/TunnelPattern';
+import { LightningPattern } from './patterns/LightningPattern';
+import { FireworksPattern } from './patterns/FireworksPattern';
 import { Pattern, CliOptions, QualityPreset, ConfigSchema, Theme } from './types';
 import { ConfigLoader } from './config/ConfigLoader';
 import { getTheme, getNextThemeName } from './config/themes';
@@ -40,7 +43,7 @@ function parseCliArguments(): CliOptions {
   // Pattern selection
   program.option(
     '-p, --pattern <name>',
-    'Start with specific pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma)'
+    'Start with specific pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks)'
   );
   
   // Quality preset
@@ -176,6 +179,31 @@ function main() {
         frequency: cfg.patterns?.plasma?.frequency,
         speed: cfg.patterns?.plasma?.speed,
         complexity: cfg.patterns?.plasma?.complexity
+      }),
+      new TunnelPattern(theme, {
+        shape: cfg.patterns?.tunnel?.shape,
+        ringCount: cfg.patterns?.tunnel?.ringCount,
+        ringSpacing: cfg.patterns?.tunnel?.ringSpacing,
+        speed: cfg.patterns?.tunnel?.speed,
+        rotationSpeed: cfg.patterns?.tunnel?.rotationSpeed,
+        radius: cfg.patterns?.tunnel?.radius
+      }),
+      new LightningPattern(theme, {
+        boltDensity: cfg.patterns?.lightning?.boltDensity,
+        branchProbability: cfg.patterns?.lightning?.branchProbability,
+        branchAngle: cfg.patterns?.lightning?.branchAngle,
+        fadeTime: cfg.patterns?.lightning?.fadeTime,
+        strikeInterval: cfg.patterns?.lightning?.strikeInterval,
+        maxBranches: cfg.patterns?.lightning?.maxBranches,
+        thickness: cfg.patterns?.lightning?.thickness
+      }),
+      new FireworksPattern(theme, {
+        burstSize: cfg.patterns?.fireworks?.burstSize,
+        launchSpeed: cfg.patterns?.fireworks?.launchSpeed,
+        gravity: cfg.patterns?.fireworks?.gravity,
+        fadeRate: cfg.patterns?.fireworks?.fadeRate,
+        spawnInterval: cfg.patterns?.fireworks?.spawnInterval,
+        trailLength: cfg.patterns?.fireworks?.trailLength
       })
     ];
   }
@@ -185,7 +213,7 @@ function main() {
   // Determine starting pattern from config
   let currentPatternIndex = 0;
   if (config.defaultPattern) {
-    const patternNames = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma'];
+    const patternNames = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma', 'tunnel', 'lightning', 'fireworks'];
     const index = patternNames.indexOf(config.defaultPattern);
     if (index >= 0) {
       currentPatternIndex = index;
@@ -281,8 +309,8 @@ function main() {
         'KEYBOARD CONTROLS',
         '─────────────────',
         '0        Command mode (advanced)',
-        '1-8      Switch patterns',
-        'n/p      Next/Previous pattern',
+        '1-9      Switch patterns (1-9)',
+        'n/p      Next/Previous pattern (all 11)',
         'SPACE    Pause/Resume',
         '+/-      Speed up/down',
         '[/]      Quality presets (low/high)',
@@ -344,6 +372,12 @@ function main() {
       `Min/Avg/Max FPS: ${stats.minFps.toFixed(1)} / ${stats.avgFps.toFixed(1)} / ${stats.maxFps.toFixed(1)}`,
       `Total Frames: ${stats.totalFrames}`
     ];
+    
+    // Add shuffle info if active
+    const shuffleInfo = commandExecutor.getShuffleInfo();
+    if (shuffleInfo) {
+      lines.push(shuffleInfo);
+    }
 
     // Add pattern-specific metrics if available
     if (currentPattern.getMetrics) {
@@ -520,6 +554,8 @@ function main() {
       switchPattern(6); // Spiral
     } else if (name === '8') {
       switchPattern(7); // Plasma
+    } else if (name === '9') {
+      switchPattern(8); // Tunnel
     }
     // Pattern selection - next/previous
     else if (name === 'n') {
@@ -592,6 +628,7 @@ function main() {
   }
 
   function cleanup() {
+    commandExecutor.cleanup();
     engine.stop();
     renderer.cleanup();
   }

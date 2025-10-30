@@ -113,6 +113,34 @@ export interface PlasmaPatternConfig {
   complexity?: number;
 }
 
+export interface TunnelPatternConfig {
+  shape?: 'circle' | 'square' | 'triangle' | 'hexagon' | 'star';
+  ringCount?: number;
+  ringSpacing?: number;
+  speed?: number;
+  rotationSpeed?: number;
+  radius?: number;
+}
+
+export interface LightningPatternConfig {
+  boltDensity?: number;
+  branchProbability?: number;
+  branchAngle?: number;
+  fadeTime?: number;
+  strikeInterval?: number;
+  maxBranches?: number;
+  thickness?: number;
+}
+
+export interface FireworkPatternConfig {
+  burstSize?: number;
+  launchSpeed?: number;
+  gravity?: number;
+  fadeRate?: number;
+  spawnInterval?: number;
+  trailLength?: number;
+}
+
 // Favorite slot interface
 export interface FavoriteSlot {
   pattern: string;           // Pattern name (e.g., "WavePattern")
@@ -147,5 +175,8 @@ export interface ConfigSchema {
     particles?: ParticlePatternConfig;
     spiral?: SpiralPatternConfig;
     plasma?: PlasmaPatternConfig;
+    tunnel?: TunnelPatternConfig;
+    lightning?: LightningPatternConfig;
+    fireworks?: FireworkPatternConfig;
   };
 }

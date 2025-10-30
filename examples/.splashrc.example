@@ -79,6 +79,49 @@
       "speed": 1.0,
       "complexity": 1.0,
       "scale": 10.0
+    },
+    
+    "tunnel": {
+      "comment": "3D geometric tunnel pattern settings",
+      "shape": "circle",
+      "ringCount": 12,
+      "ringSpacing": 0.5,
+      "speed": 1.0,
+      "rotationSpeed": 0.2,
+      "radius": 15
+    },
+    
+    "lightning": {
+      "comment": "Electric lightning bolt pattern settings",
+      "boltDensity": 0.5,
+      "branchProbability": 0.3,
+      "branchAngle": 30,
+      "fadeTime": 300,
+      "strikeInterval": 1500,
+      "maxBranches": 3,
+      "thickness": 1
+    },
+    
+    "fireworks": {
+      "comment": "Particle fireworks pattern settings",
+      "burstSize": 80,
+      "launchSpeed": 0.8,
+      "gravity": 0.015,
+      "fadeRate": 0.02,
+      "spawnInterval": 1500,
+      "trailLength": 8
+    }
+  },
+  
+  "comment": "Favorites system - saved pattern+preset+theme combinations",
+  "comment": "Use 0F1-0F99 to save, 0f1-0f99 to load, 0fl to list",
+  "favorites": {
+    "1": {
+      "pattern": "WavePattern",
+      "preset": 2,
+      "theme": "ocean",
+      "note": "Calm ocean waves",
+      "savedAt": "2025-10-30T12:00:00.000Z"
     }
   }
 }

@@ -25,6 +25,12 @@ export class CommandExecutor {
   // Callback to recreate patterns with new theme
   private onThemeChange?: (themeIndex: number) => void;
   
+  // Shuffle state
+  private shuffleActive: boolean = false;
+  private shuffleInterval: number = 10; // seconds
+  private shuffleTimer: NodeJS.Timeout | null = null;
+  private shuffleAll: boolean = false; // If true, shuffle patterns too
+  
   constructor(
     engine: AnimationEngine,
     patterns: Pattern[],
@@ -354,16 +360,16 @@ export class CommandExecutor {
     
     switch (specialCmd) {
       case 'randomPreset':
-        return { success: false, message: 'Random preset not implemented yet' };
+        return this.randomPreset();
       
       case 'randomAll':
-        return { success: false, message: 'Random all not implemented yet' };
+        return this.randomAll();
       
       case 'listPresets':
         return this.listPresets();
       
       case 'catalogPresets':
-        return { success: false, message: 'Preset catalog not implemented yet' };
+        return this.catalogPresets();
       
       case 'patternList':
         return this.listPatterns();
@@ -381,16 +387,16 @@ export class CommandExecutor {
         return this.randomize();
       
       case 'save':
-        return { success: false, message: 'Save config not implemented yet' };
+        return this.saveConfig();
       
       case 'reset':
         return this.resetPattern();
       
       case 'shuffle':
-        return { success: false, message: `Shuffle${specialArg ? ' ' + specialArg : ''} not implemented yet` };
+        return this.toggleShuffle(specialArg);
       
       case 'shuffleAll':
-        return { success: false, message: 'Shuffle all not implemented yet' };
+        return this.toggleShuffleAll();
       
       case 'search':
         return this.search(specialArg || '');
@@ -440,11 +446,37 @@ export class CommandExecutor {
   
   // Helper methods for special commands
   
+  /**
+   * List presets for current pattern
+   */
   private listPresets(): ExecutionResult {
-    // TODO: Implement when preset system is ready
+    const currentPattern = this.patterns[this.currentPatternIndex];
+    const patternClass = currentPattern.constructor as any;
+    
+    // Check if pattern has getPresets static method
+    if (!patternClass.getPresets) {
+      return {
+        success: false,
+        message: `${currentPattern.constructor.name} doesn't support presets`
+      };
+    }
+    
+    const presets = patternClass.getPresets();
+    
+    if (!presets || presets.length === 0) {
+      return {
+        success: true,
+        message: `No presets available for ${currentPattern.constructor.name}`
+      };
+    }
+    
+    // Format: "Presets for Wave: 1:Calm Seas, 2:Ocean Storm, ..."
+    const presetList = presets.map((p: any) => `${p.id}:${p.name}`).join(', ');
+    const patternName = currentPattern.constructor.name.replace('Pattern', '');
+    
     return {
       success: true,
-      message: 'Presets: Not yet implemented'
+      message: `Presets for ${patternName}: ${presetList}`
     };
   }
   
@@ -571,5 +603,263 @@ export class CommandExecutor {
       success: true,
       message: `Favorites: ${lines.join(' | ')}`
     };
+  }
+  
+  /**
+   * Apply random preset to current pattern (0*)
+   */
+  private randomPreset(): ExecutionResult {
+    const currentPattern = this.patterns[this.currentPatternIndex];
+    const patternClass = currentPattern.constructor as any;
+    
+    // Check if pattern has getPresets static method
+    if (!patternClass.getPresets || !currentPattern.applyPreset) {
+      return {
+        success: false,
+        message: `${currentPattern.constructor.name} doesn't support presets`
+      };
+    }
+    
+    const presets = patternClass.getPresets();
+    
+    if (!presets || presets.length === 0) {
+      return {
+        success: false,
+        message: `No presets available for ${currentPattern.constructor.name}`
+      };
+    }
+    
+    // Pick random preset
+    const randomPreset = presets[Math.floor(Math.random() * presets.length)];
+    const success = currentPattern.applyPreset(randomPreset.id);
+    
+    if (success) {
+      return {
+        success: true,
+        message: `Random preset: ${randomPreset.name} (${randomPreset.id})`
+      };
+    } else {
+      return {
+        success: false,
+        message: `Failed to apply preset ${randomPreset.id}`
+      };
+    }
+  }
+  
+  /**
+   * Random pattern AND preset (0**)
+   */
+  private randomAll(): ExecutionResult {
+    // Pick random pattern
+    const randomPatternIndex = Math.floor(Math.random() * this.patterns.length);
+    const randomPattern = this.patterns[randomPatternIndex];
+    const patternClass = randomPattern.constructor as any;
+    
+    // Switch to pattern
+    this.engine.setPattern(randomPattern);
+    this.currentPatternIndex = randomPatternIndex;
+    
+    let message = `Random: ${randomPattern.constructor.name}`;
+    
+    // Try to apply random preset if available
+    if (patternClass.getPresets && randomPattern.applyPreset) {
+      const presets = patternClass.getPresets();
+      if (presets && presets.length > 0) {
+        const randomPreset = presets[Math.floor(Math.random() * presets.length)];
+        randomPattern.applyPreset(randomPreset.id);
+        message += ` + ${randomPreset.name}`;
+      }
+    }
+    
+    // Also randomize theme
+    const randomThemeIndex = Math.floor(Math.random() * this.themes.length);
+    this.currentThemeIndex = randomThemeIndex;
+    if (this.onThemeChange) {
+      this.onThemeChange(randomThemeIndex);
+    }
+    message += ` + ${this.themes[randomThemeIndex].displayName}`;
+    
+    return {
+      success: true,
+      message
+    };
+  }
+  
+  /**
+   * Show catalog of all presets across all patterns (0??)
+   */
+  private catalogPresets(): ExecutionResult {
+    const catalog: string[] = [];
+    
+    this.patterns.forEach((pattern, index) => {
+      const patternClass = pattern.constructor as any;
+      const patternName = pattern.constructor.name.replace('Pattern', '');
+      
+      if (patternClass.getPresets) {
+        const presets = patternClass.getPresets();
+        if (presets && presets.length > 0) {
+          const presetList = presets.map((p: any) => `${p.id}:${p.name}`).join(',');
+          catalog.push(`${index + 1}.${patternName}[${presetList}]`);
+        }
+      }
+    });
+    
+    if (catalog.length === 0) {
+      return {
+        success: true,
+        message: 'No presets available in any pattern'
+      };
+    }
+    
+    return {
+      success: true,
+      message: `Catalog: ${catalog.join(' | ')}`
+    };
+  }
+  
+  /**
+   * Save current state to config file (0s)
+   */
+  private saveConfig(): ExecutionResult {
+    if (!this.configLoader) {
+      return { success: false, message: 'Config loader not available' };
+    }
+    
+    const currentPattern = this.patterns[this.currentPatternIndex];
+    const currentTheme = this.themes[this.currentThemeIndex];
+    const currentFps = this.engine.getFps();
+    
+    // Load existing config and update with current state
+    const config = this.configLoader.load();
+    config.defaultPattern = currentPattern.constructor.name.replace('Pattern', '').toLowerCase();
+    config.theme = currentTheme.name;
+    config.fps = currentFps;
+    
+    // Save to file
+    this.configLoader.save(config);
+    
+    return {
+      success: true,
+      message: `Saved: ${currentPattern.constructor.name} + ${currentTheme.displayName} @ ${currentFps}fps`
+    };
+  }
+  
+  /**
+   * Toggle shuffle mode (0! or 0![interval])
+   * Shuffles presets at regular intervals
+   */
+  private toggleShuffle(intervalArg?: string): ExecutionResult {
+    // If shuffle is active, turn it off
+    if (this.shuffleActive) {
+      this.stopShuffle();
+      return {
+        success: true,
+        message: 'Shuffle mode disabled'
+      };
+    }
+    
+    // Parse interval if provided
+    if (intervalArg) {
+      const interval = parseInt(intervalArg, 10);
+      if (isNaN(interval) || interval < 1 || interval > 300) {
+        return {
+          success: false,
+          message: 'Shuffle interval must be 1-300 seconds'
+        };
+      }
+      this.shuffleInterval = interval;
+    }
+    
+    // Start shuffle mode (presets only)
+    this.shuffleActive = true;
+    this.shuffleAll = false;
+    this.startShuffleTimer();
+    
+    return {
+      success: true,
+      message: `Shuffle mode enabled (${this.shuffleInterval}s intervals, presets only)`
+    };
+  }
+  
+  /**
+   * Toggle shuffle all mode (0!!)
+   * Shuffles patterns AND presets at regular intervals
+   */
+  private toggleShuffleAll(): ExecutionResult {
+    // If shuffle is active, turn it off
+    if (this.shuffleActive) {
+      this.stopShuffle();
+      return {
+        success: true,
+        message: 'Shuffle all mode disabled'
+      };
+    }
+    
+    // Start shuffle all mode
+    this.shuffleActive = true;
+    this.shuffleAll = true;
+    this.startShuffleTimer();
+    
+    return {
+      success: true,
+      message: `Shuffle all mode enabled (${this.shuffleInterval}s intervals, patterns + presets + themes)`
+    };
+  }
+  
+  /**
+   * Start the shuffle timer
+   */
+  private startShuffleTimer(): void {
+    // Clear existing timer if any
+    if (this.shuffleTimer) {
+      clearInterval(this.shuffleTimer);
+    }
+    
+    // Start new timer
+    this.shuffleTimer = setInterval(() => {
+      if (this.shuffleAll) {
+        // Shuffle everything (pattern + preset + theme)
+        this.randomAll();
+      } else {
+        // Shuffle preset only
+        this.randomPreset();
+      }
+    }, this.shuffleInterval * 1000);
+  }
+  
+  /**
+   * Stop the shuffle timer
+   */
+  private stopShuffle(): void {
+    if (this.shuffleTimer) {
+      clearInterval(this.shuffleTimer);
+      this.shuffleTimer = null;
+    }
+    this.shuffleActive = false;
+  }
+  
+  /**
+   * Check if shuffle mode is active (for debug overlay)
+   */
+  isShuffleActive(): boolean {
+    return this.shuffleActive;
+  }
+  
+  /**
+   * Get shuffle info string (for debug overlay)
+   */
+  getShuffleInfo(): string {
+    if (!this.shuffleActive) {
+      return '';
+    }
+    const mode = this.shuffleAll ? 'ALL' : 'PRESET';
+    return `Shuffle: ${mode} (${this.shuffleInterval}s)`;
+  }
+  
+  /**
+   * Cleanup method (call on app shutdown)
+   */
+  cleanup(): void {
+    this.stopShuffle();
   }
 }
