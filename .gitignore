@@ -1,0 +1,214 @@
+# ascii-splash .gitignore
+
+# ============================================
+# Node.js Dependencies
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ============================================
+# Build Output
+# ============================================
+dist/
+build/
+*.tsbuildinfo
+
+# ============================================
+# Test Coverage
+# ============================================
+coverage/
+*.lcov
+.nyc_output/
+
+# ============================================
+# Environment & Config
+# ============================================
+.env
+.env.local
+.env.*.local
+.splashrc.json
+.splashrc
+
+# User config files (but keep example)
+!examples/.splashrc.example
+
+# ============================================
+# IDE & Editor
+# ============================================
+
+# VS Code
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+*.code-workspace
+
+# JetBrains IDEs (WebStorm, IntelliJ, etc.)
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*.swn
+*~
+.vim/
+
+# Emacs
+*~
+\#*\#
+.\#*
+.emacs.desktop
+.emacs.desktop.lock
+
+# ============================================
+# OS Generated Files
+# ============================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+.nfs*
+
+# ============================================
+# Logs
+# ============================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# ============================================
+# Runtime Data
+# ============================================
+pids
+*.pid
+*.seed
+lib-cov
+
+# ============================================
+# TypeScript
+# ============================================
+*.tsbuildinfo
+.tscache/
+
+# ============================================
+# Testing
+# ============================================
+.jest-cache/
+.jest/
+
+# ============================================
+# Temporary Files
+# ============================================
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+
+# ============================================
+# Package Manager Locks (keep npm)
+# ============================================
+# Keep package-lock.json for reproducible builds
+# !package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ============================================
+# Project Specific
+# ============================================
+
+# Keep source files
+!src/**/*
+!tests/**/*
+
+# Keep documentation
+!docs/**/*
+!*.md
+!examples/**/*
+
+# Keep config files
+!tsconfig.json
+!jest.config.js
+!package.json
+
+# Ignore user test files
+tests/scratch/
+tests/tmp/
+
+# Ignore benchmark results
+benchmarks/results/
+*.bench
+
+# ============================================
+# Misc
+# ============================================
+.cache/
+.npm/
+.eslintcache
+.stylelintcache
+.parcel-cache/
+.next/
+.nuxt/
+.docusaurus/
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+.vscode-test
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*

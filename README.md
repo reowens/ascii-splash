@@ -2,13 +2,17 @@
 
 A terminal ASCII animation app that adds visual flow to your IDE workspace.
 
-## Current Status: Phase 3.4 Complete - 8 Patterns!
+## Current Status: Phase 5 Complete - 11 Patterns with 66 Presets!
 
 ### Working Features
 - Terminal renderer with double-buffering (flicker-free)
 - Adaptive animation engine (15-60 FPS)
-- **8 Interactive Patterns**: Waves, Starfield, Matrix, Rain, Quicksilver, Particles, Spiral, Plasma
+- **11 Interactive Patterns**: Waves, Starfield, Matrix, Rain, Quicksilver, Particles, Spiral, Plasma, Tunnel, Lightning, Fireworks
+- **66 Total Presets** (6 per pattern)
 - **5 Color Themes**: Ocean, Matrix, Starlight, Fire, Monochrome
+- **Advanced Command System** with multi-key commands (press 0 to activate)
+- **Favorites System** (save/load favorite pattern+preset+theme combos)
+- **Shuffle Mode** (auto-cycle presets or entire configs)
 - Pattern switching with keyboard shortcuts
 - Theme cycling with live preview
 - Full mouse interaction support (can be disabled via CLI)
@@ -79,7 +83,7 @@ node dist/main.js -h
 
 | Option | Short | Description | Values |
 |--------|-------|-------------|--------|
-| `--pattern` | `-p` | Starting pattern | waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma |
+| `--pattern` | `-p` | Starting pattern | waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks |
 | `--quality` | `-q` | Quality preset | low, medium (default), high |
 | `--fps` | `-f` | Custom FPS (10-60) | Number (overrides quality preset FPS) |
 | `--theme` | `-t` | Color theme | ocean (default), matrix, starlight, fire, monochrome |
@@ -136,7 +140,7 @@ See [examples/.splashrc.example](examples/.splashrc.example) for a complete exam
 ### Available Settings
 
 **Global Settings:**
-- `defaultPattern` - Starting pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma)
+- `defaultPattern` - Starting pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks)
 - `quality` - Quality preset (low, medium, high)
 - `fps` - Target frames per second (10-60)
 - `theme` - Color theme (ocean, matrix, starlight, fire, monochrome)
@@ -153,6 +157,9 @@ Each pattern has its own configuration options. See [examples/.splashrc.example]
 - `particles` - particleCount, speed, gravity, mouseForce, spawnRate
 - `spiral` - spiralCount, rotationSpeed, armLength, density, expandSpeed
 - `plasma` - frequency, speed, complexity
+- `tunnel` - shape, ringCount, ringSpacing, speed, rotationSpeed, radius
+- `lightning` - boltDensity, branchProbability, branchAngle, fadeTime, strikeInterval, maxBranches, thickness
+- `fireworks` - burstSize, launchSpeed, gravity, fadeRate, spawnInterval, trailLength
 
 ### Creating Your Config
 
@@ -169,8 +176,9 @@ Each pattern has its own configuration options. See [examples/.splashrc.example]
 ## Controls
 
 ### Keyboard
-- **1-8**: Switch to pattern 1-8
-- **n/p**: Next/Previous pattern
+- **0**: Command mode (advanced multi-key commands - presets, favorites, search, shuffle)
+- **1-9**: Switch to pattern 1-9
+- **n/p**: Next/Previous pattern (cycles through all 11 patterns)
 - **Space**: Pause/Resume
 - **+/-**: Adjust FPS (10-60)
 - **[/]**: Cycle quality presets (LOW/MEDIUM/HIGH)
@@ -283,6 +291,39 @@ Fluid plasma effect
 - Theme-based intensity coloring
 - Continuous animation
 - **Metrics**: Wave count, complexity level
+- **6 Presets**: Gentle Waves, Standard Plasma, Turbulent Energy, Lava Lamp, Electric Storm, Cosmic Nebula
+
+### 9. Tunnel (Press 9)
+3D geometric tunnel with perspective
+- Multiple shape modes: circle, square, triangle, hexagon, star
+- Perspective projection with depth
+- Rotation animation for hypnotic effect
+- Mouse parallax (shifts vanishing point)
+- Click reverses direction + speed boost
+- **Metrics**: Ring count, shape, speed, depth
+- **6 Presets**: Circle Tunnel, Hyperspeed, Square Vortex, Triangle Warp, Hexagon Grid, Stargate
+
+### 10. Lightning
+Electric bolts with recursive branching
+- Bresenham line algorithm for bolt segments
+- Recursive branching (probability-based)
+- Flash effect with fade-out
+- Auto-strikes at intervals
+- Mouse creates charge particles
+- Click spawns 3-4 area bolts
+- **Metrics**: Bolt count, branch count, charge particles
+- **6 Presets**: Cloud Strike, Tesla Coil, Ball Lightning, Fork Lightning, Chain Lightning, Spider Lightning
+
+### 11. Fireworks
+Particle explosions with physics
+- 3-phase lifecycle: launch → explode → fall
+- Particle trails with history tracking
+- Theme-based burst colors with fade
+- Gravity and velocity physics
+- Auto-spawn timer
+- Click for instant 1.5x explosion
+- **Metrics**: Active fireworks, particle count, explosions
+- **6 Presets**: Sparklers, Grand Finale, Fountain, Roman Candle, Chrysanthemum, Strobe
 
 ## Quality Presets
 
@@ -346,12 +387,42 @@ src/
 
 See [CLAUDE.md](CLAUDE.md) for detailed architecture documentation.
 
+## Command System
+
+Press **0** to enter command mode for advanced features:
+
+### Quick Commands
+- `01`, `02`, etc. - Apply preset to current pattern
+- `0p3` - Switch to pattern 3
+- `0t2` - Switch to theme 2
+- `0p3+t2` - Switch pattern AND theme
+
+### Favorites
+- `0F1` - Save current state to favorite slot 1
+- `0f1` - Load favorite slot 1
+- `0fl` - List all saved favorites
+
+### Special Commands
+- `0*` - Random preset (current pattern)
+- `0**` - Random pattern + preset + theme
+- `0?` - List presets for current pattern
+- `0??` - Show ALL presets catalog
+- `0!` - Toggle shuffle mode (10s intervals)
+- `0!5` - Shuffle with 5s intervals
+- `0!!` - Shuffle ALL (pattern+preset+theme)
+- `0/term` - Search patterns/themes
+- `0s` - Save current config to file
+
+See [CLAUDE.md](CLAUDE.md) for complete command reference.
+
 ## Next Steps
 
 - ✅ Phase 3.1: CLI arguments
 - ✅ Phase 3.2: Configuration system
 - ✅ Phase 3.3: Theme support
 - ✅ Phase 3.4: Additional patterns (Particles, Spiral, Plasma)
-- Phase 4: Packaging and distribution
+- ✅ Phase 4: Command system, presets, favorites
+- ✅ Phase 5: New patterns (Tunnel, Lightning, Fireworks)
+- Phase 6: Additional patterns or polish features
 
-See [PLAN.md](PLAN.md) for the full roadmap.
+See [docs/PLAN.md](docs/PLAN.md) for the full roadmap.

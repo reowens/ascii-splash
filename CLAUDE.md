@@ -159,6 +159,9 @@ interface ConfigSchema {
     particles?: ParticlePatternConfig;
     spiral?: SpiralPatternConfig;
     plasma?: PlasmaPatternConfig;
+    tunnel?: TunnelPatternConfig;
+    lightning?: LightningPatternConfig;
+    fireworks?: FireworkPatternConfig;
   };
 }
 
@@ -257,6 +260,34 @@ Type 0f1       → Load favorite 1
 - Displays info on load (pattern, preset, theme)
 - Can be manually edited in config file
 
+## Shuffle Mode System
+
+The shuffle mode automatically cycles through presets or entire configurations at regular intervals, creating a dynamic ambient experience.
+
+**Commands:**
+- `0!` - Toggle shuffle mode (presets only, 10-second default interval)
+- `0!5` - Toggle shuffle with custom interval (e.g., every 5 seconds)
+- `0!!` - Toggle shuffle all mode (randomizes pattern + preset + theme)
+
+**Example Usage:**
+```
+# In the app:
+Type 0!       → Enable shuffle mode (cycles presets every 10s)
+Type 0!       → Disable shuffle mode (toggle off)
+Type 0!3      → Enable shuffle with 3-second intervals
+Type 0!!      → Enable shuffle all (patterns + presets + themes)
+```
+
+**Implementation Details** ([src/engine/CommandExecutor.ts](src/engine/CommandExecutor.ts)):
+- Shuffle state managed in CommandExecutor class
+- Uses `setInterval()` for periodic randomization
+- Interval range: 1-300 seconds
+- Shuffle mode indicator shown in debug overlay (press `d`)
+- Automatically cleaned up on app shutdown
+- Two modes:
+  - **Preset shuffle** (`0!`): Only changes presets of current pattern
+  - **Full shuffle** (`0!!`): Randomizes pattern, preset, AND theme
+
 ## Theme System
 
 ### Overview
@@ -309,8 +340,9 @@ Press `t` during runtime to cycle through themes. The current theme is:
 ## Application Controls
 
 **Keyboard:**
-- 1-8: Switch to patterns 1-8
-- n/p: Next/Previous pattern
+- 0: Command mode (advanced multi-key commands)
+- 1-9: Switch to patterns 1-9 (Waves, Starfield, Matrix, Rain, Quicksilver, Particles, Spiral, Plasma, Tunnel)
+- n/p: Next/Previous pattern (cycles through all 11 patterns)
 - SPACE: Pause/Resume
 - +/-: Adjust FPS (10-60 range)
 - [/]: Cycle quality presets (LOW/MEDIUM/HIGH)
@@ -351,15 +383,18 @@ src/
     ├── QuicksilverPattern.ts # Liquid metal flow + 6 presets
     ├── ParticlePattern.ts  # Physics-based particles + 6 presets
     ├── SpiralPattern.ts    # Rotating logarithmic spirals + 6 presets
-    └── PlasmaPattern.ts    # Fluid plasma effect + 6 presets
+    ├── PlasmaPattern.ts    # Fluid plasma effect + 6 presets
+    ├── TunnelPattern.ts    # 3D geometric tunnel + 6 presets (NEW)
+    ├── LightningPattern.ts # Electric bolts with branching + 6 presets (NEW)
+    └── FireworksPattern.ts # Particle explosions + 6 presets (NEW)
 ```
 
 ## Current Status
 
-**Phase 4.3 Complete!** - Favorites system fully implemented!
+**Phase 5 Complete!** - New patterns: Tunnel, Lightning, and Fireworks!
 
 **Completed Features:**
-1. **8 Interactive Patterns**: All with full theme support, mouse interactivity, AND 6 presets each (48 presets total!)
+1. **11 Interactive Patterns**: All with full theme support, mouse interactivity, AND 6 presets each (66 presets total!)
    - **Waves** (6 presets): Calm Seas, Ocean Storm, Ripple Tank, Glass Lake, Tsunami, Choppy Waters
    - **Starfield** (6 presets): Deep Space, Warp Speed, Asteroid Field, Milky Way, Nebula Drift, Photon Torpedo
    - **Matrix** (6 presets): Classic Matrix, Binary Rain, Code Storm, Sparse Glyphs, Firewall, Zen Code
@@ -368,6 +403,9 @@ src/
    - **Particles** (6 presets): Gentle Float, Standard Physics, Heavy Rain, Zero Gravity, Particle Storm, Minimal Drift
    - **Spiral** (6 presets): Twin Vortex, Galaxy Arms, Fibonacci Bloom, Hypnotic Spin, Slow Mandala, Nautilus Shell
    - **Plasma** (6 presets): Gentle Waves, Standard Plasma, Turbulent Energy, Lava Lamp, Electric Storm, Cosmic Nebula
+   - **Tunnel** (6 presets): Circle Tunnel, Hyperspeed, Square Vortex, Triangle Warp, Hexagon Grid, Stargate
+   - **Lightning** (6 presets): Cloud Strike, Tesla Coil, Ball Lightning, Fork Lightning, Chain Lightning, Spider Lightning
+   - **Fireworks** (6 presets): Sparklers, Grand Finale, Fountain, Roman Candle, Chrysanthemum, Strobe
 
 2. **Command System** (Phase 4.1):
    - `CommandBuffer`: Multi-key input accumulation with 10-second timeout
@@ -380,10 +418,10 @@ src/
    - Combination commands: `0p3+t2` (pattern + theme)
 
 3. **Preset System** (Phase 4.2):
-   - All 8 patterns implement `applyPreset(presetId: number): boolean`
+   - All 11 patterns implement `applyPreset(presetId: number): boolean`
    - Static `getPresets()` and `getPreset(id)` methods on each pattern class
    - Users can apply presets via commands: `01`, `02`, `0p3.5`, `0pwaves.2`
-   - Each pattern has 6 carefully designed preset variations
+   - Each pattern has 6 carefully designed preset variations (66 total presets)
 
 4. **Favorites System** (Phase 4.3):
    - Save current state to favorite slots (1-99): `0F1`, `0F2`, etc.
@@ -407,11 +445,23 @@ src/
    - Config file: `~/.config/ascii-splash/.splashrc.json`
    - Merge priority: CLI args > config file > defaults
    - Global settings: pattern, quality, FPS, theme, mouse
-   - Pattern-specific settings for all 8 patterns
+   - Pattern-specific settings for all 11 patterns
    - Favorites storage in config file
    - Example config at `examples/.splashrc.example`
 
-**Next Steps:** Phase 4.4 - Special commands (`0*`, `0**`, `0?`, `0??`, `0!`, `0s`) (see [PLAN.md](PLAN.md))
+5. **Special Commands** (Phase 4.4):
+   - `0*` - Random preset from current pattern
+   - `0**` - Random pattern AND preset (with theme randomization)
+   - `0?` - List presets for current pattern
+   - `0??` - Show ALL presets catalog across all patterns
+   - `0s` - Save current state to config file
+   - `0!` - Toggle shuffle mode (auto-cycle presets every 10s)
+   - `0!5` - Toggle shuffle with custom interval (e.g., every 5 seconds)
+   - `0!!` - Toggle shuffle all mode (patterns + presets + themes)
+   - `0/term` - Search patterns/themes by keyword
+   - Shuffle status displayed in debug overlay
+
+**Next Steps:** Phase 6 - Polish and distribution (see [docs/PLAN.md](docs/PLAN.md))
 
 ## Testing and Debugging
 
