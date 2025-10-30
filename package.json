@@ -1,7 +1,7 @@
 {
   "name": "ascii-splash",
-  "version": "0.1.0",
-  "description": "A terminal ASCII animation app that adds visual flow to your IDE workspace",
+  "version": "1.0.0",
+  "description": "A lightweight terminal ASCII animation app with 11 interactive patterns, themes, presets, and mouse support. Perfect ambient visuals for your IDE workspace.",
   "main": "dist/main.js",
   "bin": {
     "splash": "./dist/main.js"
@@ -13,19 +13,47 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:verbose": "jest --verbose"
+    "test:verbose": "jest --verbose",
+    "prepublishOnly": "npm run build && npm test"
   },
   "keywords": [
     "terminal",
     "ascii",
+    "ascii-art",
     "animation",
     "art",
     "cli",
+    "terminal-animation",
     "waves",
-    "starfield"
+    "starfield",
+    "matrix",
+    "plasma",
+    "fireworks",
+    "particles",
+    "visual",
+    "ambient",
+    "screensaver",
+    "background",
+    "ide",
+    "workspace"
   ],
-  "author": "",
+  "author": "reoiv",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reowens/ascii-splash.git"
+  },
+  "bugs": {
+    "url": "https://github.com/reowens/ascii-splash/issues"
+  },
+  "homepage": "https://github.com/reowens/ascii-splash#readme",
+  "files": [
+    "dist/",
+    "examples/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "type": "commonjs",
   "engines": {
     "node": ">=16.0.0"

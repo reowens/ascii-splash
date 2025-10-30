@@ -1,82 +1,115 @@
 # ascii-splash
 
-A terminal ASCII animation app that adds visual flow to your IDE workspace.
+[![npm version](https://img.shields.io/npm/v/ascii-splash.svg)](https://www.npmjs.com/package/ascii-splash)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/node/v/ascii-splash.svg)](https://nodejs.org)
 
-## Current Status: Phase 5 Complete - 11 Patterns with 66 Presets!
+**A terminal ASCII animation app that adds visual flow to your IDE workspace.**
 
-### Working Features
-- Terminal renderer with double-buffering (flicker-free)
-- Adaptive animation engine (15-60 FPS)
-- **11 Interactive Patterns**: Waves, Starfield, Matrix, Rain, Quicksilver, Particles, Spiral, Plasma, Tunnel, Lightning, Fireworks
-- **66 Total Presets** (6 per pattern)
-- **5 Color Themes**: Ocean, Matrix, Starlight, Fire, Monochrome
-- **Advanced Command System** with multi-key commands (press 0 to activate)
-- **Favorites System** (save/load favorite pattern+preset+theme combos)
-- **Shuffle Mode** (auto-cycle presets or entire configs)
-- Pattern switching with keyboard shortcuts
-- Theme cycling with live preview
-- Full mouse interaction support (can be disabled via CLI)
-- Terminal resize handling
-- Pause/resume functionality
-- **Performance monitoring system** with real-time metrics
-- **Quality presets** (LOW/MEDIUM/HIGH) for performance tuning
-- Pattern-specific metrics tracking
-- **CLI argument parsing** with validation and help system
-- **Configuration file system** (~/.config/ascii-splash/.splashrc.json)
+Transform your terminal into a mesmerizing visual experience with 11 interactive patterns, 66 presets, 5 color themes, and a powerful command system. Perfect as an ambient background for your coding sessions!
 
-## Installation & Running
+---
+
+## ✨ Features
+
+- 🎨 **11 Interactive Patterns** - Waves, Starfield, Matrix, Rain, Quicksilver, Particles, Spiral, Plasma, Tunnel, Lightning, Fireworks
+- 🎯 **66 Total Presets** - 6 carefully crafted variations for each pattern
+- 🌈 **5 Color Themes** - Ocean, Matrix, Starlight, Fire, Monochrome (all patterns adapt)
+- ⌨️ **Advanced Command System** - Multi-key commands for quick pattern/preset/theme switching
+- 💾 **Favorites System** - Save and recall your favorite combinations
+- 🔀 **Shuffle Mode** - Auto-cycle presets or entire configurations
+- 🖱️ **Full Mouse Support** - Interactive effects with mouse movement and clicks
+- ⚡ **High Performance** - <5% CPU usage with double-buffered rendering
+- 🎛️ **Quality Presets** - LOW (15 FPS), MEDIUM (30 FPS), HIGH (60 FPS)
+- 📝 **Configuration File** - Persistent settings with JSON config
+- 🔧 **CLI Arguments** - Flexible command-line options
+
+---
+
+## 🚀 Quick Start
 
 ```bash
-# Install dependencies
+# Install globally
+npm install -g ascii-splash
+
+# Run
+splash
+
+# Or use npx (no install required)
+npx ascii-splash
+```
+
+**Local Development:**
+```bash
+git clone https://github.com/reowens/ascii-splash.git
+cd ascii-splash
 npm install
-
-# Build
 npm run build
-
-# Run with defaults
 npm start
 ```
 
-Or run directly:
+---
+
+## 📦 Installation
+
+### Global Installation (Recommended)
+
 ```bash
-node dist/main.js
+npm install -g ascii-splash
+splash
 ```
 
-## Command Line Options
+### Using npx (No Install)
+
+```bash
+npx ascii-splash
+```
+
+### Local Development
+
+```bash
+git clone https://github.com/reowens/ascii-splash.git
+cd ascii-splash
+npm install
+npm run build
+npm start
+```
+
+## ⚙️ Command Line Options
 
 ```bash
 # Run with defaults (medium quality, waves pattern, mouse enabled)
-node dist/main.js
+splash
 
 # Start with specific pattern
-node dist/main.js --pattern starfield
-node dist/main.js -p matrix
+splash --pattern starfield
+splash -p matrix
 
 # Set quality preset
-node dist/main.js --quality high
-node dist/main.js -q low
+splash --quality high
+splash -q low
 
 # Custom FPS (overrides quality preset)
-node dist/main.js --fps 45
-node dist/main.js -f 15
+splash --fps 45
+splash -f 15
 
 # Set color theme
-node dist/main.js --theme fire
-node dist/main.js -t matrix
+splash --theme fire
+splash -t matrix
 
 # Disable mouse interaction
-node dist/main.js --no-mouse
+splash --no-mouse
 
 # Combine options
-node dist/main.js --pattern quicksilver --quality high --theme starlight --no-mouse
+splash --pattern quicksilver --quality high --theme starlight --no-mouse
 
 # Show version
-node dist/main.js --version
-node dist/main.js -V
+splash --version
+splash -V
 
 # Show help
-node dist/main.js --help
-node dist/main.js -h
+splash --help
+splash -h
 ```
 
 ### Available Options
@@ -91,7 +124,7 @@ node dist/main.js -h
 | `--version` | `-V` | Show version | |
 | `--help` | `-h` | Show help | |
 
-## Configuration File
+## 📝 Configuration File
 
 ascii-splash supports persistent configuration via a JSON file. The config file is automatically loaded at startup.
 
@@ -173,9 +206,9 @@ Each pattern has its own configuration options. See [examples/.splashrc.example]
 
 3. Run splash - your settings will be loaded automatically!
 
-## Controls
+## 🎮 Controls
 
-### Keyboard
+### ⌨️ Keyboard
 - **0**: Command mode (advanced multi-key commands - presets, favorites, search, shuffle)
 - **1-9**: Switch to pattern 1-9
 - **n/p**: Next/Previous pattern (cycles through all 11 patterns)
@@ -187,11 +220,11 @@ Each pattern has its own configuration options. See [examples/.splashrc.example]
 - **d**: Toggle debug info (performance metrics)
 - **q/ESC/Ctrl+C**: Exit
 
-### Mouse
+### 🖱️ Mouse
 - **Move**: Interactive effects (ripples, repulsion, distortion, spawning)
 - **Click**: Special effects (big splash, explosion, spawn columns/drops)
 
-## Color Themes
+## 🌈 Color Themes
 
 Press `t` to cycle through 5 beautiful color themes:
 
@@ -222,7 +255,7 @@ Press `t` to cycle through 5 beautiful color themes:
 
 Each theme uses color interpolation to provide smooth gradients. All patterns automatically adapt to the selected theme!
 
-## Patterns
+## 🎨 Patterns
 
 ### 1. Waves (Press 1)
 Smooth flowing sine waves with ripple effects
@@ -325,7 +358,7 @@ Particle explosions with physics
 - **Metrics**: Active fireworks, particle count, explosions
 - **6 Presets**: Sparklers, Grand Finale, Fountain, Roman Candle, Chrysanthemum, Strobe
 
-## Quality Presets
+## ⚡ Quality Presets
 
 Press `[` or `]` to cycle through performance presets:
 
@@ -347,7 +380,7 @@ Maximum quality for high-end systems
 - Enhanced visual layers
 - Silky smooth animations
 
-## Performance Monitoring
+## 📊 Performance Monitoring
 
 Press `d` to toggle the debug overlay showing:
 - Current pattern and theme
@@ -360,7 +393,7 @@ Press `d` to toggle the debug overlay showing:
 - Min/Avg/Max FPS statistics
 - Pattern-specific metrics
 
-## Performance Characteristics
+## 🚄 Performance Characteristics
 
 **Measured on Apple M1:**
 - MEDIUM preset: 30 FPS stable, 2-4% CPU
@@ -374,7 +407,7 @@ Press `d` to toggle the debug overlay showing:
 - Mouse event throttling (~60 FPS)
 - Efficient terminal writes (only changed cells)
 
-## Architecture
+## 🏗️ Architecture
 
 ```
 src/
@@ -387,7 +420,7 @@ src/
 
 See [CLAUDE.md](CLAUDE.md) for detailed architecture documentation.
 
-## Command System
+## 🎯 Command System
 
 Press **0** to enter command mode for advanced features:
 
@@ -415,14 +448,29 @@ Press **0** to enter command mode for advanced features:
 
 See [CLAUDE.md](CLAUDE.md) for complete command reference.
 
-## Next Steps
+## 🤝 Contributing
 
-- ✅ Phase 3.1: CLI arguments
-- ✅ Phase 3.2: Configuration system
-- ✅ Phase 3.3: Theme support
-- ✅ Phase 3.4: Additional patterns (Particles, Spiral, Plasma)
-- ✅ Phase 4: Command system, presets, favorites
-- ✅ Phase 5: New patterns (Tunnel, Lightning, Fireworks)
-- Phase 6: Additional patterns or polish features
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
 
-See [docs/PLAN.md](docs/PLAN.md) for the full roadmap.
+## 📄 License
+
+[MIT License](LICENSE) - Copyright (c) 2025 reoiv
+
+## 🙏 Acknowledgments
+
+Built with:
+- [terminal-kit](https://github.com/cronvel/terminal-kit) - Terminal control and rendering
+- [chalk](https://github.com/chalk/chalk) - Color output
+- [commander](https://github.com/tj/commander.js) - CLI argument parsing
+- [conf](https://github.com/sindresorhus/conf) - Configuration management
+
+## 🔗 Links
+
+- [GitHub Repository](https://github.com/reowens/ascii-splash)
+- [npm Package](https://www.npmjs.com/package/ascii-splash)
+- [Report Issues](https://github.com/reowens/ascii-splash/issues)
+- [Documentation](https://github.com/reowens/ascii-splash/blob/main/CLAUDE.md)
+
+---
+
+**Made with ❤️ for terminal enthusiasts**

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import terminalKit from 'terminal-kit';
 import { Command } from 'commander';
 import { readFileSync } from 'fs';

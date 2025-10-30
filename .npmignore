@@ -1,0 +1,40 @@
+# Source files (we ship compiled code only)
+src/
+tsconfig.json
+
+# Tests
+tests/
+jest.config.js
+coverage/
+
+# Documentation (keep README.md)
+docs/
+CLAUDE.md
+AGENTS.md
+WARP.md
+PLAN.md
+PROJECT_STATUS.md
+TESTING_PLAN.md
+
+# Examples (keep for users)
+# examples/ - we WANT to include this
+
+# Development files
+.git/
+.gitignore
+*.log
+*.tmp
+
+# Build artifacts we don't need
+node_modules/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
