@@ -18,6 +18,13 @@ interface ParticleConfig {
   spawnRate: number;
 }
 
+interface ParticlePreset {
+  id: number;
+  name: string;
+  description: string;
+  config: ParticleConfig;
+}
+
 export class ParticlePattern implements Pattern {
   name = 'particles';
   private config: ParticleConfig;
@@ -25,6 +32,45 @@ export class ParticlePattern implements Pattern {
   private particles: Particle[] = [];
   private attractMode: boolean = false; // Toggle between attract/repel
   private particleChars = ['●', '◉', '○', '◐', '◑', '◒', '◓', '•', '∘', '·', '.'];
+
+  private static readonly PRESETS: ParticlePreset[] = [
+    {
+      id: 1,
+      name: 'Gentle Float',
+      description: 'Slow particles with minimal gravity',
+      config: { particleCount: 80, speed: 0.8, gravity: 0.01, mouseForce: 0.3, spawnRate: 2 }
+    },
+    {
+      id: 2,
+      name: 'Standard Physics',
+      description: 'Balanced particle simulation',
+      config: { particleCount: 100, speed: 1.0, gravity: 0.02, mouseForce: 0.5, spawnRate: 2 }
+    },
+    {
+      id: 3,
+      name: 'Heavy Rain',
+      description: 'Strong gravity, falling particles',
+      config: { particleCount: 150, speed: 1.2, gravity: 0.05, mouseForce: 0.4, spawnRate: 3 }
+    },
+    {
+      id: 4,
+      name: 'Zero Gravity',
+      description: 'Weightless particles in space',
+      config: { particleCount: 120, speed: 1.5, gravity: 0, mouseForce: 0.8, spawnRate: 2 }
+    },
+    {
+      id: 5,
+      name: 'Particle Storm',
+      description: 'High density, fast-moving chaos',
+      config: { particleCount: 200, speed: 1.8, gravity: 0.03, mouseForce: 0.6, spawnRate: 4 }
+    },
+    {
+      id: 6,
+      name: 'Minimal Drift',
+      description: 'Few particles, subtle movement',
+      config: { particleCount: 50, speed: 0.5, gravity: 0.005, mouseForce: 0.2, spawnRate: 1 }
+    }
+  ];
   
   constructor(theme: Theme, config?: Partial<ParticleConfig>) {
     this.theme = theme;
@@ -183,5 +229,22 @@ export class ParticlePattern implements Pattern {
       particles: this.particles.length,
       mode: this.attractMode ? 1 : 0 // 1 = attract, 0 = repel
     };
+  }
+
+  applyPreset(presetId: number): boolean {
+    const preset = ParticlePattern.PRESETS.find(p => p.id === presetId);
+    if (!preset) return false;
+    
+    this.config = { ...preset.config };
+    this.reset();
+    return true;
+  }
+
+  static getPresets(): ParticlePreset[] {
+    return [...ParticlePattern.PRESETS];
+  }
+
+  static getPreset(id: number): ParticlePreset | undefined {
+    return ParticlePattern.PRESETS.find(p => p.id === id);
   }
 }

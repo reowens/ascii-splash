@@ -6,6 +6,12 @@ interface ParticleConfig {
     mouseForce: number;
     spawnRate: number;
 }
+interface ParticlePreset {
+    id: number;
+    name: string;
+    description: string;
+    config: ParticleConfig;
+}
 export declare class ParticlePattern implements Pattern {
     name: string;
     private config;
@@ -13,6 +19,7 @@ export declare class ParticlePattern implements Pattern {
     private particles;
     private attractMode;
     private particleChars;
+    private static readonly PRESETS;
     constructor(theme: Theme, config?: Partial<ParticleConfig>);
     reset(): void;
     private spawnParticle;
@@ -20,6 +27,9 @@ export declare class ParticlePattern implements Pattern {
     onMouseMove(_pos: Point): void;
     onMouseClick(pos: Point): void;
     getMetrics(): Record<string, number>;
+    applyPreset(presetId: number): boolean;
+    static getPresets(): ParticlePreset[];
+    static getPreset(id: number): ParticlePreset | undefined;
 }
 export {};
 //# sourceMappingURL=ParticlePattern.d.ts.map

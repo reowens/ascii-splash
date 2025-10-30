@@ -36,5 +36,21 @@ export declare class ConfigLoader {
      * Get FPS value based on quality preset or explicit fps setting
      */
     static getFpsFromConfig(config: ConfigSchema): number;
+    /**
+     * Get a favorite from the config file
+     */
+    getFavorite(slot: number): any;
+    /**
+     * Save a favorite to the config file
+     */
+    saveFavorite(slot: number, favorite: any): void;
+    /**
+     * Get all favorites
+     */
+    getAllFavorites(): Record<number, any>;
+    /**
+     * Delete a favorite
+     */
+    deleteFavorite(slot: number): void;
 }
 //# sourceMappingURL=ConfigLoader.d.ts.map

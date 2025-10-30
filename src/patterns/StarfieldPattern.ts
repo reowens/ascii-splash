@@ -13,6 +13,13 @@ interface StarConfig {
   mouseRepelRadius: number;
 }
 
+interface StarfieldPreset {
+  id: number;
+  name: string;
+  description: string;
+  config: StarConfig;
+}
+
 export class StarfieldPattern implements Pattern {
   name = 'starfield';
   private config: StarConfig;
@@ -20,6 +27,45 @@ export class StarfieldPattern implements Pattern {
   private stars: Star[] = [];
   private starChars = ['.', '·', '*', '✦', '✧', '★'];
   private explosions: Array<{ x: number; y: number; time: number; particles: Array<{ dx: number; dy: number }> }> = [];
+
+  private static readonly PRESETS: StarfieldPreset[] = [
+    {
+      id: 1,
+      name: 'Deep Space',
+      description: 'Sparse, slow-moving stars',
+      config: { starCount: 50, speed: 0.5, mouseRepelRadius: 8 }
+    },
+    {
+      id: 2,
+      name: 'Warp Speed',
+      description: 'Hyperspace jump effect',
+      config: { starCount: 200, speed: 3.0, mouseRepelRadius: 3 }
+    },
+    {
+      id: 3,
+      name: 'Asteroid Field',
+      description: 'Dense, medium-speed navigation',
+      config: { starCount: 150, speed: 1.5, mouseRepelRadius: 10 }
+    },
+    {
+      id: 4,
+      name: 'Milky Way',
+      description: 'Balanced cosmic view',
+      config: { starCount: 120, speed: 0.8, mouseRepelRadius: 6 }
+    },
+    {
+      id: 5,
+      name: 'Nebula Drift',
+      description: 'Slow, dense starfield',
+      config: { starCount: 180, speed: 0.4, mouseRepelRadius: 12 }
+    },
+    {
+      id: 6,
+      name: 'Photon Torpedo',
+      description: 'Fast, sparse streaks',
+      config: { starCount: 80, speed: 2.5, mouseRepelRadius: 4 }
+    }
+  ];
 
   constructor(theme: Theme, config?: Partial<StarConfig>) {
     this.theme = theme;
@@ -29,6 +75,25 @@ export class StarfieldPattern implements Pattern {
       mouseRepelRadius: 5,
       ...config
     };
+  }
+
+  applyPreset(presetId: number): boolean {
+    const preset = StarfieldPattern.PRESETS.find(p => p.id === presetId);
+    if (!preset) {
+      return false;
+    }
+    
+    this.config = { ...preset.config };
+    this.stars = []; // Recreate stars with new count
+    return true;
+  }
+
+  static getPresets(): StarfieldPreset[] {
+    return [...StarfieldPattern.PRESETS];
+  }
+
+  static getPreset(id: number): StarfieldPreset | undefined {
+    return StarfieldPattern.PRESETS.find(p => p.id === id);
   }
 
   private initStars(size: Size): void {

@@ -82,6 +82,11 @@ export class ConfigLoader {
         fileConfig.patterns = this.store.get('patterns');
       }
 
+      // Load favorites
+      if (this.store.has('favorites')) {
+        fileConfig.favorites = this.store.get('favorites');
+      }
+
       return fileConfig;
     } catch (error) {
       // If config file doesn't exist or has errors, return empty config
@@ -146,5 +151,38 @@ export class ConfigLoader {
     // Otherwise use quality preset
     const quality = config.quality || 'medium';
     return qualityPresets[quality as QualityPreset];
+  }
+
+  /**
+   * Get a favorite from the config file
+   */
+  getFavorite(slot: number): any {
+    const favorites = this.store.get('favorites') || {};
+    return favorites[slot];
+  }
+
+  /**
+   * Save a favorite to the config file
+   */
+  saveFavorite(slot: number, favorite: any): void {
+    const favorites = this.store.get('favorites') || {};
+    favorites[slot] = favorite;
+    this.store.set('favorites', favorites);
+  }
+
+  /**
+   * Get all favorites
+   */
+  getAllFavorites(): Record<number, any> {
+    return this.store.get('favorites') || {};
+  }
+
+  /**
+   * Delete a favorite
+   */
+  deleteFavorite(slot: number): void {
+    const favorites = this.store.get('favorites') || {};
+    delete favorites[slot];
+    this.store.set('favorites', favorites);
   }
 }

@@ -15,6 +15,21 @@ class StarfieldPattern {
             ...config
         };
     }
+    applyPreset(presetId) {
+        const preset = StarfieldPattern.PRESETS.find(p => p.id === presetId);
+        if (!preset) {
+            return false;
+        }
+        this.config = { ...preset.config };
+        this.stars = []; // Recreate stars with new count
+        return true;
+    }
+    static getPresets() {
+        return [...StarfieldPattern.PRESETS];
+    }
+    static getPreset(id) {
+        return StarfieldPattern.PRESETS.find(p => p.id === id);
+    }
     initStars(size) {
         if (this.stars.length === 0) {
             for (let i = 0; i < this.config.starCount; i++) {
@@ -154,4 +169,42 @@ class StarfieldPattern {
     }
 }
 exports.StarfieldPattern = StarfieldPattern;
+StarfieldPattern.PRESETS = [
+    {
+        id: 1,
+        name: 'Deep Space',
+        description: 'Sparse, slow-moving stars',
+        config: { starCount: 50, speed: 0.5, mouseRepelRadius: 8 }
+    },
+    {
+        id: 2,
+        name: 'Warp Speed',
+        description: 'Hyperspace jump effect',
+        config: { starCount: 200, speed: 3.0, mouseRepelRadius: 3 }
+    },
+    {
+        id: 3,
+        name: 'Asteroid Field',
+        description: 'Dense, medium-speed navigation',
+        config: { starCount: 150, speed: 1.5, mouseRepelRadius: 10 }
+    },
+    {
+        id: 4,
+        name: 'Milky Way',
+        description: 'Balanced cosmic view',
+        config: { starCount: 120, speed: 0.8, mouseRepelRadius: 6 }
+    },
+    {
+        id: 5,
+        name: 'Nebula Drift',
+        description: 'Slow, dense starfield',
+        config: { starCount: 180, speed: 0.4, mouseRepelRadius: 12 }
+    },
+    {
+        id: 6,
+        name: 'Photon Torpedo',
+        description: 'Fast, sparse streaks',
+        config: { starCount: 80, speed: 2.5, mouseRepelRadius: 4 }
+    }
+];
 //# sourceMappingURL=StarfieldPattern.js.map

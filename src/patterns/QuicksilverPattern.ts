@@ -1,9 +1,16 @@
-import { Pattern, Cell, Size, Point } from '../types';
+import { Pattern, Cell, Size, Point, Theme } from '../types';
 
 interface QuicksilverConfig {
   speed: number;
   flowIntensity: number;
   noiseScale: number;
+}
+
+interface QuicksilverPreset {
+  id: number;
+  name: string;
+  description: string;
+  config: QuicksilverConfig;
 }
 
 interface Droplet {
@@ -18,14 +25,55 @@ interface Droplet {
 export class QuicksilverPattern implements Pattern {
   name = 'quicksilver';
   private config: QuicksilverConfig;
+  private theme: Theme;
   private droplets: Droplet[] = [];
   private ripples: Array<{ x: number; y: number; time: number; radius: number }> = [];
   private noiseOffset: number = 0;
   
   // Characters for metallic liquid effect
-  private liquidChars = ['●', '◉', '○', '◐', '◑', '◒', '◓', '◔', '◕', '•', '∘', '·'];
+  private liquidChars = ['█', '▓', '▒', '░', '●', '◉', '○', '◐', '◑', '◒', '◓', '•', '∘', '·'];
+
+  private static readonly PRESETS: QuicksilverPreset[] = [
+    {
+      id: 1,
+      name: 'Liquid Mercury',
+      description: 'Classic metallic flow',
+      config: { speed: 1.0, flowIntensity: 0.5, noiseScale: 0.05 }
+    },
+    {
+      id: 2,
+      name: 'Molten Silver',
+      description: 'Slower, thicker flow',
+      config: { speed: 0.6, flowIntensity: 0.7, noiseScale: 0.08 }
+    },
+    {
+      id: 3,
+      name: 'Quicksilver Rush',
+      description: 'Fast-flowing liquid metal',
+      config: { speed: 1.8, flowIntensity: 0.4, noiseScale: 0.03 }
+    },
+    {
+      id: 4,
+      name: 'Chrome Puddle',
+      description: 'Minimal flow, high detail',
+      config: { speed: 0.3, flowIntensity: 0.8, noiseScale: 0.1 }
+    },
+    {
+      id: 5,
+      name: 'Turbulent Metal',
+      description: 'Chaotic, intense flow',
+      config: { speed: 1.5, flowIntensity: 0.9, noiseScale: 0.06 }
+    },
+    {
+      id: 6,
+      name: 'Gentle Shimmer',
+      description: 'Subtle, peaceful flow',
+      config: { speed: 0.5, flowIntensity: 0.3, noiseScale: 0.04 }
+    }
+  ];
   
-  constructor(config?: Partial<QuicksilverConfig>) {
+  constructor(theme: Theme, config?: Partial<QuicksilverConfig>) {
+    this.theme = theme;
     this.config = {
       speed: 1.0,
       flowIntensity: 0.5,
@@ -120,45 +168,32 @@ export class QuicksilverPattern implements Pattern {
           }
         }
 
-        // Map flow to metallic appearance
-        const intensity = (flow + 1) * 0.5; // Normalize to 0-1
-        const charIndex = Math.floor(Math.abs(intensity * this.liquidChars.length)) % this.liquidChars.length;
+        // Map flow to intensity for both character and color
+        const rawIntensity = (flow + 1) * 0.5; // Normalize to 0-1
+        
+        // Add shimmer/highlight effect using secondary noise
+        const shimmer = (noise2 + 1) * 0.5;
+        const intensity = Math.min(1, Math.max(0, rawIntensity * 0.7 + shimmer * 0.3));
+        
+        // Choose character based on intensity
+        const charIndex = Math.floor(intensity * (this.liquidChars.length - 1));
         const char = this.liquidChars[charIndex];
 
-        // Metallic silver/chrome color gradient
-        const brightness = Math.floor(intensity * 255);
-        const highlight = Math.max(0, Math.min(255, brightness + (noise2 * 50)));
+        // Use theme color with metallic boost
+        // For metallic effect, we boost brighter areas even more
+        const metallicIntensity = intensity > 0.6 ? 
+          0.6 + (intensity - 0.6) * 1.5 :  // Boost highlights
+          intensity * 0.8;                  // Darken shadows
         
-        let color;
-        if (intensity > 0.7) {
-          // Bright highlights (white-silver)
-          color = {
-            r: Math.floor(200 + highlight * 0.2),
-            g: Math.floor(200 + highlight * 0.2),
-            b: Math.floor(220 + highlight * 0.15)
-          };
-        } else if (intensity > 0.4) {
-          // Medium silver
-          color = {
-            r: Math.floor(150 + brightness * 0.3),
-            g: Math.floor(150 + brightness * 0.3),
-            b: Math.floor(160 + brightness * 0.3)
-          };
-        } else if (intensity > 0.2) {
-          // Dark chrome
-          color = {
-            r: Math.floor(80 + brightness * 0.5),
-            g: Math.floor(80 + brightness * 0.5),
-            b: Math.floor(90 + brightness * 0.5)
-          };
-        } else {
-          // Very dark (shadows)
-          color = {
-            r: Math.floor(40 + brightness * 0.3),
-            g: Math.floor(40 + brightness * 0.3),
-            b: Math.floor(50 + brightness * 0.3)
-          };
-        }
+        const themeColor = this.theme.getColor(Math.min(1, metallicIntensity));
+        
+        // Add slight metallic shine by boosting one color channel
+        const shineBoost = Math.floor(shimmer * 40);
+        const color = {
+          r: Math.min(255, themeColor.r + shineBoost),
+          g: Math.min(255, themeColor.g + shineBoost),
+          b: Math.min(255, themeColor.b + shineBoost)
+        };
 
         buffer[y][x] = { char, color };
       }
@@ -198,12 +233,12 @@ export class QuicksilverPattern implements Pattern {
 
   onMouseClick(pos: Point): void {
     // Click creates mercury droplets that splash and fall
-    const numDroplets = 8;
+    const numDroplets = 12;
     const time = Date.now();
     
     for (let i = 0; i < numDroplets; i++) {
       const angle = (Math.PI * 2 * i) / numDroplets;
-      const speed = 2 + Math.random() * 2;
+      const speed = 2 + Math.random() * 3;
       
       this.droplets.push({
         x: pos.x,
@@ -236,5 +271,22 @@ export class QuicksilverPattern implements Pattern {
       ripples: this.ripples.length,
       flowIntensity: this.config.flowIntensity
     };
+  }
+
+  applyPreset(presetId: number): boolean {
+    const preset = QuicksilverPattern.PRESETS.find(p => p.id === presetId);
+    if (!preset) return false;
+    
+    this.config = { ...preset.config };
+    this.reset();
+    return true;
+  }
+
+  static getPresets(): QuicksilverPreset[] {
+    return [...QuicksilverPattern.PRESETS];
+  }
+
+  static getPreset(id: number): QuicksilverPreset | undefined {
+    return QuicksilverPattern.PRESETS.find(p => p.id === id);
   }
 }

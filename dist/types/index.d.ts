@@ -28,6 +28,7 @@ export interface Pattern {
     onMouseClick?(pos: Point): void;
     reset(): void;
     getMetrics?(): Record<string, number>;
+    applyPreset?(presetId: number): boolean;
 }
 export interface AppState {
     running: boolean;
@@ -94,12 +95,23 @@ export interface PlasmaPatternConfig {
     speed?: number;
     complexity?: number;
 }
+export interface FavoriteSlot {
+    pattern: string;
+    preset?: number;
+    theme: string;
+    config?: any;
+    note?: string;
+    savedAt: string;
+}
 export interface ConfigSchema {
     defaultPattern?: string;
     quality?: QualityPreset;
     fps?: number;
     theme?: string;
     mouseEnabled?: boolean;
+    favorites?: {
+        [slot: number]: FavoriteSlot;
+    };
     patterns?: {
         waves?: WavePatternConfig;
         starfield?: StarfieldPatternConfig;

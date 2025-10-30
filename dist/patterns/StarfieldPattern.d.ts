@@ -4,6 +4,12 @@ interface StarConfig {
     speed: number;
     mouseRepelRadius: number;
 }
+interface StarfieldPreset {
+    id: number;
+    name: string;
+    description: string;
+    config: StarConfig;
+}
 export declare class StarfieldPattern implements Pattern {
     name: string;
     private config;
@@ -11,7 +17,11 @@ export declare class StarfieldPattern implements Pattern {
     private stars;
     private starChars;
     private explosions;
+    private static readonly PRESETS;
     constructor(theme: Theme, config?: Partial<StarConfig>);
+    applyPreset(presetId: number): boolean;
+    static getPresets(): StarfieldPreset[];
+    static getPreset(id: number): StarfieldPreset | undefined;
     private initStars;
     private createStar;
     render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void;

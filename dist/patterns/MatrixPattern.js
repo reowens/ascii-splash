@@ -140,6 +140,58 @@ class MatrixPattern {
             density: this.config.density
         };
     }
+    applyPreset(presetId) {
+        const preset = MatrixPattern.PRESETS.find(p => p.id === presetId);
+        if (!preset)
+            return false;
+        this.config = { ...preset.config };
+        this.reset();
+        return true;
+    }
+    static getPresets() {
+        return [...MatrixPattern.PRESETS];
+    }
+    static getPreset(id) {
+        return MatrixPattern.PRESETS.find(p => p.id === id);
+    }
 }
 exports.MatrixPattern = MatrixPattern;
+MatrixPattern.PRESETS = [
+    {
+        id: 1,
+        name: 'Classic Matrix',
+        description: 'The iconic falling code effect',
+        config: { density: 0.3, speed: 1.0, charset: 'katakana' }
+    },
+    {
+        id: 2,
+        name: 'Binary Rain',
+        description: 'Falling numbers, digital downpour',
+        config: { density: 0.4, speed: 1.2, charset: 'numbers' }
+    },
+    {
+        id: 3,
+        name: 'Code Storm',
+        description: 'Dense, fast-moving characters',
+        config: { density: 0.5, speed: 1.8, charset: 'mixed' }
+    },
+    {
+        id: 4,
+        name: 'Sparse Glyphs',
+        description: 'Minimal, slow-falling characters',
+        config: { density: 0.15, speed: 0.6, charset: 'katakana' }
+    },
+    {
+        id: 5,
+        name: 'Firewall',
+        description: 'Ultra-dense security screen',
+        config: { density: 0.7, speed: 2.0, charset: 'mixed' }
+    },
+    {
+        id: 6,
+        name: 'Zen Code',
+        description: 'Peaceful, meditative flow',
+        config: { density: 0.2, speed: 0.5, charset: 'katakana' }
+    }
+];
 //# sourceMappingURL=MatrixPattern.js.map

@@ -33,6 +33,7 @@ export interface Pattern {
   onMouseClick?(pos: Point): void;
   reset(): void;
   getMetrics?(): Record<string, number>;
+  applyPreset?(presetId: number): boolean;
 }
 
 export interface AppState {
@@ -112,6 +113,16 @@ export interface PlasmaPatternConfig {
   complexity?: number;
 }
 
+// Favorite slot interface
+export interface FavoriteSlot {
+  pattern: string;           // Pattern name (e.g., "WavePattern")
+  preset?: number;            // Preset ID (if applicable)
+  theme: string;              // Theme name (e.g., "ocean")
+  config?: any;               // Custom pattern config (if any)
+  note?: string;              // Optional user note
+  savedAt: string;            // ISO timestamp
+}
+
 // Main configuration schema
 export interface ConfigSchema {
   // Global settings
@@ -120,6 +131,11 @@ export interface ConfigSchema {
   fps?: number;
   theme?: string;
   mouseEnabled?: boolean;
+
+  // Favorites storage (slot number → favorite data)
+  favorites?: {
+    [slot: number]: FavoriteSlot;
+  };
 
   // Pattern-specific configurations
   patterns?: {

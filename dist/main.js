@@ -19,6 +19,9 @@ const SpiralPattern_1 = require("./patterns/SpiralPattern");
 const PlasmaPattern_1 = require("./patterns/PlasmaPattern");
 const ConfigLoader_1 = require("./config/ConfigLoader");
 const themes_1 = require("./config/themes");
+const CommandBuffer_1 = require("./engine/CommandBuffer");
+const CommandParser_1 = require("./engine/CommandParser");
+const CommandExecutor_1 = require("./engine/CommandExecutor");
 const term = terminal_kit_1.default.terminal;
 /**
  * Parse command line arguments
@@ -105,11 +108,11 @@ function main() {
                 density: cfg.patterns?.matrix?.columnDensity,
                 speed: cfg.patterns?.matrix?.speed
             }),
-            new RainPattern_1.RainPattern({
+            new RainPattern_1.RainPattern(theme, {
                 density: cfg.patterns?.rain?.dropCount ? cfg.patterns.rain.dropCount / 500 : undefined,
                 speed: cfg.patterns?.rain?.speed
             }),
-            new QuicksilverPattern_1.QuicksilverPattern({
+            new QuicksilverPattern_1.QuicksilverPattern(theme, {
                 speed: cfg.patterns?.quicksilver?.speed,
                 flowIntensity: cfg.patterns?.quicksilver?.viscosity,
                 noiseScale: 0.05
@@ -151,10 +154,29 @@ function main() {
     const initialFps = ConfigLoader_1.ConfigLoader.getFpsFromConfig(config);
     // Create animation engine with selected pattern and FPS
     const engine = new AnimationEngine_1.AnimationEngine(renderer, patterns[currentPatternIndex], initialFps);
+    // Initialize command system
+    const commandBuffer = new CommandBuffer_1.CommandBuffer();
+    const commandParser = new CommandParser_1.CommandParser();
+    let currentThemeIndex = ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'].indexOf(currentTheme.name);
+    const commandExecutor = new CommandExecutor_1.CommandExecutor(engine, patterns, Object.values({ ocean: (0, themes_1.getTheme)('ocean'), matrix: (0, themes_1.getTheme)('matrix'), starlight: (0, themes_1.getTheme)('starlight'), fire: (0, themes_1.getTheme)('fire'), monochrome: (0, themes_1.getTheme)('monochrome') }), currentPatternIndex, currentThemeIndex, configLoader // Pass ConfigLoader for favorites support
+    );
+    // Set up theme change callback for command executor
+    commandExecutor.setThemeChangeCallback((themeIndex) => {
+        const themeNames = ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'];
+        currentTheme = (0, themes_1.getTheme)(themeNames[themeIndex]);
+        currentThemeIndex = themeIndex;
+        patterns = createPatternsFromConfig(config, currentTheme);
+        engine.setPattern(patterns[currentPatternIndex]);
+        commandExecutor.updateState(currentPatternIndex, currentThemeIndex);
+    });
+    // Command result message state
+    let commandResultMessage = null;
+    let commandResultTimeout = null;
     function switchPattern(index) {
         if (index >= 0 && index < patterns.length) {
             currentPatternIndex = index;
             engine.setPattern(patterns[currentPatternIndex]);
+            commandExecutor.updateState(currentPatternIndex, currentThemeIndex);
             showPatternName(patterns[currentPatternIndex].name);
         }
     }
@@ -171,9 +193,11 @@ function main() {
     function cycleTheme() {
         const nextThemeName = (0, themes_1.getNextThemeName)(currentTheme.name);
         currentTheme = (0, themes_1.getTheme)(nextThemeName);
+        currentThemeIndex = ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'].indexOf(currentTheme.name);
         // Recreate patterns with new theme
         patterns = createPatternsFromConfig(config, currentTheme);
         engine.setPattern(patterns[currentPatternIndex]);
+        commandExecutor.updateState(currentPatternIndex, currentThemeIndex);
         showMessage(`Theme: ${currentTheme.displayName}`);
     }
     function showPatternName(name) {
@@ -191,6 +215,7 @@ function main() {
             const helpLines = [
                 'KEYBOARD CONTROLS',
                 '─────────────────',
+                '0        Command mode (advanced)',
                 '1-8      Switch patterns',
                 'n/p      Next/Previous pattern',
                 'SPACE    Pause/Resume',
@@ -289,11 +314,115 @@ function main() {
         term.defaultColor();
         term.bgDefaultColor();
     }
+    function renderCommandOverlay() {
+        const size = renderer.getSize();
+        const bottomLine = size.height;
+        term.moveTo(1, bottomLine);
+        term.eraseLine();
+        if (commandBuffer.isActive()) {
+            const buffer = commandBuffer.getBuffer();
+            const cursorPos = commandBuffer.getCursorPos();
+            // Draw command prompt with cursor
+            term.bgBlack();
+            term.bold.cyan('COMMAND: ');
+            term.green(buffer.slice(0, cursorPos));
+            term.inverse('_'); // Cursor
+            term.styleReset();
+            term.bgBlack();
+            term.green(buffer.slice(cursorPos));
+            term.defaultColor();
+            term.bgDefaultColor();
+        }
+    }
+    function showCommandResult(message, success) {
+        const size = renderer.getSize();
+        const bottomLine = size.height;
+        // Clear any existing timeout
+        if (commandResultTimeout) {
+            clearTimeout(commandResultTimeout);
+        }
+        // Show result message
+        term.moveTo(1, bottomLine);
+        term.eraseLine();
+        term.bgBlack();
+        if (success) {
+            term.bold.green('✓ ');
+            term.white(message);
+        }
+        else {
+            term.bold.red('✗ ');
+            term.white(message);
+        }
+        term.defaultColor();
+        term.bgDefaultColor();
+        // Auto-clear after 2.5 seconds
+        commandResultTimeout = setTimeout(() => {
+            term.moveTo(1, bottomLine);
+            term.eraseLine();
+            commandResultMessage = null;
+        }, 2500);
+        commandResultMessage = message;
+    }
     // Handle input
-    term.on('key', (name) => {
+    term.on('key', (name, matches, data) => {
+        // Check if command buffer is active
+        if (commandBuffer.isActive()) {
+            // Command mode is active - route to command buffer
+            if (name === 'ESCAPE') {
+                commandBuffer.cancel();
+                renderCommandOverlay();
+            }
+            else if (name === 'ENTER') {
+                const cmdString = commandBuffer.execute();
+                renderCommandOverlay();
+                // Parse and execute command
+                if (cmdString) {
+                    const parsed = commandParser.parse(cmdString);
+                    if (parsed) {
+                        const result = commandExecutor.execute(parsed);
+                        showCommandResult(result.message, result.success);
+                    }
+                    else {
+                        showCommandResult('Invalid command', false);
+                    }
+                }
+            }
+            else if (name === 'BACKSPACE') {
+                commandBuffer.backspace();
+                renderCommandOverlay();
+            }
+            else if (name === 'UP') {
+                commandBuffer.previousCommand();
+                renderCommandOverlay();
+            }
+            else if (name === 'DOWN') {
+                commandBuffer.nextCommand();
+                renderCommandOverlay();
+            }
+            else if (name === 'LEFT') {
+                commandBuffer.moveCursorLeft();
+                renderCommandOverlay();
+            }
+            else if (name === 'RIGHT') {
+                commandBuffer.moveCursorRight();
+                renderCommandOverlay();
+            }
+            else if (data.isCharacter) {
+                // Regular character input
+                commandBuffer.addChar(String.fromCharCode(data.codepoint));
+                renderCommandOverlay();
+            }
+            return; // Don't process other keys in command mode
+        }
+        // Normal mode - existing keyboard shortcuts
         // Quit commands
         if (name === 'CTRL_C' || name === 'q' || name === 'ESCAPE') {
             cleanup();
+        }
+        // Command mode activation
+        else if (name === '0') {
+            commandBuffer.activate();
+            renderCommandOverlay();
         }
         // Pause/Resume
         else if (name === 'SPACE') {

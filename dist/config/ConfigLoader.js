@@ -76,6 +76,10 @@ class ConfigLoader {
             if (this.store.has('patterns')) {
                 fileConfig.patterns = this.store.get('patterns');
             }
+            // Load favorites
+            if (this.store.has('favorites')) {
+                fileConfig.favorites = this.store.get('favorites');
+            }
             return fileConfig;
         }
         catch (error) {
@@ -138,6 +142,35 @@ class ConfigLoader {
         // Otherwise use quality preset
         const quality = config.quality || 'medium';
         return defaults_1.qualityPresets[quality];
+    }
+    /**
+     * Get a favorite from the config file
+     */
+    getFavorite(slot) {
+        const favorites = this.store.get('favorites') || {};
+        return favorites[slot];
+    }
+    /**
+     * Save a favorite to the config file
+     */
+    saveFavorite(slot, favorite) {
+        const favorites = this.store.get('favorites') || {};
+        favorites[slot] = favorite;
+        this.store.set('favorites', favorites);
+    }
+    /**
+     * Get all favorites
+     */
+    getAllFavorites() {
+        return this.store.get('favorites') || {};
+    }
+    /**
+     * Delete a favorite
+     */
+    deleteFavorite(slot) {
+        const favorites = this.store.get('favorites') || {};
+        delete favorites[slot];
+        this.store.set('favorites', favorites);
     }
 }
 exports.ConfigLoader = ConfigLoader;

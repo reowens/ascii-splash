@@ -4,6 +4,12 @@ interface MatrixConfig {
     speed: number;
     charset: 'katakana' | 'numbers' | 'mixed';
 }
+interface MatrixPreset {
+    id: number;
+    name: string;
+    description: string;
+    config: MatrixConfig;
+}
 export declare class MatrixPattern implements Pattern {
     name: string;
     private config;
@@ -11,6 +17,7 @@ export declare class MatrixPattern implements Pattern {
     private columns;
     private charSets;
     private distortions;
+    private static readonly PRESETS;
     constructor(theme: Theme, config?: Partial<MatrixConfig>);
     private initColumns;
     private createColumn;
@@ -20,6 +27,9 @@ export declare class MatrixPattern implements Pattern {
     onMouseClick(pos: Point): void;
     reset(): void;
     getMetrics(): Record<string, number>;
+    applyPreset(presetId: number): boolean;
+    static getPresets(): MatrixPreset[];
+    static getPreset(id: number): MatrixPreset | undefined;
 }
 export {};
 //# sourceMappingURL=MatrixPattern.d.ts.map

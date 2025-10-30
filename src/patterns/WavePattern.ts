@@ -7,12 +7,59 @@ interface WaveConfig {
   layers: number;
 }
 
+interface WavePreset {
+  id: number;
+  name: string;
+  description: string;
+  config: WaveConfig;
+}
+
 export class WavePattern implements Pattern {
   name = 'waves';
   private config: WaveConfig;
   private theme: Theme;
   private ripples: Array<{ x: number; y: number; time: number; radius: number }> = [];
   private waveChars = ['~', '≈', '∼', '-', '.', ' '];
+
+  // Tier 1 Presets (01-09): Essential/Popular
+  private static readonly PRESETS: WavePreset[] = [
+    {
+      id: 1,
+      name: 'Calm Seas',
+      description: 'Gentle, slow-moving waves',
+      config: { speed: 0.5, amplitude: 3, frequency: 0.08, layers: 2 }
+    },
+    {
+      id: 2,
+      name: 'Ocean Storm',
+      description: 'Turbulent, high-energy waves',
+      config: { speed: 2.0, amplitude: 8, frequency: 0.15, layers: 5 }
+    },
+    {
+      id: 3,
+      name: 'Ripple Tank',
+      description: 'Physics lab interference patterns',
+      config: { speed: 0.8, amplitude: 4, frequency: 0.2, layers: 4 }
+    },
+    {
+      id: 4,
+      name: 'Glass Lake',
+      description: 'Barely perceptible movement',
+      config: { speed: 0.3, amplitude: 2, frequency: 0.05, layers: 1 }
+    },
+    {
+      id: 5,
+      name: 'Tsunami',
+      description: 'Massive, powerful waves',
+      config: { speed: 1.5, amplitude: 12, frequency: 0.06, layers: 3 }
+    },
+    {
+      id: 6,
+      name: 'Choppy Waters',
+      description: 'Irregular, textured surface',
+      config: { speed: 1.2, amplitude: 6, frequency: 0.25, layers: 6 }
+    }
+  ];
 
   constructor(theme: Theme, config?: Partial<WaveConfig>) {
     this.theme = theme;
@@ -23,6 +70,34 @@ export class WavePattern implements Pattern {
       layers: 3,
       ...config
     };
+  }
+
+  /**
+   * Apply a preset configuration
+   */
+  applyPreset(presetId: number): boolean {
+    const preset = WavePattern.PRESETS.find(p => p.id === presetId);
+    if (!preset) {
+      return false;
+    }
+    
+    this.config = { ...preset.config };
+    this.ripples = []; // Clear ripples when changing preset
+    return true;
+  }
+
+  /**
+   * Get all available presets
+   */
+  static getPresets(): WavePreset[] {
+    return [...WavePattern.PRESETS];
+  }
+
+  /**
+   * Get a specific preset by ID
+   */
+  static getPreset(id: number): WavePreset | undefined {
+    return WavePattern.PRESETS.find(p => p.id === id);
   }
 
   render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void {

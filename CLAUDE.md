@@ -129,6 +129,10 @@ ascii-splash has a 3-tier configuration system with clear priority:
 - `getConfigPath()` - Returns path to config file
 - `reset()` - Clears config file, resetting to defaults
 - `getFpsFromConfig(config)` - Resolves FPS from explicit value or quality preset
+- `getFavorite(slot)` - Retrieves a favorite from the config
+- `saveFavorite(slot, favorite)` - Saves a favorite to the config
+- `getAllFavorites()` - Returns all saved favorites
+- `deleteFavorite(slot)` - Removes a favorite from the config
 
 **Config Schema** ([src/types/index.ts](src/types/index.ts)):
 ```typescript
@@ -140,6 +144,11 @@ interface ConfigSchema {
   theme?: string;
   mouseEnabled?: boolean;
   
+  // Favorites storage (slot number → favorite data)
+  favorites?: {
+    [slot: number]: FavoriteSlot;
+  };
+  
   // Pattern-specific configurations
   patterns?: {
     waves?: WavePatternConfig;
@@ -147,7 +156,19 @@ interface ConfigSchema {
     matrix?: MatrixPatternConfig;
     rain?: RainPatternConfig;
     quicksilver?: QuicksilverPatternConfig;
+    particles?: ParticlePatternConfig;
+    spiral?: SpiralPatternConfig;
+    plasma?: PlasmaPatternConfig;
   };
+}
+
+interface FavoriteSlot {
+  pattern: string;     // Pattern name (e.g., "WavePattern")
+  preset?: number;     // Preset ID (if applicable)
+  theme: string;       // Theme name (e.g., "ocean")
+  config?: any;        // Custom pattern config (if any)
+  note?: string;       // Optional user note
+  savedAt: string;     // ISO timestamp
 }
 ```
 
@@ -190,6 +211,51 @@ Each pattern can have custom settings defined in the config file:
 ```
 
 See [examples/.splashrc.example](examples/.splashrc.example) for a complete example.
+
+### Favorites System
+
+The favorites system allows users to save and recall their favorite pattern/preset/theme combinations.
+
+**Commands:**
+- `0F1` - Save current state to favorite slot 1 (slots 1-99)
+- `0f1` - Load favorite from slot 1
+- `0fl` - List all saved favorites
+
+**Example Usage:**
+```
+# In the app:
+Press 1        → Switch to Waves
+Type 03        → Apply preset 3 (Ocean Storm)
+Press t        → Switch to Fire theme
+Type 0F1       → Save to favorite slot 1
+# Message: "Saved to favorite 1: WavePattern + Fire"
+
+# Later...
+Type 0f1       → Load favorite 1
+# Message: "Loaded favorite 1: WavePattern + preset 3 + Fire"
+```
+
+**Storage Format** (in `~/.config/ascii-splash/.splashrc.json`):
+```json
+{
+  "favorites": {
+    "1": {
+      "pattern": "WavePattern",
+      "preset": 3,
+      "theme": "fire",
+      "savedAt": "2025-10-30T12:34:56.789Z",
+      "note": "Optional user note"
+    }
+  }
+}
+```
+
+**Features:**
+- Stores pattern name, preset ID, theme, and timestamp
+- Up to 99 favorite slots (1-99)
+- Persisted across sessions in config file
+- Displays info on load (pattern, preset, theme)
+- Can be manually edited in config file
 
 ## Theme System
 
@@ -273,50 +339,79 @@ src/
 │   └── Buffer.ts           # Double-buffering with dirty tracking
 ├── engine/
 │   ├── AnimationEngine.ts  # Main loop, pattern switching
-│   └── PerformanceMonitor.ts # FPS and timing metrics
+│   ├── PerformanceMonitor.ts # FPS and timing metrics
+│   ├── CommandBuffer.ts    # Multi-key command input system (NEW)
+│   ├── CommandParser.ts    # Parse command strings (NEW)
+│   └── CommandExecutor.ts  # Execute parsed commands (NEW)
 └── patterns/
-    ├── WavePattern.ts      # Sine waves with ripple effects
-    ├── StarfieldPattern.ts # 3D starfield with parallax
-    ├── MatrixPattern.ts    # Digital rain effect
-    ├── RainPattern.ts      # Simple falling droplets
-    ├── QuicksilverPattern.ts # Liquid metal flow
-    ├── ParticlePattern.ts  # Physics-based particles
-    ├── SpiralPattern.ts    # Rotating logarithmic spirals
-    └── PlasmaPattern.ts    # Fluid plasma effect
+    ├── WavePattern.ts      # Sine waves with ripple effects + 6 presets
+    ├── StarfieldPattern.ts # 3D starfield with parallax + 6 presets
+    ├── MatrixPattern.ts    # Digital rain effect + 6 presets
+    ├── RainPattern.ts      # Falling droplets + 6 presets
+    ├── QuicksilverPattern.ts # Liquid metal flow + 6 presets
+    ├── ParticlePattern.ts  # Physics-based particles + 6 presets
+    ├── SpiralPattern.ts    # Rotating logarithmic spirals + 6 presets
+    └── PlasmaPattern.ts    # Fluid plasma effect + 6 presets
 ```
 
 ## Current Status
 
-**Phase 3.4 Complete** - 8 patterns with full theme support!
+**Phase 4.3 Complete!** - Favorites system fully implemented!
 
 **Completed Features:**
-1. **8 Interactive Patterns**: Waves, Starfield, Matrix, Rain, Quicksilver, Particles, Spiral, Plasma
-2. **5 Color Themes**: Ocean (default), Matrix, Starlight, Fire, Monochrome
-3. **CLI Arguments System** (Phase 3.1):
+1. **8 Interactive Patterns**: All with full theme support, mouse interactivity, AND 6 presets each (48 presets total!)
+   - **Waves** (6 presets): Calm Seas, Ocean Storm, Ripple Tank, Glass Lake, Tsunami, Choppy Waters
+   - **Starfield** (6 presets): Deep Space, Warp Speed, Asteroid Field, Milky Way, Nebula Drift, Photon Torpedo
+   - **Matrix** (6 presets): Classic Matrix, Binary Rain, Code Storm, Sparse Glyphs, Firewall, Zen Code
+   - **Rain** (6 presets): Light Drizzle, Steady Rain, Thunderstorm, Mist, Monsoon, Spring Shower
+   - **Quicksilver** (6 presets): Liquid Mercury, Molten Silver, Quicksilver Rush, Chrome Puddle, Turbulent Metal, Gentle Shimmer
+   - **Particles** (6 presets): Gentle Float, Standard Physics, Heavy Rain, Zero Gravity, Particle Storm, Minimal Drift
+   - **Spiral** (6 presets): Twin Vortex, Galaxy Arms, Fibonacci Bloom, Hypnotic Spin, Slow Mandala, Nautilus Shell
+   - **Plasma** (6 presets): Gentle Waves, Standard Plasma, Turbulent Energy, Lava Lamp, Electric Storm, Cosmic Nebula
+
+2. **Command System** (Phase 4.1):
+   - `CommandBuffer`: Multi-key input accumulation with 10-second timeout
+   - `CommandParser`: Parses pattern, theme, preset, favorite, and special commands
+   - `CommandExecutor`: Executes parsed commands with success/error feedback
+   - Command overlay at bottom of screen: `COMMAND: 0[buffer]_`
+   - Success (✓ green) and error (✗ red) messages with 2.5s auto-dismiss
+   - Command history with up/down arrow navigation
+   - Working commands: `0p3`, `0pwaves`, `0p3.5`, `0t2`, `0tfire`, `0tr`, `0r`, `0x`, `0/term`, `0p`, `0t`
+   - Combination commands: `0p3+t2` (pattern + theme)
+
+3. **Preset System** (Phase 4.2):
+   - All 8 patterns implement `applyPreset(presetId: number): boolean`
+   - Static `getPresets()` and `getPreset(id)` methods on each pattern class
+   - Users can apply presets via commands: `01`, `02`, `0p3.5`, `0pwaves.2`
+   - Each pattern has 6 carefully designed preset variations
+
+4. **Favorites System** (Phase 4.3):
+   - Save current state to favorite slots (1-99): `0F1`, `0F2`, etc.
+   - Load favorites: `0f1`, `0f2`, etc.
+   - List all saved favorites: `0fl`
+   - Stores pattern, theme, preset, optional note, and timestamp
+   - Persisted in config file at `~/.config/ascii-splash/.splashrc.json`
+   - Displays favorite info on load (pattern, preset, theme, note)
+
+5. **5 Color Themes**: Ocean (default), Matrix, Starlight, Fire, Monochrome - ALL patterns support themes
+
+6. **CLI Arguments System** (Phase 3.1):
    - Pattern selection via `--pattern`
    - Quality presets via `--quality`
    - FPS override via `--fps`
    - Theme selection via `--theme`
    - Mouse toggle via `--no-mouse`
    - Help and version commands
-4. **Configuration File System** (Phase 3.2):
+
+7. **Configuration File System** (Phase 3.2):
    - Config file: `~/.config/ascii-splash/.splashrc.json`
    - Merge priority: CLI args > config file > defaults
    - Global settings: pattern, quality, FPS, theme, mouse
    - Pattern-specific settings for all 8 patterns
+   - Favorites storage in config file
    - Example config at `examples/.splashrc.example`
-5. **Theme System** (Phase 3.3):
-   - 5 predefined themes with color interpolation
-   - Live theme cycling with 't' key
-   - Theme visible in debug overlay
-   - Patterns automatically adapt to selected theme
-   - CLI and config file support
-6. **Additional Patterns** (Phase 3.4):
-   - ParticlePattern: Physics-based particles with gravity and mouse interaction
-   - SpiralPattern: Rotating logarithmic spirals with theme coloring
-   - PlasmaPattern: Fluid plasma effect with sine wave combination
 
-**Phase 3 Complete!** Next: Phase 4 - Packaging and distribution (see [PLAN.md](PLAN.md))
+**Next Steps:** Phase 4.4 - Special commands (`0*`, `0**`, `0?`, `0??`, `0!`, `0s`) (see [PLAN.md](PLAN.md))
 
 ## Testing and Debugging
 
