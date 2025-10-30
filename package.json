@@ -1,0 +1,39 @@
+{
+  "name": "ascii-splash",
+  "version": "0.1.0",
+  "description": "A terminal ASCII animation app that adds visual flow to your IDE workspace",
+  "main": "dist/main.js",
+  "bin": {
+    "splash": "./dist/main.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "terminal",
+    "ascii",
+    "animation",
+    "art",
+    "cli",
+    "waves",
+    "starfield"
+  ],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "terminal-kit": "^3.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.2",
+    "@types/terminal-kit": "^2.5.7",
+    "typescript": "^5.9.3"
+  }
+}

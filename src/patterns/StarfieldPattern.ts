@@ -1,0 +1,189 @@
+import { Pattern, Cell, Size, Point } from '../types';
+
+interface Star {
+  x: number;
+  y: number;
+  z: number; // Depth (distance from viewer)
+  speed: number;
+}
+
+interface StarConfig {
+  starCount: number;
+  speed: number;
+  mouseRepelRadius: number;
+}
+
+export class StarfieldPattern implements Pattern {
+  name = 'starfield';
+  private config: StarConfig;
+  private stars: Star[] = [];
+  private starChars = ['.', '·', '*', '✦', '✧', '★'];
+  private explosions: Array<{ x: number; y: number; time: number; particles: Array<{ dx: number; dy: number }> }> = [];
+
+  constructor(config?: Partial<StarConfig>) {
+    this.config = {
+      starCount: 100,
+      speed: 1.0,
+      mouseRepelRadius: 5,
+      ...config
+    };
+  }
+
+  private initStars(size: Size): void {
+    if (this.stars.length === 0) {
+      for (let i = 0; i < this.config.starCount; i++) {
+        this.stars.push(this.createStar(size));
+      }
+    }
+  }
+
+  private createStar(size: Size): Star {
+    return {
+      x: Math.random() * size.width - size.width / 2,
+      y: Math.random() * size.height - size.height / 2,
+      z: Math.random() * 10 + 1,
+      speed: Math.random() * 0.5 + 0.5
+    };
+  }
+
+  render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void {
+    const { width, height } = size;
+    const { speed, mouseRepelRadius } = this.config;
+
+    this.initStars(size);
+
+    // Clear buffer
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        buffer[y][x] = { char: ' ' };
+      }
+    }
+
+    // Update and render stars
+    for (let i = 0; i < this.stars.length; i++) {
+      const star = this.stars[i];
+      
+      // Move star toward viewer
+      star.z -= speed * star.speed * 0.02;
+      
+      // Reset star if it's too close
+      if (star.z <= 0.1) {
+        this.stars[i] = this.createStar(size);
+        continue;
+      }
+
+      // Project 3D position to 2D screen
+      const scale = 10 / star.z;
+      let screenX = Math.floor((star.x * scale) + width / 2);
+      let screenY = Math.floor((star.y * scale) + height / 2);
+
+      // Apply mouse repulsion
+      if (mousePos) {
+        const dx = screenX - mousePos.x;
+        const dy = screenY - mousePos.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist < mouseRepelRadius && dist > 0) {
+          const force = (mouseRepelRadius - dist) / mouseRepelRadius;
+          screenX += Math.floor((dx / dist) * force * 3);
+          screenY += Math.floor((dy / dist) * force * 3);
+        }
+      }
+
+      // Check if star is on screen
+      if (screenX >= 0 && screenX < width && screenY >= 0 && screenY < height) {
+        // Determine star size based on depth
+        const depth = 1 / star.z;
+        let charIndex = 0;
+        let color = { r: 100, g: 100, b: 150 };
+        
+        if (depth > 0.9) {
+          charIndex = 5; // Closest - biggest
+          color = { r: 255, g: 255, b: 255 };
+        } else if (depth > 0.7) {
+          charIndex = 4;
+          color = { r: 200, g: 220, b: 255 };
+        } else if (depth > 0.5) {
+          charIndex = 3;
+          color = { r: 150, g: 180, b: 255 };
+        } else if (depth > 0.3) {
+          charIndex = 2;
+          color = { r: 120, g: 150, b: 220 };
+        } else if (depth > 0.15) {
+          charIndex = 1;
+          color = { r: 100, g: 120, b: 180 };
+        }
+
+        buffer[screenY][screenX] = {
+          char: this.starChars[charIndex],
+          color
+        };
+      }
+    }
+
+    // Render explosions
+    const currentTime = Date.now();
+    for (const explosion of this.explosions) {
+      const age = currentTime - explosion.time;
+      const maxAge = 1000;
+      
+      if (age < maxAge) {
+        const progress = age / maxAge;
+        const radius = progress * 10;
+        
+        for (const particle of explosion.particles) {
+          const px = Math.floor(explosion.x + particle.dx * radius);
+          const py = Math.floor(explosion.y + particle.dy * radius);
+          
+          if (px >= 0 && px < width && py >= 0 && py < height) {
+            const brightness = Math.floor(255 * (1 - progress));
+            buffer[py][px] = {
+              char: '*',
+              color: { r: brightness, g: brightness, b: brightness }
+            };
+          }
+        }
+      }
+    }
+
+    // Clean up old explosions
+    this.explosions = this.explosions.filter(e => currentTime - e.time < 1000);
+  }
+
+  onMouseMove(pos: Point): void {
+    // Mouse movement handled in render via repulsion
+  }
+
+  onMouseClick(pos: Point): void {
+    // Create explosion burst
+    const particles: Array<{ dx: number; dy: number }> = [];
+    const particleCount = 12;
+    
+    for (let i = 0; i < particleCount; i++) {
+      const angle = (i / particleCount) * Math.PI * 2;
+      particles.push({
+        dx: Math.cos(angle),
+        dy: Math.sin(angle)
+      });
+    }
+
+    this.explosions.push({
+      x: pos.x,
+      y: pos.y,
+      time: Date.now(),
+      particles
+    });
+  }
+
+  reset(): void {
+    this.stars = [];
+    this.explosions = [];
+  }
+
+  getMetrics(): Record<string, number> {
+    return {
+      stars: this.stars.length,
+      explosions: this.explosions.length
+    };
+  }
+}
