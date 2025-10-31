@@ -359,21 +359,23 @@ splash/
 #### 6.2 Stage 2: Additional Patterns 🎨 IN PROGRESS
 **Goal**: Expand pattern library before v1.0.0 release
 
-**Current Status**: 11 patterns → **Target**: 22 patterns (adding 11 more)
+**Current Status**: 13 patterns → **Target**: 22 patterns (adding 9 more)
 
-**Patterns to Implement** (11 total, in priority order):
+**Patterns Implemented** (2 complete):
 
-1. [ ] **Maze Generator** - Recursive backtracking maze generation animation
-   - [ ] Implement MazePattern class
-   - [ ] 6 presets (DFS, Prim's, Recursive Division, Kruskal's, Eller's, Wilson's)
-   - [ ] Theme support + mouse interaction (click spawns new maze from that point)
-   - [ ] Unit tests + config
+1. [x] **Maze Generator** - Recursive backtracking maze generation animation
+   - [x] Implement MazePattern class
+   - [x] 6 presets (DFS, Prim's, Recursive Division, Kruskal's, Eller's, Wilson's)
+   - [x] Theme support + mouse interaction (click spawns new maze from that point)
+   - [x] Unit tests + config
 
-2. [ ] **Game of Life** - Conway's cellular automaton with interactive seeding
-   - [ ] Implement LifePattern class
-   - [ ] 6 presets (Classic, Acorn, Glider Gun, Pulsar, Pentadecathlon, Random Soup)
-   - [ ] Theme support + mouse interaction (click toggles cells)
-   - [ ] Unit tests + config
+2. [x] **Game of Life** - Conway's cellular automaton with interactive seeding
+   - [x] Implement LifePattern class
+   - [x] 6 presets (Classic, Acorn, Glider Gun, Pulsar, Pentadecathlon, Random Soup)
+   - [x] Theme support + mouse interaction (click toggles cells)
+   - [x] Unit tests + config
+
+**Patterns to Implement** (9 remaining, in priority order):
 
 3. [ ] **DNA Helix** - Double helix rotation with base pairs
    - [ ] Implement DNAPattern class
@@ -429,6 +431,8 @@ splash/
     - [ ] Theme support + mouse interaction (change symmetry, spawn pattern)
     - [ ] Unit tests + config
 
+**Note**: Life and Maze patterns have been integrated into the codebase with full theme support, presets, and comprehensive testing.
+
 **Requirements per pattern**:
 - Implement Pattern interface
 - Full theme support (5 themes)
@@ -439,7 +443,7 @@ splash/
 - Documentation in CLAUDE.md
 
 **After patterns complete**:
-- [ ] Update README with new pattern count (11 → 22 patterns, 66 → 132 presets)
+- [ ] Update README with new pattern count (13 → 22 patterns, 78 → 132 presets)
 - [ ] Update CHANGELOG.md with new patterns
 - [ ] Update CLAUDE.md with new patterns
 - [ ] Update keyboard shortcuts in main.ts (1-9 keys + n/p cycling)
@@ -451,6 +455,7 @@ splash/
 - [ ] Test all 22 patterns with all 5 themes (110 combinations)
 
 **Result**: 22 patterns × 6 presets each = **132 total presets!**
+**Current Status**: 13 patterns × 6 presets = **78 total presets** ✅
 
 #### 6.3 Stage 3: npm Publication 🚀 TODO
 **Goal**: Publish to npm registry (after Stage 2 complete)
