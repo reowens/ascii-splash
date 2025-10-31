@@ -65,155 +65,18 @@ splash/
 
 ## Core Features
 
-### 1. Pattern System
+> **For detailed technical architecture, system design patterns, and implementation details**, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
-All patterns implement a common interface:
+**Feature Summary**:
+- 13 interactive patterns with 78 presets (6 per pattern)
+- Dual-layer input system: direct keys + command buffer with `0` prefix
+- 5 color themes (Ocean, Matrix, Starlight, Fire, Monochrome)
+- Full mouse support (move/click interactions)
+- Preset system with favorites storage
+- Configuration file at `~/.config/ascii-splash/.splashrc.json`
+- Advanced command system (pattern jumping, shuffling, searching)
 
-```typescript
-interface Pattern {
-  name: string;
-  render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void;
-  onMouseMove?(pos: Point): void;
-  onMouseClick?(pos: Point): void;
-  reset(): void;
-  getMetrics?(): Record<string, number>;
-  
-  // NEW: Preset support
-  getPresets?(): PatternPreset[];
-  applyPreset?(presetId: string): void;
-  getCurrentPreset?(): string;
-}
-```
-
-### 2. Dual-Layer Input System
-
-**Layer 1: Direct Keys (Instant Actions)**
-```
-1-9       Switch to patterns 1-9 (10-11 via n/p)
-n/p       Next/Previous pattern
-SPACE     Pause/Resume
-t         Cycle themes
-d         Toggle debug overlay
-?         Toggle help overlay
-+/-       Speed up/down
-[/]       Quality presets (LOW/MEDIUM/HIGH)
-q/ESC     Quit
-```
-
-**Layer 2: Command Buffer (Extended Features via `0` prefix)**
-```
-PRESETS:
-  01-99+     Load preset # for current pattern (e.g., 01, 012, 0123)
-  
-FAVORITES:
-  0f1-0f99   Load favorite slot
-  0F1-0F99   SAVE current to favorite slot
-  0fl        List all favorites
-  
-PATTERN JUMPS:
-  0p3        Jump to pattern #3
-  0p3.5      Jump to pattern #3, preset #5
-  0pwaves    Jump to "waves" by name
-  
-THEME COMMANDS:
-  0t         Show theme picker
-  0t2        Jump to theme #2
-  0tfire     Jump to theme by name
-  0tr        Random theme
-  
-SPECIAL COMMANDS:
-  0*         Random preset from current pattern
-  0**        Random pattern AND preset
-  0?         Show preset list for current pattern
-  0??        Show ALL presets catalog
-  0r         Randomize current settings
-  0s         Save settings to config file
-  0x         Reset pattern to defaults
-  0!         Toggle shuffle mode (auto-cycle presets)
-  0!!        Shuffle all patterns
-  0!5        Shuffle every 5 seconds
-  0/         Search presets
-  0\         Undo last command
-  
-COMBINATIONS:
-  0p3+05     Pattern 3 + Preset 5
-  0p3+t2     Pattern 3 + Theme 2
-```
-
-### 3. Preset System
-
-Each pattern supports 3 tiers of presets:
-- **Tier 1 (01-09)**: Essential presets - most common variations
-- **Tier 2 (10-29)**: Extended presets - specialized effects
-- **Tier 3 (30+)**: Experimental/community presets
-
-Users can explore variations with `0?` to see available presets, then load with `0[number]`.
-
-### 4. Mouse Interactions
-
-**All patterns support:**
-- **Move**: Pattern-specific hover effects
-- **Click**: Burst animations, spawning effects, mode toggles
-
-**Examples:**
-- Waves: Ripples at cursor, click for big splash
-- Starfield: Force field repulsion, click for burst
-- Matrix: Distortion field, spawn columns
-- Rain: Extra drops, dramatic splash
-- Quicksilver: Ripples, droplet explosions
-- Particles: Attract/repel toggle
-- Spiral: Click spawns mini-spirals
-- Plasma: Warping field, expanding waves
-
-### 5. Theme System
-
-5 built-in themes that all patterns adapt to:
-- **Ocean** (default): Blues, cyans, teals
-- **Matrix**: Green monochrome
-- **Starlight**: Deep blues, purples, white
-- **Fire**: Reds, oranges, yellows
-- **Monochrome**: Grayscale
-
-Press `t` to cycle, or use `0t2` for direct jump.
-
-### 6. Configuration System
-
-**Config file location**: `~/.config/ascii-splash/.splashrc.json`
-
-```json
-{
-  "defaultPattern": "waves",
-  "defaultPreset": "02",
-  "quality": "medium",
-  "fps": 30,
-  "theme": "ocean",
-  "mouseEnabled": true,
-  
-  "favorites": {
-    "1": {
-      "pattern": "waves",
-      "preset": "03",
-      "theme": "ocean",
-      "note": "My storm setting",
-      "savedAt": "2025-10-30T12:34:56Z"
-    }
-  },
-  
-  "patterns": {
-    "waves": {
-      "frequency": 0.1,
-      "amplitude": 3,
-      "speed": 1.0,
-      "layers": 3
-    },
-    "starfield": {
-      "starCount": 200,
-      "speed": 50
-    }
-    // ... etc
-  }
-}
-```
+**For detailed controls and usage**, see [README.md](../README.md) or run `splash --help`.
 
 ## Development Phases
 
@@ -633,38 +496,7 @@ Press `t` to cycle, or use `0t2` for direct jump.
 
 ## Usage Examples
 
-```bash
-# Run with defaults
-npx ascii-splash
-
-# Specific pattern
-npx ascii-splash --pattern starfield
-
-# Custom FPS and theme
-npx ascii-splash --fps 60 --theme fire
-
-# Disable mouse
-npx ascii-splash --no-mouse
-
-# Show help
-npx ascii-splash --help
-```
-
-**Command Buffer Examples:**
-```
-# In the app:
-Press 1        → Waves pattern
-Type 0?        → See all wave presets
-Type 03        → Load "Storm" preset
-Type 0F1       → Save to favorite 1
-
-Press n        → Next pattern (Starfield)
-Type 0*        → Random starfield preset
-
-Type 0p3.05    → Jump to Matrix, preset 5
-Type 0tfire    → Switch to Fire theme
-Type 0!10      → Auto-shuffle every 10 seconds
-```
+**For detailed usage examples and command reference**, see [README.md](../README.md#-controls) and [README.md](../README.md#-command-system).
 
 ## Package Details
 
@@ -676,12 +508,12 @@ Type 0!10      → Auto-shuffle every 10 seconds
 
 ## Performance Strategy
 
-1. **Smart Rendering**: Only redraw changed cells (Buffer dirty tracking)
-2. **Frame Throttling**: 30 FPS default, adjustable 10-60 FPS
-3. **Mouse Event Throttling**: Debounce to ~60Hz
-4. **Pattern Optimization**: Pre-calculate where possible, limit particle counts
-5. **Command Buffer**: 10-second timeout, minimal overhead when inactive
-6. **Target**: <5% CPU idle, <50MB RAM
+**For detailed performance optimization strategies and metrics**, see [ARCHITECTURE.md](ARCHITECTURE.md#performance-strategy).
+
+**Target Metrics**:
+- CPU usage: <5% idle, <15% active
+- Memory: <50MB
+- FPS: Adjustable 10-60 (default 30)
 
 ## Notes
 

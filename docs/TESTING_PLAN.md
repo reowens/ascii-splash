@@ -4,11 +4,54 @@
 
 This document outlines the comprehensive testing strategy for ascii-splash, a terminal ASCII animation application with 13 patterns, 78 presets, 5 themes, and an advanced command system.
 
-**Current Status**: ✅ **653 tests passing** across 12 test suites  
-**Current Coverage**: 83.01% overall (core components at 96-100%)  
-**Target Coverage**: 80%+ for core logic ✅ **ACHIEVED**  
-**Testing Framework**: Jest 29.7.0 (✅ Installed and configured)  
+**Current Status**: ✅ **653 tests passing** across 12 test suites
+**Current Coverage**: 83.01% overall (core components at 96-100%)
+**Target Coverage**: 80%+ for core logic ✅ **ACHIEVED**
+**Testing Framework**: Jest 29.7.0 (✅ Installed and configured)
 **Document Version**: 1.5 (Updated with all pattern tests complete)
+
+---
+
+## Table of Contents
+
+1. [Automated Testing Strategy](#1-automated-testing-strategy)
+   - [Unit Tests](#11-unit-tests-high-priority)
+   - [Integration Tests](#12-integration-tests-medium-priority)
+   - [Snapshot Tests](#13-snapshot-tests-medium-priority)
+
+2. [Manual Testing Checklist](#2-manual-testing-checklist)
+   - [Pattern Testing](#21-pattern-testing-66-total-tests)
+   - [Command System Testing](#22-command-system-testing)
+   - [Keyboard Controls](#23-keyboard-controls)
+   - [Configuration System](#24-configuration-system)
+   - [Theme System](#25-theme-system-55-tests)
+   - [Performance Testing](#26-performance-testing)
+   - [Edge Cases & Error Handling](#27-edge-cases--error-handling)
+
+3. [Test Automation Setup](#3-test-automation-setup)
+   - [Jest Configuration](#31-jest-configuration)
+   - [Directory Structure](#32-directory-structure)
+   - [Test Utilities](#33-test-utilities)
+
+4. [CI/CD Integration](#4-cicd-integration)
+   - [GitHub Actions Workflow](#41-github-actions-workflow)
+
+5. [Testing Milestones](#5-testing-milestones)
+
+6. [Test Execution Guide](#6-test-execution-guide)
+   - [Running Tests](#running-tests)
+   - [Coverage Goals](#coverage-goals)
+
+7. [Bug Tracking Template](#7-bug-tracking-template)
+
+8. [Next Steps](#8-next-steps)
+
+9. [Appendix: Quick Smoke Test Script](#appendix-quick-smoke-test-script)
+
+10. [Test Results Summary](#test-results-summary)
+    - [Completed Test Suites](#completed-test-suites-1010-passing-)
+    - [CommandBuffer Test Suite](#commandbuffer-test-suite)
+    - [AnimationEngine Test Suite](#animationengine-test-suite)
 
 ---
 

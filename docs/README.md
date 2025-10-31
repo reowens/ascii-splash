@@ -141,7 +141,8 @@ This directory contains comprehensive project documentation for **ascii-splash**
 
 ### Root Directory Docs
 - **[../README.md](../README.md)** - User-facing documentation and usage guide
-- **[../CLAUDE.md](../CLAUDE.md)** - Developer documentation and architecture details
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Technical architecture and implementation details (primary reference)
+- **[../CLAUDE.md](../CLAUDE.md)** - AI assistant project context and navigation
 - **[../examples/.splashrc.example](../examples/.splashrc.example)** - Configuration reference
 
 ### Code Documentation
@@ -178,10 +179,10 @@ This directory contains comprehensive project documentation for **ascii-splash**
 ## Quick Reference
 
 ### Project Statistics (as of Oct 30, 2025)
-- **Patterns:** 11 (with 78 presets)
+- **Patterns:** 13 (with 78 presets)
 - **Themes:** 5
 - **Commands:** 40+
-- **Tests:** 579
+- **Tests:** 653
 - **Coverage:** 83.01%
 - **Phases Complete:** 5/6
 
