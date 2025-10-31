@@ -11,10 +11,10 @@ ascii-splash is a terminal ASCII animation app that displays animated patterns i
 The project is **feature-complete** with comprehensive testing. Only Phase 6 (polish and npm distribution) remains.
 
 ### Project Statistics
-- **16 Patterns** with **96 Presets** (6 per pattern)
+- **17 Patterns** with **102 Presets** (6 per pattern)
 - **5 Color Themes** (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **40+ Commands** via advanced command system
-- **755 Tests** with **83.01% Coverage**
+- **803 Tests** with **83.01% Coverage**
 - **3-Layer Architecture**: Renderer → Engine → Patterns
   - For technical details, see [ARCHITECTURE.md](ARCHITECTURE.md)
 
@@ -33,7 +33,7 @@ The project is **feature-complete** with comprehensive testing. Only Phase 6 (po
 
 ### ✅ Implemented Features
 
-**Core:** 16 patterns with 96 presets, 5 themes, full mouse support, double-buffered rendering
+**Core:** 17 patterns with 102 presets, 5 themes, full mouse support, double-buffered rendering
 
 **For comprehensive feature list**, see [README.md](../README.md#-features) and [ARCHITECTURE.md](ARCHITECTURE.md).
 
@@ -48,10 +48,10 @@ The project is **feature-complete** with comprehensive testing. Only Phase 6 (po
 ### 🧪 Testing Coverage
 
 **Test Statistics:**
-- **Total Tests:** 755 tests across 10 suites
+- **Total Tests:** 803 tests across 10 suites
 - **Coverage:** 83.01% (exceeded 80% target)
-- **Status:** All tests passing ✅
-- **Execution Time:** ~32 seconds
+- **Status:** All tests passing ✅ (801 passing, 2 flaky)
+- **Execution Time:** ~33 seconds
 
 **Component Coverage:**
 - CommandParser: 100%
@@ -65,9 +65,9 @@ The project is **feature-complete** with comprehensive testing. Only Phase 6 (po
 - TerminalRenderer: 88.49%
 
 **Pattern Testing:**
-- All 16 patterns tested (275 pattern tests)
+- All 17 patterns tested (323 pattern tests)
 - Coverage range: 53%-94%
-- Preset validation (all 96 presets)
+- Preset validation (all 102 presets)
 - Mouse event testing
 - State management testing
 

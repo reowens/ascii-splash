@@ -14,8 +14,8 @@
 **ascii-splash** is a lightweight terminal ASCII animation application that displays interactive animated patterns in a terminal window. Designed for IDE workspaces as an ambient visual effect.
 
 **Key Stats**:
-- **16 interactive patterns** with full theme support
-- **96 total presets** (6 per pattern)
+- **17 interactive patterns** with full theme support
+- **102 total presets** (6 per pattern)
 - **5 color themes** (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **40+ commands** via multi-key command system
 - **Performance**: <5% CPU, ~40-50MB RAM
@@ -82,7 +82,7 @@ splash/
 │   │   ├── CommandParser.ts     # Parse command strings
 │   │   └── CommandExecutor.ts   # Execute parsed commands
 │   │
-│   └── patterns/                # 16 pattern implementations
+│   └── patterns/                # 17 pattern implementations
 │       ├── WavePattern.ts
 │       ├── StarfieldPattern.ts
 │       ├── MatrixPattern.ts
@@ -98,13 +98,14 @@ splash/
 │       ├── MazePattern.ts
 │       ├── DNAPattern.ts
 │       ├── LavaLampPattern.ts
-│       └── SmokePattern.ts
+│       ├── SmokePattern.ts
+│       └── SnowPattern.ts
 │
 ├── tests/                        # Jest test suites
 │   └── unit/patterns/
 │       ├── wave.test.ts
 │       ├── starfield.test.ts
-│       └── ... (16 pattern tests + engine/config/renderer tests)
+│       └── ... (17 pattern tests + engine/config/renderer tests)
 │
 ├── docs/                         # Developer documentation
 │   ├── ARCHITECTURE.md          # ⭐ Technical architecture (for developers)
@@ -231,12 +232,12 @@ interface Theme {
 **Phase**: 6 - Polish and Distribution (In Progress)
 
 **Completion**:
-- ✅ 16 Interactive patterns (11 core + Life + Maze + DNA + LavaLamp + Smoke)
-- ✅ 96 presets (6 per pattern)
+- ✅ 17 Interactive patterns (11 core + Life + Maze + DNA + LavaLamp + Smoke + Snow)
+- ✅ 102 presets (6 per pattern)
 - ✅ 5 color themes
 - ✅ Configuration system
 - ✅ Favorites & shuffle mode
-- ✅ 755 tests, 83% coverage
+- ✅ 803 tests, 83% coverage
 - ✅ Complete documentation
 
 **Next Steps**:
@@ -267,7 +268,7 @@ npm run test:coverage # Coverage report
 - Monitor CPU usage with `top` or Activity Monitor
 
 **Test Organization**:
-- `tests/unit/patterns/`: Pattern-specific tests (13 files)
+- `tests/unit/patterns/`: Pattern-specific tests (17 files)
 - `tests/unit/engine/`: Engine tests (AnimationEngine, PerformanceMonitor)
 - `tests/unit/config/`: Configuration tests (ConfigLoader, defaults)
 - `tests/unit/renderer/`: Renderer & Buffer tests

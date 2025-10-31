@@ -6,14 +6,14 @@
 
 **A terminal ASCII animation app that adds visual flow to your IDE workspace.**
 
-Transform your terminal into a mesmerizing visual experience with **16 interactive patterns**, **96 presets**, 5 color themes, and a powerful command system. Perfect as an ambient background for your coding sessions!
+Transform your terminal into a mesmerizing visual experience with **17 interactive patterns**, **102 presets**, 5 color themes, and a powerful command system. Perfect as an ambient background for your coding sessions!
 
 ---
 
 ## ✨ Features
 
-- 🎨 **16 Interactive Patterns** - Waves, Starfield, Matrix, Rain, Quicksilver, Particles, Spiral, Plasma, Tunnel, Lightning, Fireworks, Life, Maze, DNA, Lava Lamp, Smoke
-- 🎯 **96 Total Presets** - 6 carefully crafted variations for each pattern
+- 🎨 **17 Interactive Patterns** - Waves, Starfield, Matrix, Rain, Quicksilver, Particles, Spiral, Plasma, Tunnel, Lightning, Fireworks, Life, Maze, DNA, Lava Lamp, Smoke, Snow
+- 🎯 **102 Total Presets** - 6 carefully crafted variations for each pattern
 - 🌈 **5 Color Themes** - Ocean, Matrix, Starlight, Fire, Monochrome (all patterns adapt)
 - ⌨️ **Advanced Command System** - Multi-key commands for quick pattern/preset/theme switching
 - 💾 **Favorites System** - Save and recall your favorite combinations
@@ -116,7 +116,7 @@ splash -h
 
 | Option | Short | Description | Values |
 |--------|-------|-------------|--------|
-| `--pattern` | `-p` | Starting pattern | waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, life, maze |
+| `--pattern` | `-p` | Starting pattern | waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, life, maze, dna, lavalamp, smoke, snow |
 | `--quality` | `-q` | Quality preset | low, medium (default), high |
 | `--fps` | `-f` | Custom FPS (10-60) | Number (overrides quality preset FPS) |
 | `--theme` | `-t` | Color theme | ocean (default), matrix, starlight, fire, monochrome |
@@ -173,7 +173,7 @@ See [examples/.splashrc.example](examples/.splashrc.example) for a complete exam
 ### Available Settings
 
 **Global Settings:**
-- `defaultPattern` - Starting pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, life, maze)
+- `defaultPattern` - Starting pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, life, maze, dna, lavalamp, smoke, snow)
 - `quality` - Quality preset (low, medium, high)
 - `fps` - Target frames per second (10-60)
 - `theme` - Color theme (ocean, matrix, starlight, fire, monochrome)
@@ -213,7 +213,7 @@ Each pattern has its own configuration options. See [examples/.splashrc.example]
 ### ⌨️ Keyboard
 - **0**: Command mode (advanced multi-key commands - presets, favorites, search, shuffle)
 - **1-9**: Switch to pattern 1-9
-- **n/p**: Next/Previous pattern (cycles through all 11 patterns)
+- **n/p**: Next/Previous pattern (cycles through all 17 patterns)
 - **Space**: Pause/Resume
 - **+/-**: Adjust FPS (10-60)
 - **[/]**: Cycle quality presets (LOW/MEDIUM/HIGH)
@@ -412,6 +412,18 @@ Physics-based smoke particle simulation
 - **Metrics**: Active particles, plume count, average opacity
 - **6 Presets**: Gentle Wisp, Campfire, Industrial, Incense, Fog, Steam
 
+### 17. Snow (Press n from Pattern 16)
+Falling particles with seasonal effects
+- Realistic downward falling motion with gravity and wind drift
+- Perlin noise turbulence for natural movement
+- Particle rotation as they fall
+- Ground accumulation feature (optional)
+- 5 particle types: snow, cherry blossoms, autumn leaves, confetti, ash
+- Mouse creates wind force field pushing particles
+- Click spawns burst of 20 particles
+- **Metrics**: Active particles, accumulated, average velocity
+- **6 Presets**: Light Flurries, Blizzard, Cherry Blossoms, Autumn Leaves, Confetti, Ash
+
 ## ⚡ Quality Presets
 
 Press `[` or `]` to cycle through performance presets:
@@ -466,14 +478,14 @@ Press `d` to toggle the debug overlay showing:
 ascii-splash uses a clean **3-layer architecture**:
 - **Renderer Layer**: Terminal control with double-buffering for flicker-free rendering
 - **Engine Layer**: Animation loop running at target FPS, commands, performance monitoring
-- **Pattern Layer**: 14 interactive patterns with themes and presets
+- **Pattern Layer**: 17 interactive patterns with themes and presets
 
 ```
 src/
 ├── types/          # Core interfaces and types
 ├── renderer/       # Terminal rendering with double-buffering
 ├── engine/         # Animation loop, commands, performance monitoring
-├── patterns/       # Pattern implementations (13 total)
+├── patterns/       # Pattern implementations (17 total)
 ├── config/         # Configuration system
 └── main.ts         # Entry point and input handling
 ```

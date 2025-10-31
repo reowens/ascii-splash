@@ -21,6 +21,7 @@ import { LifePattern } from './patterns/LifePattern';
 import { DNAPattern } from './patterns/DNAPattern';
 import { LavaLampPattern } from './patterns/LavaLampPattern';
 import { SmokePattern } from './patterns/SmokePattern';
+import { SnowPattern } from './patterns/SnowPattern';
 import { Pattern, CliOptions, QualityPreset, ConfigSchema, Theme } from './types';
 import { ConfigLoader } from './config/ConfigLoader';
 import { getTheme, getNextThemeName } from './config/themes';
@@ -49,7 +50,7 @@ function parseCliArguments(): CliOptions {
   // Pattern selection
   program.option(
     '-p, --pattern <name>',
-    'Start with specific pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, maze, life, dna, lavalamp, smoke)'
+    'Start with specific pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, maze, life, dna, lavalamp, smoke, snow)'
   );
   
   // Quality preset
@@ -88,7 +89,7 @@ function parseCliArguments(): CliOptions {
   const options = program.opts();
   
   // Validate pattern if provided
-  const validPatterns = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma', 'tunnel', 'lightning', 'fireworks', 'maze', 'life', 'dna', 'lavalamp', 'smoke'];
+  const validPatterns = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma', 'tunnel', 'lightning', 'fireworks', 'maze', 'life', 'dna', 'lavalamp', 'smoke', 'snow'];
   if (options.pattern && !validPatterns.includes(options.pattern.toLowerCase())) {
     program.error(
       `Invalid pattern: ${options.pattern}\nValid patterns: ${validPatterns.join(', ')}`
@@ -256,6 +257,16 @@ function main() {
         spread: cfg.patterns?.smoke?.spread,
         windStrength: cfg.patterns?.smoke?.windStrength,
         mouseBlowForce: cfg.patterns?.smoke?.mouseBlowForce
+      }),
+      new SnowPattern(theme, {
+        particleCount: cfg.patterns?.snow?.particleCount,
+        fallSpeed: cfg.patterns?.snow?.fallSpeed,
+        windStrength: cfg.patterns?.snow?.windStrength,
+        turbulence: cfg.patterns?.snow?.turbulence,
+        rotationSpeed: cfg.patterns?.snow?.rotationSpeed,
+        particleType: cfg.patterns?.snow?.particleType,
+        accumulation: cfg.patterns?.snow?.accumulation,
+        mouseWindForce: cfg.patterns?.snow?.mouseWindForce
       })
     ];
   }
@@ -265,7 +276,7 @@ function main() {
   // Determine starting pattern from config
   let currentPatternIndex = 0;
   if (config.defaultPattern) {
-    const patternNames = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma', 'tunnel', 'lightning', 'fireworks', 'maze', 'life', 'dna', 'lavalamp', 'smoke'];
+    const patternNames = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma', 'tunnel', 'lightning', 'fireworks', 'maze', 'life', 'dna', 'lavalamp', 'smoke', 'snow'];
     const index = patternNames.indexOf(config.defaultPattern);
     if (index >= 0) {
       currentPatternIndex = index;

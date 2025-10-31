@@ -133,6 +133,16 @@ export const defaultConfig: ConfigSchema = {
       windStrength: 0.2,
       mouseBlowForce: 2.5,
     },
+    snow: {
+      particleCount: 50,
+      fallSpeed: 0.3,
+      windStrength: 0.5,
+      turbulence: 0.6,
+      rotationSpeed: 1.0,
+      particleType: 'snow' as const,
+      mouseWindForce: 2.0,
+      accumulation: true,
+    },
   },
 };
 

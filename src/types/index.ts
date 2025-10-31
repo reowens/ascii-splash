@@ -191,6 +191,17 @@ export interface SmokePatternConfig {
   mouseBlowForce?: number;
 }
 
+export interface SnowPatternConfig {
+  particleCount?: number;
+  fallSpeed?: number;
+  windStrength?: number;
+  turbulence?: number;
+  rotationSpeed?: number;
+  particleType?: 'snow' | 'cherry' | 'autumn' | 'confetti' | 'ash';
+  mouseWindForce?: number;
+  accumulation?: boolean;
+}
+
 // Favorite slot interface
 export interface FavoriteSlot {
   pattern: string;           // Pattern name (e.g., "WavePattern")
@@ -233,5 +244,6 @@ export interface ConfigSchema {
     dna?: DNAPatternConfig;
     lavaLamp?: LavaLampPatternConfig;
     smoke?: SmokePatternConfig;
+    snow?: SnowPatternConfig;
   };
 }

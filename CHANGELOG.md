@@ -28,6 +28,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Mouse creates force field to blow smoke away, click spawns 15-particle burst
   - Configurable plume count, particle density, rise speed, dissipation rate
   - 37 comprehensive unit tests
+- **Snow Pattern**: Falling particle system with seasonal effects
+  - 6 presets: Light Flurries, Blizzard, Cherry Blossoms, Autumn Leaves, Confetti, Ash
+  - Realistic downward falling motion with gravity and wind drift
+  - Perlin noise turbulence for natural movement
+  - Particle rotation as they fall for added realism
+  - Ground accumulation feature (optional) for settled particles
+  - 5 particle types: snow, cherry blossoms, autumn leaves, confetti, ash
+  - Mouse creates wind force field pushing particles, click spawns 20-particle burst
+  - Configurable particle count, fall speed, wind strength, turbulence, rotation
+  - 48 comprehensive unit tests
 - Utility modules for advanced pattern development:
   - `math.ts`: 3D projection, rotation matrices, complex numbers
   - `noise.ts`: Perlin noise implementation for organic effects
@@ -35,8 +45,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `metaballs.ts`: Metaball field calculations for blob rendering
 
 ### Changed
-- Pattern count increased from 13 to 16
-- Total presets increased from 78 to 96
+- Pattern count increased from 13 to 17
+- Total presets increased from 78 to 102
+- Test suite expanded to 803 total tests
 
 ## [1.0.0] - 2025-10-30
 

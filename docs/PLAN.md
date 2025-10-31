@@ -359,9 +359,9 @@ splash/
 #### 6.2 Stage 2: Additional Patterns 🎨 IN PROGRESS
 **Goal**: Expand pattern library before v1.0.0 release
 
-**Current Status**: 16 patterns → **Target**: 22 patterns (adding 6 more)
+**Current Status**: 17 patterns → **Target**: 22 patterns (adding 5 more)
 
-**Patterns Implemented** (5 complete):
+**Patterns Implemented** (6 complete):
 
 1. [x] **Maze Generator** - Recursive backtracking maze generation animation
    - [x] Implement MazePattern class
@@ -399,11 +399,14 @@ splash/
    - [x] Physics-based particle simulation with Perlin noise turbulence
    - [x] Realistic opacity-based rendering with height-gradient coloring
 
-6. [ ] **Falling Snow** - Seasonal particle effects with wind
-   - [ ] Implement SnowPattern class
-   - [ ] 6 presets (Light Flurries, Blizzard, Cherry Blossoms, Autumn Leaves, Confetti, Ash)
-   - [ ] Theme support + mouse interaction (blow wind, spawn burst)
-   - [ ] Unit tests + config
+6. [x] **Falling Snow** - Seasonal particle effects with wind
+   - [x] Implement SnowPattern class (442 lines)
+   - [x] 6 presets (Light Flurries, Blizzard, Cherry Blossoms, Autumn Leaves, Confetti, Ash)
+   - [x] Theme support + mouse interaction (wind force field, spawn burst)
+   - [x] Unit tests + config (48 tests passing, 100% coverage)
+   - [x] Downward falling physics with gravity and wind drift
+   - [x] Perlin noise turbulence, particle rotation, ground accumulation
+   - [x] 5 particle types: snow, cherry blossoms, autumn leaves, confetti, ash
 
 7. [ ] **Constellation** - Star patterns that connect and fade
    - [ ] Implement ConstellationPattern class
