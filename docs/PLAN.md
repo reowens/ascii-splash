@@ -299,7 +299,7 @@ Press `t` to cycle, or use `0t2` for direct jump.
   - Mouse warping/distortion field
   - Click creates expanding ring waves
 
-**Result**: All 11 patterns now have full theme support AND mouse interactivity!
+**Result**: All 13 patterns now have full theme support AND mouse interactivity!
 
 ### Phase 4: Command System & Presets ✅ COMPLETE
 **Goal**: Create extensible command system with unlimited presets per pattern
@@ -421,15 +421,15 @@ Press `t` to cycle, or use `0t2` for direct jump.
 - [x] All patterns work with all 5 themes
 - [x] Build successful with no TypeScript errors
 - [x] Documentation updates (README.md, CLAUDE.md, examples/.splashrc.example)
-- [x] Comprehensive test suite: 579 tests with 83.01% coverage
+- [x] Comprehensive test suite: 653 tests with 83.01% coverage
 
-**Result**: 11 total patterns with 66 presets (6 per pattern)!
+**Result**: 13 total patterns with 78 presets (6 per pattern)!
 
 ### Testing Achievements 🧪
 
 **Test Coverage**: 83.01% (exceeded 80% target)
 - **Test Suites**: 10 suites, all passing ✅
-- **Total Tests**: 579 tests, all passing ✅
+- **Total Tests**: 653 tests, all passing ✅
 - **Execution Time**: ~7.4 seconds
 
 **Component Coverage**:
@@ -443,7 +443,7 @@ Press `t` to cycle, or use `0t2` for direct jump.
 - CommandExecutor: 96.63%
 - TerminalRenderer: 88.49%
 
-**Pattern Coverage**: All 11 patterns tested
+**Pattern Coverage**: All 13 patterns tested
 - 173 pattern tests covering rendering, mouse events, presets, and state management
 - Coverage range: 53%-94% across patterns
 - Comprehensive preset testing (66 presets validated)

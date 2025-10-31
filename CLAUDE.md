@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+> **⚠️ Symlink Note**: `AGENTS.md` and `WARP.md` are symlinks pointing to this file. Do not delete them. This design allows multiple entry points while maintaining a single source of truth.
+
 ## Project Overview
 
 ascii-splash is a terminal ASCII animation app that displays animated patterns (waves, starfield, matrix rain, etc.) in a terminal window. It's designed as a lightweight ambient visual effect for IDE workspaces, targeting <5% CPU and <50MB RAM usage.
@@ -162,6 +164,8 @@ interface ConfigSchema {
     tunnel?: TunnelPatternConfig;
     lightning?: LightningPatternConfig;
     fireworks?: FireworkPatternConfig;
+    life?: LifePatternConfig;
+    maze?: MazePatternConfig;
   };
 }
 
@@ -384,17 +388,19 @@ src/
     ├── ParticlePattern.ts  # Physics-based particles + 6 presets
     ├── SpiralPattern.ts    # Rotating logarithmic spirals + 6 presets
     ├── PlasmaPattern.ts    # Fluid plasma effect + 6 presets
-    ├── TunnelPattern.ts    # 3D geometric tunnel + 6 presets (NEW)
-    ├── LightningPattern.ts # Electric bolts with branching + 6 presets (NEW)
-    └── FireworksPattern.ts # Particle explosions + 6 presets (NEW)
+    ├── TunnelPattern.ts    # 3D geometric tunnel + 6 presets
+    ├── LightningPattern.ts # Electric bolts with branching + 6 presets
+    ├── FireworksPattern.ts # Particle explosions + 6 presets
+    ├── LifePattern.ts      # Conway's Game of Life cellular automaton + 6 presets
+    └── MazePattern.ts      # Dynamic maze generation and solving + 6 presets
 ```
 
 ## Current Status
 
-**Phase 5 Complete!** - New patterns: Tunnel, Lightning, and Fireworks!
+**Phase 6 In Progress!** - New patterns: Life and Maze added to complete 13-pattern suite!
 
 **Completed Features:**
-1. **11 Interactive Patterns**: All with full theme support, mouse interactivity, AND 6 presets each (66 presets total!)
+1. **13 Interactive Patterns**: All with full theme support, mouse interactivity, AND 6 presets each (78 presets total!)
    - **Waves** (6 presets): Calm Seas, Ocean Storm, Ripple Tank, Glass Lake, Tsunami, Choppy Waters
    - **Starfield** (6 presets): Deep Space, Warp Speed, Asteroid Field, Milky Way, Nebula Drift, Photon Torpedo
    - **Matrix** (6 presets): Classic Matrix, Binary Rain, Code Storm, Sparse Glyphs, Firewall, Zen Code
@@ -406,6 +412,8 @@ src/
    - **Tunnel** (6 presets): Circle Tunnel, Hyperspeed, Square Vortex, Triangle Warp, Hexagon Grid, Stargate
    - **Lightning** (6 presets): Cloud Strike, Tesla Coil, Ball Lightning, Fork Lightning, Chain Lightning, Spider Lightning
    - **Fireworks** (6 presets): Sparklers, Grand Finale, Fountain, Roman Candle, Chrysanthemum, Strobe
+   - **Life** (6 presets): Still Life, Beehive, Gliders, Oscillators, Garden, Chaos
+   - **Maze** (6 presets): Recursive Backtrack, Aldous-Broder, Prim, Hunt-Kill, Wilson, Braid
 
 2. **Command System** (Phase 4.1):
    - `CommandBuffer`: Multi-key input accumulation with 10-second timeout
@@ -418,10 +426,10 @@ src/
    - Combination commands: `0p3+t2` (pattern + theme)
 
 3. **Preset System** (Phase 4.2):
-   - All 11 patterns implement `applyPreset(presetId: number): boolean`
+   - All 13 patterns implement `applyPreset(presetId: number): boolean`
    - Static `getPresets()` and `getPreset(id)` methods on each pattern class
    - Users can apply presets via commands: `01`, `02`, `0p3.5`, `0pwaves.2`
-   - Each pattern has 6 carefully designed preset variations (66 total presets)
+   - Each pattern has 6 carefully designed preset variations (78 total presets)
 
 4. **Favorites System** (Phase 4.3):
    - Save current state to favorite slots (1-99): `0F1`, `0F2`, etc.
@@ -445,7 +453,7 @@ src/
    - Config file: `~/.config/ascii-splash/.splashrc.json`
    - Merge priority: CLI args > config file > defaults
    - Global settings: pattern, quality, FPS, theme, mouse
-   - Pattern-specific settings for all 11 patterns
+   - Pattern-specific settings for all 13 patterns
    - Favorites storage in config file
    - Example config at `examples/.splashrc.example`
 

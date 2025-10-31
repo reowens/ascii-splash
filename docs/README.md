@@ -152,7 +152,7 @@ This directory contains comprehensive project documentation for **ascii-splash**
 ## Quick Reference
 
 ### Project Statistics (as of Oct 30, 2025)
-- **Patterns:** 11 (with 66 presets)
+- **Patterns:** 11 (with 78 presets)
 - **Themes:** 5
 - **Commands:** 40+
 - **Tests:** 579

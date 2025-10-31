@@ -24,7 +24,7 @@ The project is **feature-complete** with comprehensive testing. Only Phase 6 (po
 | Phase 1 | ✅ COMPLETE | Core MVP (renderer, animation loop, basic pattern) |
 | Phase 2 | ✅ COMPLETE | Patterns & Performance (8 patterns, mouse support, metrics) |
 | Phase 3 | ✅ COMPLETE | Configuration & Extensibility (CLI args, config files, themes) |
-| Phase 4 | ✅ COMPLETE | Command System & Presets (66 presets, favorites, shuffle) |
+| Phase 4 | ✅ COMPLETE | Command System & Presets (78 presets, favorites, shuffle) |
 | Phase 5 | ✅ COMPLETE | New Patterns (Tunnel, Lightning, Fireworks) |
 | Phase 6 | ⏳ NOT STARTED | Polish & Distribution (npm package, demos, optimization) |
 
@@ -107,7 +107,7 @@ The project is **feature-complete** with comprehensive testing. Only Phase 6 (po
 ### 🧪 Testing Coverage
 
 **Test Statistics:**
-- **Total Tests:** 579 tests across 10 suites
+- **Total Tests:** 653 tests across 10 suites
 - **Coverage:** 83.01% (exceeded 80% target)
 - **Status:** All tests passing ✅
 - **Execution Time:** ~7.4 seconds
@@ -124,9 +124,9 @@ The project is **feature-complete** with comprehensive testing. Only Phase 6 (po
 - TerminalRenderer: 88.49%
 
 **Pattern Testing:**
-- All 11 patterns tested (173 pattern tests)
+- All 13 patterns tested (173 pattern tests)
 - Coverage range: 53%-94%
-- Preset validation (all 66 presets)
+- Preset validation (all 78 presets)
 - Mouse event testing
 - State management testing
 
@@ -141,7 +141,7 @@ The project is **feature-complete** with comprehensive testing. Only Phase 6 (po
 
 ```
 ┌─────────────────────────────────────────┐
-│         Pattern Layer (11 patterns)      │
+│         Pattern Layer (13 patterns)      │
 │  Waves, Starfield, Matrix, Rain, etc.   │
 │  - render(buffer, time, size)           │
 │  - applyPreset(id)                       │
@@ -181,7 +181,7 @@ splash/
 │   ├── engine/                  # Animation loop & commands
 │   ├── renderer/                # Terminal rendering
 │   └── patterns/                # 11 pattern implementations
-├── tests/                       # 579 tests with utilities
+├── tests/                       # 653 tests with utilities
 ├── docs/                        # Project documentation
 ├── examples/                    # Config examples
 └── dist/                        # Built JavaScript

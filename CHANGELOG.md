@@ -13,7 +13,7 @@ The first stable release of ascii-splash - a terminal ASCII animation app with v
 
 ### ✨ Features
 
-#### 🎨 11 Interactive Patterns
+#### 🎨 13 Interactive Patterns
 - **Waves**: Sine wave animations with ripple effects
 - **Starfield**: 3D parallax starfield with force fields
 - **Matrix**: Digital rain effect with column spawning
@@ -25,9 +25,11 @@ The first stable release of ascii-splash - a terminal ASCII animation app with v
 - **Tunnel**: 3D geometric tunnel zoom
 - **Lightning**: Branching electric arcs
 - **Fireworks**: Explosive particle bursts
+- **Life**: Conway's Game of Life cellular automaton
+- **Maze**: Dynamic maze generation and solving
 
-#### 🎭 66 Built-in Presets
-- **6 presets per pattern** (11 patterns × 6 = 66 total)
+#### 🎭 78 Built-in Presets
+- **6 presets per pattern** (13 patterns × 6 = 78 total)
 - Each preset offers unique visual variations
 - Examples: "Ocean Storm", "Warp Speed", "Tesla Coil", "Grand Finale"
 - Access via command system: `01-99` for quick loading
@@ -115,10 +117,10 @@ The first stable release of ascii-splash - a terminal ASCII animation app with v
 
 ### 🧪 Testing
 
-- **579 tests**, all passing ✅
+- **653 tests**, all passing ✅
 - **83.01% code coverage**
-- 10 test suites covering:
-  - All 11 patterns with preset validation
+- 12 test suites covering:
+  - All 13 patterns with preset validation (including Life and Maze)
   - Configuration system (defaults, loader, themes)
   - Engine components (animation, performance, command system)
   - Renderer (buffer, terminal)
