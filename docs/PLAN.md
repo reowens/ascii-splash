@@ -89,7 +89,7 @@ interface Pattern {
 
 **Layer 1: Direct Keys (Instant Actions)**
 ```
-1-8       Switch to patterns 1-8
+1-9       Switch to patterns 1-9 (10-11 via n/p)
 n/p       Next/Previous pattern
 SPACE     Pause/Resume
 t         Cycle themes
@@ -299,7 +299,7 @@ Press `t` to cycle, or use `0t2` for direct jump.
   - Mouse warping/distortion field
   - Click creates expanding ring waves
 
-**Result**: All 8 patterns now have full theme support AND mouse interactivity!
+**Result**: All 11 patterns now have full theme support AND mouse interactivity!
 
 ### Phase 4: Command System & Presets ✅ COMPLETE
 **Goal**: Create extensible command system with unlimited presets per pattern
@@ -453,15 +453,183 @@ Press `t` to cycle, or use `0t2` for direct jump.
 - Test utilities for color comparison and buffer validation
 - Coverage reports in `coverage/` directory
 
-### Phase 6: Polish & Distribution 📦 FINAL
+### Phase 6: Polish & Distribution 📦 IN PROGRESS
+
+#### 6.1 Stage 1: Essential Pre-Publish ✅ COMPLETE
+**Goal**: Prepare package for npm publication
+
+- [x] Update package.json for v1.0.0
+  - Version bump: 0.1.0 → 1.0.0
+  - Enhanced description with features
+  - Expanded keywords (19 total)
+  - Added author, repository, bugs, homepage
+  - Added `files` field for package contents control
+  - Added `prepublishOnly` safety script
+  
+- [x] Add shebang to main.ts (`#!/usr/bin/env node`)
+  - Enables `splash` and `npx ascii-splash` commands
+  - Verified in compiled output
+  
+- [x] Create .npmignore
+  - Excludes: src/, tests/, docs/, coverage/
+  - Includes: dist/, LICENSE, README.md, examples/
+  - Package size: 79.7 kB (411.1 kB unpacked)
+  
+- [x] Add LICENSE file (MIT)
+  - Copyright (c) 2025 reoiv
+  
+- [x] Polish README.md
+  - Added npm badges (version, license, Node.js)
+  - Restructured with emojis and clear sections
+  - Added Quick Start section
+  - Enhanced installation instructions
+  - Updated all commands to use `splash` binary
+  - Added Contributing, License, Acknowledgments sections
+  
+- [x] Test package locally
+  - `npm pack` successful (96 files, 79.7 kB)
+  - Verified package contents
+  - Tested `--help` and `--version` commands
+
+**Package Status**: Ready for npm publication ✅
+
+#### 6.2 Stage 2: Additional Patterns 🎨 IN PROGRESS
+**Goal**: Expand pattern library before v1.0.0 release
+
+**Current Status**: 11 patterns → **Target**: 22 patterns (adding 11 more)
+
+**Patterns to Implement** (11 total, in priority order):
+
+1. [ ] **Maze Generator** - Recursive backtracking maze generation animation
+   - [ ] Implement MazePattern class
+   - [ ] 6 presets (DFS, Prim's, Recursive Division, Kruskal's, Eller's, Wilson's)
+   - [ ] Theme support + mouse interaction (click spawns new maze from that point)
+   - [ ] Unit tests + config
+
+2. [ ] **Game of Life** - Conway's cellular automaton with interactive seeding
+   - [ ] Implement LifePattern class
+   - [ ] 6 presets (Classic, Acorn, Glider Gun, Pulsar, Pentadecathlon, Random Soup)
+   - [ ] Theme support + mouse interaction (click toggles cells)
+   - [ ] Unit tests + config
+
+3. [ ] **DNA Helix** - Double helix rotation with base pairs
+   - [ ] Implement DNAPattern class
+   - [ ] 6 presets (Slow Helix, Fast Spin, Unwinding, Replication, Mutation, Rainbow)
+   - [ ] Theme support + mouse interaction (twist helix, spawn mutations)
+   - [ ] Unit tests + config
+
+4. [ ] **Lava Lamp** - Blobby metaball simulation
+   - [ ] Implement LavaLampPattern class
+   - [ ] 6 presets (Classic, Turbulent, Gentle, Many Blobs, Giant Blob, Strobe)
+   - [ ] Theme support + mouse interaction (attract/repel blobs)
+   - [ ] Unit tests + config
+
+5. [ ] **Smoke** - Rising smoke plumes with turbulence
+   - [ ] Implement SmokePattern class
+   - [ ] 6 presets (Gentle Wisp, Campfire, Industrial, Incense, Fog, Steam)
+   - [ ] Theme support + mouse interaction (blow smoke, spawn plumes)
+   - [ ] Unit tests + config
+
+6. [ ] **Falling Snow** - Seasonal particle effects with wind
+   - [ ] Implement SnowPattern class
+   - [ ] 6 presets (Light Flurries, Blizzard, Cherry Blossoms, Autumn Leaves, Confetti, Ash)
+   - [ ] Theme support + mouse interaction (blow wind, spawn burst)
+   - [ ] Unit tests + config
+
+7. [ ] **Constellation** - Star patterns that connect and fade
+   - [ ] Implement ConstellationPattern class
+   - [ ] 6 presets (Orion, Big Dipper, Random Stars, Zodiac, Connect All, Pulsing)
+   - [ ] Theme support + mouse interaction (connect to cursor, spawn constellation)
+   - [ ] Unit tests + config
+
+8. [ ] **Ripple Grid** - Grid of intersecting wave ripples
+   - [ ] Implement RippleGridPattern class
+   - [ ] 6 presets (Calm Pool, Interference, Raindrops, Sonar, Earthquake, Frozen)
+   - [ ] Theme support + mouse interaction (spawn ripples on click)
+   - [ ] Unit tests + config
+
+9. [ ] **Waveform** - Audio visualizer style frequency bars
+   - [ ] Implement WaveformPattern class
+   - [ ] 6 presets (Oscilloscope, Frequency Bars, Spectrum, Waveform, Circular, Radial)
+   - [ ] Theme support + mouse interaction (change frequency, spawn beat pulse)
+   - [ ] Unit tests + config
+
+10. [ ] **Mandelbrot Zoom** - Fractal zoom animation
+    - [ ] Implement MandelbrotPattern class
+    - [ ] 6 presets (Classic Zoom, Julia Set, Slow Crawl, Deep Dive, Spiral Zoom, Edge Trace)
+    - [ ] Theme support + mouse interaction (zoom center, reset zoom)
+    - [ ] Unit tests + config
+
+11. [ ] **Kaleidoscope** - Mirrored geometric patterns
+    - [ ] Implement KaleidoscopePattern class
+    - [ ] 6 presets (4-Way Mirror, 6-Way, 8-Way, Rotating, Pulsing, Fractal)
+    - [ ] Theme support + mouse interaction (change symmetry, spawn pattern)
+    - [ ] Unit tests + config
+
+**Requirements per pattern**:
+- Implement Pattern interface
+- Full theme support (5 themes)
+- Mouse interactivity (move + click)
+- 6 presets (Tier 1)
+- Unit tests (>80% coverage)
+- Config interface + defaults
+- Documentation in CLAUDE.md
+
+**After patterns complete**:
+- [ ] Update README with new pattern count (11 → 22 patterns, 66 → 132 presets)
+- [ ] Update CHANGELOG.md with new patterns
+- [ ] Update CLAUDE.md with new patterns
+- [ ] Update keyboard shortcuts in main.ts (1-9 keys + n/p cycling)
+- [ ] Add new patterns to config/defaults.ts
+- [ ] Add new pattern configs to types/index.ts
+- [ ] Regenerate test coverage report (target: maintain >80%)
+- [ ] Update help overlay
+- [ ] Build and verify all patterns work
+- [ ] Test all 22 patterns with all 5 themes (110 combinations)
+
+**Result**: 22 patterns × 6 presets each = **132 total presets!**
+
+#### 6.3 Stage 3: npm Publication 🚀 TODO
+**Goal**: Publish to npm registry (after Stage 2 complete)
+
+- [ ] Verify npm login credentials
+- [ ] Final build and test pass
+- [ ] Run `npm publish`
+- [ ] Verify package on npmjs.com
+- [ ] Test global installation: `npm install -g ascii-splash`
+- [ ] Test npx execution: `npx ascii-splash`
+- [ ] Create GitHub release with tag v1.0.0
+
+#### 6.4 Stage 4: Polish & Promotion ✨ TODO
+**Goal**: Enhance discoverability and user experience
+
+**Documentation**:
+- [x] Create CHANGELOG.md with v1.0.0 release notes
+- [ ] Add demo GIFs/videos to README
+- [ ] Create usage examples gallery
+- [ ] Add screenshots of patterns and themes
+- [ ] Document pattern preset showcase
+
+**Testing**:
+- [ ] Test on multiple terminal emulators
+  - [ ] iTerm2 (macOS)
+  - [ ] Terminal.app (macOS)
+  - [ ] Windows Terminal (Windows)
+  - [ ] Alacritty (cross-platform)
+  - [ ] Hyper (Electron-based)
+  
+**Performance**:
 - [ ] Performance optimization pass
-- [ ] Test on multiple terminal emulators (iTerm2, Terminal.app, Windows Terminal, Alacritty)
-- [ ] Add shebang to main.js for binary execution
-- [ ] Create demo GIFs/videos for README
-- [ ] Comprehensive README documentation
-- [ ] Update examples with new features
-- [ ] Package.json preparation
-- [ ] npm publish
+- [ ] Profile CPU usage across patterns
+- [ ] Memory leak testing (long-running sessions)
+- [ ] Benchmark preset switching performance
+
+**Promotion**:
+- [ ] Share on Reddit (r/commandline, r/node)
+- [ ] Post on Hacker News
+- [ ] Tweet/share on social media
+- [ ] Add to awesome-cli-apps lists
+- [ ] Create demo video for YouTube
 
 ## Usage Examples
 

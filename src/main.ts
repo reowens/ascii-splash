@@ -16,6 +16,8 @@ import { PlasmaPattern } from './patterns/PlasmaPattern';
 import { TunnelPattern } from './patterns/TunnelPattern';
 import { LightningPattern } from './patterns/LightningPattern';
 import { FireworksPattern } from './patterns/FireworksPattern';
+import { MazePattern } from './patterns/MazePattern';
+import { LifePattern } from './patterns/LifePattern';
 import { Pattern, CliOptions, QualityPreset, ConfigSchema, Theme } from './types';
 import { ConfigLoader } from './config/ConfigLoader';
 import { getTheme, getNextThemeName } from './config/themes';
@@ -44,7 +46,7 @@ function parseCliArguments(): CliOptions {
   // Pattern selection
   program.option(
     '-p, --pattern <name>',
-    'Start with specific pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks)'
+    'Start with specific pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, maze, life)'
   );
   
   // Quality preset
@@ -83,7 +85,7 @@ function parseCliArguments(): CliOptions {
   const options = program.opts();
   
   // Validate pattern if provided
-  const validPatterns = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma'];
+  const validPatterns = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma', 'tunnel', 'lightning', 'fireworks', 'maze', 'life'];
   if (options.pattern && !validPatterns.includes(options.pattern.toLowerCase())) {
     program.error(
       `Invalid pattern: ${options.pattern}\nValid patterns: ${validPatterns.join(', ')}`
@@ -205,6 +207,23 @@ function main() {
         fadeRate: cfg.patterns?.fireworks?.fadeRate,
         spawnInterval: cfg.patterns?.fireworks?.spawnInterval,
         trailLength: cfg.patterns?.fireworks?.trailLength
+      }),
+      new MazePattern(theme, {
+        algorithm: cfg.patterns?.maze?.algorithm,
+        cellSize: cfg.patterns?.maze?.cellSize,
+        generationSpeed: cfg.patterns?.maze?.generationSpeed,
+        wallChar: cfg.patterns?.maze?.wallChar,
+        pathChar: cfg.patterns?.maze?.pathChar,
+        animateGeneration: cfg.patterns?.maze?.animateGeneration
+      }),
+      new LifePattern(theme, {
+        cellSize: cfg.patterns?.life?.cellSize,
+        updateSpeed: cfg.patterns?.life?.updateSpeed,
+        wrapEdges: cfg.patterns?.life?.wrapEdges,
+        aliveChar: cfg.patterns?.life?.aliveChar,
+        deadChar: cfg.patterns?.life?.deadChar,
+        randomDensity: cfg.patterns?.life?.randomDensity,
+        initialPattern: cfg.patterns?.life?.initialPattern
       })
     ];
   }
@@ -214,7 +233,7 @@ function main() {
   // Determine starting pattern from config
   let currentPatternIndex = 0;
   if (config.defaultPattern) {
-    const patternNames = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma', 'tunnel', 'lightning', 'fireworks'];
+    const patternNames = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma', 'tunnel', 'lightning', 'fireworks', 'maze', 'life'];
     const index = patternNames.indexOf(config.defaultPattern);
     if (index >= 0) {
       currentPatternIndex = index;
@@ -311,7 +330,7 @@ function main() {
         '─────────────────',
         '0        Command mode (advanced)',
         '1-9      Switch patterns (1-9)',
-        'n/p      Next/Previous pattern (all 11)',
+        'n/p      Next/Previous pattern (all 13)',
         'SPACE    Pause/Resume',
         '+/-      Speed up/down',
         '[/]      Quality presets (low/high)',

@@ -88,6 +88,23 @@ export const defaultConfig: ConfigSchema = {
       spawnInterval: 1500,
       trailLength: 8,
     },
+    maze: {
+      algorithm: 'dfs',
+      cellSize: 3,
+      generationSpeed: 50,
+      wallChar: '█',
+      pathChar: ' ',
+      animateGeneration: true,
+    },
+    life: {
+      cellSize: 2,
+      updateSpeed: 100,
+      wrapEdges: true,
+      aliveChar: '█',
+      deadChar: ' ',
+      randomDensity: 0.3,
+      initialPattern: 'random',
+    },
   },
 };
 

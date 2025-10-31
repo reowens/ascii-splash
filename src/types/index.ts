@@ -141,6 +141,25 @@ export interface FireworkPatternConfig {
   trailLength?: number;
 }
 
+export interface MazePatternConfig {
+  algorithm?: 'dfs' | 'prim' | 'recursive-division' | 'kruskal' | 'eller' | 'wilson';
+  cellSize?: number;
+  generationSpeed?: number;
+  wallChar?: string;
+  pathChar?: string;
+  animateGeneration?: boolean;
+}
+
+export interface LifePatternConfig {
+  cellSize?: number;
+  updateSpeed?: number;
+  wrapEdges?: boolean;
+  aliveChar?: string;
+  deadChar?: string;
+  randomDensity?: number;
+  initialPattern?: string;
+}
+
 // Favorite slot interface
 export interface FavoriteSlot {
   pattern: string;           // Pattern name (e.g., "WavePattern")
@@ -178,5 +197,7 @@ export interface ConfigSchema {
     tunnel?: TunnelPatternConfig;
     lightning?: LightningPatternConfig;
     fireworks?: FireworkPatternConfig;
+    maze?: MazePatternConfig;
+    life?: LifePatternConfig;
   };
 }
