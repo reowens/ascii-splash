@@ -6,14 +6,14 @@
 
 **A terminal ASCII animation app that adds visual flow to your IDE workspace.**
 
-Transform your terminal into a mesmerizing visual experience with 11 interactive patterns, 66 presets, 5 color themes, and a powerful command system. Perfect as an ambient background for your coding sessions!
+Transform your terminal into a mesmerizing visual experience with **13 interactive patterns**, **78 presets**, 5 color themes, and a powerful command system. Perfect as an ambient background for your coding sessions!
 
 ---
 
 ## ✨ Features
 
-- 🎨 **11 Interactive Patterns** - Waves, Starfield, Matrix, Rain, Quicksilver, Particles, Spiral, Plasma, Tunnel, Lightning, Fireworks
-- 🎯 **66 Total Presets** - 6 carefully crafted variations for each pattern
+- 🎨 **13 Interactive Patterns** - Waves, Starfield, Matrix, Rain, Quicksilver, Particles, Spiral, Plasma, Tunnel, Lightning, Fireworks, Life, Maze
+- 🎯 **78 Total Presets** - 6 carefully crafted variations for each pattern
 - 🌈 **5 Color Themes** - Ocean, Matrix, Starlight, Fire, Monochrome (all patterns adapt)
 - ⌨️ **Advanced Command System** - Multi-key commands for quick pattern/preset/theme switching
 - 💾 **Favorites System** - Save and recall your favorite combinations
@@ -116,7 +116,7 @@ splash -h
 
 | Option | Short | Description | Values |
 |--------|-------|-------------|--------|
-| `--pattern` | `-p` | Starting pattern | waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks |
+| `--pattern` | `-p` | Starting pattern | waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, life, maze |
 | `--quality` | `-q` | Quality preset | low, medium (default), high |
 | `--fps` | `-f` | Custom FPS (10-60) | Number (overrides quality preset FPS) |
 | `--theme` | `-t` | Color theme | ocean (default), matrix, starlight, fire, monochrome |
@@ -173,7 +173,7 @@ See [examples/.splashrc.example](examples/.splashrc.example) for a complete exam
 ### Available Settings
 
 **Global Settings:**
-- `defaultPattern` - Starting pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks)
+- `defaultPattern` - Starting pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, life, maze)
 - `quality` - Quality preset (low, medium, high)
 - `fps` - Target frames per second (10-60)
 - `theme` - Color theme (ocean, matrix, starlight, fire, monochrome)
@@ -193,6 +193,8 @@ Each pattern has its own configuration options. See [examples/.splashrc.example]
 - `tunnel` - shape, ringCount, ringSpacing, speed, rotationSpeed, radius
 - `lightning` - boltDensity, branchProbability, branchAngle, fadeTime, strikeInterval, maxBranches, thickness
 - `fireworks` - burstSize, launchSpeed, gravity, fadeRate, spawnInterval, trailLength
+- `life` - cellSize, updateFrequency, initialDensity, birthChance, survivalChance
+- `maze` - cellSize, generationSpeed, algorithm
 
 ### Creating Your Config
 
@@ -357,6 +359,26 @@ Particle explosions with physics
 - Click for instant 1.5x explosion
 - **Metrics**: Active fireworks, particle count, explosions
 - **6 Presets**: Sparklers, Grand Finale, Fountain, Roman Candle, Chrysanthemum, Strobe
+
+### 12. Life (Press n from Pattern 11)
+Conway's Game of Life cellular automaton
+- Classic infinite cellular automaton simulation
+- Life/death rules with configurable birth/survival thresholds
+- Generates complex living patterns (gliders, oscillators, still lifes)
+- Mouse click to toggle cells on/off (paint mode)
+- Patterns evolve with natural emergence behavior
+- **Metrics**: Living cells, generation count, pattern stability
+- **6 Presets**: Still Life, Beehive, Gliders, Oscillators, Garden, Chaos
+
+### 13. Maze (Press n from Pattern 12)
+Dynamic maze generation and solving
+- Multiple generation algorithms (Recursive Backtrack, Aldous-Broder, Prim, Hunt-Kill, Wilson, Braid)
+- Animated maze generation with visual pathfinding
+- Click to generate new maze with current algorithm
+- Supports different cell sizes for various visual styles
+- Perfect for hypnotic ambient animations
+- **Metrics**: Maze cells, generation progress, algorithm type
+- **6 Presets**: Recursive Backtrack, Aldous-Broder, Prim, Hunt-Kill, Wilson, Braid
 
 ## ⚡ Quality Presets
 
