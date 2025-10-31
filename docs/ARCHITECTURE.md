@@ -351,7 +351,7 @@ interface ConfigSchema {
   patterns?: {
     waves?: WavePatternConfig;
     starfield?: StarfieldPatternConfig;
-    // ... 13 patterns total
+    // ... 16 patterns total
   };
 }
 

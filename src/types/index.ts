@@ -160,6 +160,37 @@ export interface LifePatternConfig {
   initialPattern?: string;
 }
 
+export interface DNAPatternConfig {
+  rotationSpeed?: number;
+  helixRadius?: number;
+  helixHeight?: number;
+  basePairSpacing?: number;
+  twistRate?: number;
+}
+
+export interface LavaLampPatternConfig {
+  blobCount?: number;
+  minRadius?: number;
+  maxRadius?: number;
+  riseSpeed?: number;
+  driftSpeed?: number;
+  threshold?: number;
+  mouseForce?: number;
+  turbulence?: boolean;
+  gravity?: boolean;
+}
+
+export interface SmokePatternConfig {
+  plumeCount?: number;
+  particleCount?: number;
+  riseSpeed?: number;
+  dissipationRate?: number;
+  turbulence?: number;
+  spread?: number;
+  windStrength?: number;
+  mouseBlowForce?: number;
+}
+
 // Favorite slot interface
 export interface FavoriteSlot {
   pattern: string;           // Pattern name (e.g., "WavePattern")
@@ -199,5 +230,8 @@ export interface ConfigSchema {
     fireworks?: FireworkPatternConfig;
     maze?: MazePatternConfig;
     life?: LifePatternConfig;
+    dna?: DNAPatternConfig;
+    lavaLamp?: LavaLampPatternConfig;
+    smoke?: SmokePatternConfig;
   };
 }

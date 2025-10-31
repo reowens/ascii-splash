@@ -14,8 +14,8 @@
 **ascii-splash** is a lightweight terminal ASCII animation application that displays interactive animated patterns in a terminal window. Designed for IDE workspaces as an ambient visual effect.
 
 **Key Stats**:
-- **13 interactive patterns** with full theme support
-- **78 total presets** (6 per pattern)
+- **16 interactive patterns** with full theme support
+- **96 total presets** (6 per pattern)
 - **5 color themes** (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **40+ commands** via multi-key command system
 - **Performance**: <5% CPU, ~40-50MB RAM
@@ -82,7 +82,7 @@ splash/
 │   │   ├── CommandParser.ts     # Parse command strings
 │   │   └── CommandExecutor.ts   # Execute parsed commands
 │   │
-│   └── patterns/                # 13 pattern implementations
+│   └── patterns/                # 16 pattern implementations
 │       ├── WavePattern.ts
 │       ├── StarfieldPattern.ts
 │       ├── MatrixPattern.ts
@@ -95,13 +95,16 @@ splash/
 │       ├── LightningPattern.ts
 │       ├── FireworksPattern.ts
 │       ├── LifePattern.ts
-│       └── MazePattern.ts
+│       ├── MazePattern.ts
+│       ├── DNAPattern.ts
+│       ├── LavaLampPattern.ts
+│       └── SmokePattern.ts
 │
 ├── tests/                        # Jest test suites
 │   └── unit/patterns/
 │       ├── wave.test.ts
 │       ├── starfield.test.ts
-│       └── ... (13 pattern tests + engine/config/renderer tests)
+│       └── ... (16 pattern tests + engine/config/renderer tests)
 │
 ├── docs/                         # Developer documentation
 │   ├── ARCHITECTURE.md          # ⭐ Technical architecture (for developers)
@@ -174,7 +177,7 @@ interface Pattern {
 **Quick Overview**:
 - **Config file**: `~/.config/ascii-splash/.splashrc.json`
 - **Priority**: CLI args > Config file > Defaults
-- **Patterns**: 13 patterns, each with custom config options
+- **Patterns**: 16 patterns, each with custom config options
 - **Themes**: 5 themes (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **Favorites**: Save/load pattern+preset+theme combinations
 
@@ -228,12 +231,12 @@ interface Theme {
 **Phase**: 6 - Polish and Distribution (In Progress)
 
 **Completion**:
-- ✅ 13 Interactive patterns (11 core + Life + Maze)
-- ✅ 78 presets (6 per pattern)
+- ✅ 16 Interactive patterns (11 core + Life + Maze + DNA + LavaLamp + Smoke)
+- ✅ 96 presets (6 per pattern)
 - ✅ 5 color themes
 - ✅ Configuration system
 - ✅ Favorites & shuffle mode
-- ✅ 653 tests, 83% coverage
+- ✅ 755 tests, 83% coverage
 - ✅ Complete documentation
 
 **Next Steps**:

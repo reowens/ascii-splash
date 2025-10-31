@@ -18,6 +18,9 @@ import { LightningPattern } from './patterns/LightningPattern';
 import { FireworksPattern } from './patterns/FireworksPattern';
 import { MazePattern } from './patterns/MazePattern';
 import { LifePattern } from './patterns/LifePattern';
+import { DNAPattern } from './patterns/DNAPattern';
+import { LavaLampPattern } from './patterns/LavaLampPattern';
+import { SmokePattern } from './patterns/SmokePattern';
 import { Pattern, CliOptions, QualityPreset, ConfigSchema, Theme } from './types';
 import { ConfigLoader } from './config/ConfigLoader';
 import { getTheme, getNextThemeName } from './config/themes';
@@ -46,7 +49,7 @@ function parseCliArguments(): CliOptions {
   // Pattern selection
   program.option(
     '-p, --pattern <name>',
-    'Start with specific pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, maze, life)'
+    'Start with specific pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, maze, life, dna, lavalamp, smoke)'
   );
   
   // Quality preset
@@ -85,7 +88,7 @@ function parseCliArguments(): CliOptions {
   const options = program.opts();
   
   // Validate pattern if provided
-  const validPatterns = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma', 'tunnel', 'lightning', 'fireworks', 'maze', 'life'];
+  const validPatterns = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma', 'tunnel', 'lightning', 'fireworks', 'maze', 'life', 'dna', 'lavalamp', 'smoke'];
   if (options.pattern && !validPatterns.includes(options.pattern.toLowerCase())) {
     program.error(
       `Invalid pattern: ${options.pattern}\nValid patterns: ${validPatterns.join(', ')}`
@@ -224,6 +227,35 @@ function main() {
         deadChar: cfg.patterns?.life?.deadChar,
         randomDensity: cfg.patterns?.life?.randomDensity,
         initialPattern: cfg.patterns?.life?.initialPattern
+
+      }),
+      new DNAPattern(theme, {
+        rotationSpeed: cfg.patterns?.dna?.rotationSpeed,
+        helixRadius: cfg.patterns?.dna?.helixRadius,
+        basePairDensity: cfg.patterns?.dna?.basePairSpacing ? 1 / cfg.patterns.dna.basePairSpacing : undefined,
+        twistRate: cfg.patterns?.dna?.twistRate,
+        showLabels: true
+      }),
+      new LavaLampPattern(theme, {
+        blobCount: cfg.patterns?.lavaLamp?.blobCount,
+        minRadius: cfg.patterns?.lavaLamp?.minRadius,
+        maxRadius: cfg.patterns?.lavaLamp?.maxRadius,
+        riseSpeed: cfg.patterns?.lavaLamp?.riseSpeed,
+        driftSpeed: cfg.patterns?.lavaLamp?.driftSpeed,
+        threshold: cfg.patterns?.lavaLamp?.threshold,
+        mouseForce: cfg.patterns?.lavaLamp?.mouseForce,
+        turbulence: cfg.patterns?.lavaLamp?.turbulence,
+        gravity: cfg.patterns?.lavaLamp?.gravity
+      }),
+      new SmokePattern(theme, {
+        plumeCount: cfg.patterns?.smoke?.plumeCount,
+        particleCount: cfg.patterns?.smoke?.particleCount,
+        riseSpeed: cfg.patterns?.smoke?.riseSpeed,
+        dissipationRate: cfg.patterns?.smoke?.dissipationRate,
+        turbulence: cfg.patterns?.smoke?.turbulence,
+        spread: cfg.patterns?.smoke?.spread,
+        windStrength: cfg.patterns?.smoke?.windStrength,
+        mouseBlowForce: cfg.patterns?.smoke?.mouseBlowForce
       })
     ];
   }
@@ -233,7 +265,7 @@ function main() {
   // Determine starting pattern from config
   let currentPatternIndex = 0;
   if (config.defaultPattern) {
-    const patternNames = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma', 'tunnel', 'lightning', 'fireworks', 'maze', 'life'];
+    const patternNames = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma', 'tunnel', 'lightning', 'fireworks', 'maze', 'life', 'dna', 'lavalamp', 'smoke'];
     const index = patternNames.indexOf(config.defaultPattern);
     if (index >= 0) {
       currentPatternIndex = index;
@@ -330,7 +362,7 @@ function main() {
         '─────────────────',
         '0        Command mode (advanced)',
         '1-9      Switch patterns (1-9)',
-        'n/p      Next/Previous pattern (all 13)',
+        'n/p      Next/Previous pattern (all 16)',
         'SPACE    Pause/Resume',
         '+/-      Speed up/down',
         '[/]      Quality presets (low/high)',

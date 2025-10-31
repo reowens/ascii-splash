@@ -5,6 +5,39 @@ All notable changes to ascii-splash will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **DNA Helix Pattern**: Double helix rotation with base pairs (A-T, G-C, T-A, C-G)
+  - 6 presets: Slow Helix, Fast Spin, Unwinding, Replication, Mutation, Rainbow
+  - Mouse move creates twist effect, click spawns mutations
+  - Configurable rotation speed, helix radius, base pair density, twist rate
+  - 30 comprehensive unit tests
+- **Lava Lamp Pattern**: Metaball-based lava lamp simulation with organic blob shapes
+  - 6 presets: Classic, Turbulent, Gentle, Many Blobs, Giant Blob, Strobe
+  - Physics simulation with buoyancy, drift, turbulence (Perlin noise), and gravity
+  - Vertical wrapping for continuous lava lamp cycle effect
+  - Mouse attracts/repels blobs with force field, click spawns new blobs (max 20)
+  - Intensity-based character rendering (█▓▒░) for depth effect
+  - 35 comprehensive unit tests
+- **Smoke Pattern**: Physics-based smoke particle simulation with realistic rising behavior
+  - 6 presets: Gentle Wisp, Campfire, Industrial, Incense, Fog, Steam
+  - Rising smoke plumes with Perlin noise turbulence for organic movement
+  - Realistic particle opacity and dissipation over time
+  - Height-based color gradient for natural smoke appearance
+  - Mouse creates force field to blow smoke away, click spawns 15-particle burst
+  - Configurable plume count, particle density, rise speed, dissipation rate
+  - 37 comprehensive unit tests
+- Utility modules for advanced pattern development:
+  - `math.ts`: 3D projection, rotation matrices, complex numbers
+  - `noise.ts`: Perlin noise implementation for organic effects
+  - `drawing.ts`: Line drawing, symmetry helpers
+  - `metaballs.ts`: Metaball field calculations for blob rendering
+
+### Changed
+- Pattern count increased from 13 to 16
+- Total presets increased from 78 to 96
+
 ## [1.0.0] - 2025-10-30
 
 ### 🎉 Initial Release
@@ -13,7 +46,7 @@ The first stable release of ascii-splash - a terminal ASCII animation app with v
 
 ### ✨ Features
 
-#### 🎨 13 Interactive Patterns
+#### 🎨 13 Interactive Patterns (v1.0.0)
 - **Waves**: Sine wave animations with ripple effects
 - **Starfield**: 3D parallax starfield with force fields
 - **Matrix**: Digital rain effect with column spawning
@@ -28,7 +61,7 @@ The first stable release of ascii-splash - a terminal ASCII animation app with v
 - **Life**: Conway's Game of Life cellular automaton
 - **Maze**: Dynamic maze generation and solving
 
-#### 🎭 78 Built-in Presets
+#### 🎭 78 Built-in Presets (v1.0.0)
 - **6 presets per pattern** (13 patterns × 6 = 78 total)
 - Each preset offers unique visual variations
 - Examples: "Ocean Storm", "Warp Speed", "Tesla Coil", "Grand Finale"

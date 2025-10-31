@@ -359,9 +359,9 @@ splash/
 #### 6.2 Stage 2: Additional Patterns 🎨 IN PROGRESS
 **Goal**: Expand pattern library before v1.0.0 release
 
-**Current Status**: 13 patterns → **Target**: 22 patterns (adding 9 more)
+**Current Status**: 16 patterns → **Target**: 22 patterns (adding 6 more)
 
-**Patterns Implemented** (2 complete):
+**Patterns Implemented** (5 complete):
 
 1. [x] **Maze Generator** - Recursive backtracking maze generation animation
    - [x] Implement MazePattern class
@@ -375,25 +375,29 @@ splash/
    - [x] Theme support + mouse interaction (click toggles cells)
    - [x] Unit tests + config
 
-**Patterns to Implement** (9 remaining, in priority order):
+**Patterns to Implement** (8 remaining, in priority order):
 
-3. [ ] **DNA Helix** - Double helix rotation with base pairs
-   - [ ] Implement DNAPattern class
-   - [ ] 6 presets (Slow Helix, Fast Spin, Unwinding, Replication, Mutation, Rainbow)
-   - [ ] Theme support + mouse interaction (twist helix, spawn mutations)
-   - [ ] Unit tests + config
+3. [x] **DNA Helix** - Double helix rotation with base pairs
+   - [x] Implement DNAPattern class
+   - [x] 6 presets (Slow Helix, Fast Spin, Unwinding, Replication, Mutation, Rainbow)
+   - [x] Theme support + mouse interaction (twist helix, spawn mutations)
+   - [x] Unit tests + config (30 tests passing)
 
-4. [ ] **Lava Lamp** - Blobby metaball simulation
-   - [ ] Implement LavaLampPattern class
-   - [ ] 6 presets (Classic, Turbulent, Gentle, Many Blobs, Giant Blob, Strobe)
-   - [ ] Theme support + mouse interaction (attract/repel blobs)
-   - [ ] Unit tests + config
+4. [x] **Lava Lamp** - Blobby metaball simulation
+   - [x] Implement LavaLampPattern class (277 lines)
+   - [x] 6 presets (Classic, Turbulent, Gentle, Many Blobs, Giant Blob, Strobe)
+   - [x] Theme support + mouse interaction (attract/repel blobs, spawn on click)
+   - [x] Unit tests + config (35 tests passing, 100% coverage)
+   - [x] Metaball algorithm with physics (buoyancy, turbulence, drift, gravity)
+   - [x] Vertical wrapping for continuous lava lamp cycle effect
 
-5. [ ] **Smoke** - Rising smoke plumes with turbulence
-   - [ ] Implement SmokePattern class
-   - [ ] 6 presets (Gentle Wisp, Campfire, Industrial, Incense, Fog, Steam)
-   - [ ] Theme support + mouse interaction (blow smoke, spawn plumes)
-   - [ ] Unit tests + config
+5. [x] **Smoke** - Rising smoke plumes with turbulence
+   - [x] Implement SmokePattern class (352 lines)
+   - [x] 6 presets (Gentle Wisp, Campfire, Industrial, Incense, Fog, Steam)
+   - [x] Theme support + mouse interaction (blow smoke, spawn bursts)
+   - [x] Unit tests + config (37 tests passing, 100% coverage)
+   - [x] Physics-based particle simulation with Perlin noise turbulence
+   - [x] Realistic opacity-based rendering with height-gradient coloring
 
 6. [ ] **Falling Snow** - Seasonal particle effects with wind
    - [ ] Implement SnowPattern class
@@ -443,7 +447,7 @@ splash/
 - Documentation in CLAUDE.md
 
 **After patterns complete**:
-- [ ] Update README with new pattern count (13 → 22 patterns, 78 → 132 presets)
+- [x] Update README with new pattern count (16 patterns, 96 presets)
 - [ ] Update CHANGELOG.md with new patterns
 - [ ] Update CLAUDE.md with new patterns
 - [ ] Update keyboard shortcuts in main.ts (1-9 keys + n/p cycling)
@@ -455,7 +459,7 @@ splash/
 - [ ] Test all 22 patterns with all 5 themes (110 combinations)
 
 **Result**: 22 patterns × 6 presets each = **132 total presets!**
-**Current Status**: 13 patterns × 6 presets = **78 total presets** ✅
+**Current Status**: 16 patterns × 6 presets = **96 total presets** ✅
 
 #### 6.3 Stage 3: npm Publication 🚀 TODO
 **Goal**: Publish to npm registry (after Stage 2 complete)

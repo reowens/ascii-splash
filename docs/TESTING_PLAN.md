@@ -2,9 +2,9 @@
 
 ## Overview
 
-This document outlines the comprehensive testing strategy for ascii-splash, a terminal ASCII animation application with 13 patterns, 78 presets, 5 themes, and an advanced command system.
+This document outlines the comprehensive testing strategy for ascii-splash, a terminal ASCII animation application with 16 patterns, 96 presets, 5 themes, and an advanced command system.
 
-**Current Status**: ✅ **653 tests passing** across 12 test suites
+**Current Status**: ✅ **755 tests passing** across 12 test suites
 **Current Coverage**: 83.01% overall (core components at 96-100%)
 **Target Coverage**: 80%+ for core logic ✅ **ACHIEVED**
 **Testing Framework**: Jest 29.7.0 (✅ Installed and configured)
@@ -421,7 +421,7 @@ describe('Snapshot Tests', () => {
 - [ ] `099` - Invalid preset shows error
 - [ ] `0*` - Random preset loads successfully
 - [ ] `0?` - Shows preset list for current pattern
-- [ ] `0??` - Shows all presets catalog (13 patterns × 6 presets)
+- [ ] `0??` - Shows all presets catalog (16 patterns × 6 presets)
 
 #### Pattern Jump Commands
 - [ ] `0p1` - Jump to pattern 1 (Waves)
@@ -565,7 +565,7 @@ describe('Snapshot Tests', () => {
 
 ### 2.5 Theme System (55 Tests)
 
-**For EACH theme (5 themes) × EACH pattern (13 patterns):**
+**For EACH theme (5 themes) × EACH pattern (16 patterns):**
 
 - [ ] Pattern uses theme colors (verify visually)
 - [ ] Color gradient respects theme palette
@@ -699,7 +699,7 @@ tests/
 └── snapshots/                           (Not implemented - optional)
 ```
 
-**Total: 10 test files, 653 tests**
+**Total: 10 test files, 755 tests**
 
 ---
 

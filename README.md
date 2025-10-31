@@ -6,14 +6,14 @@
 
 **A terminal ASCII animation app that adds visual flow to your IDE workspace.**
 
-Transform your terminal into a mesmerizing visual experience with **13 interactive patterns**, **78 presets**, 5 color themes, and a powerful command system. Perfect as an ambient background for your coding sessions!
+Transform your terminal into a mesmerizing visual experience with **16 interactive patterns**, **96 presets**, 5 color themes, and a powerful command system. Perfect as an ambient background for your coding sessions!
 
 ---
 
 ## ✨ Features
 
-- 🎨 **13 Interactive Patterns** - Waves, Starfield, Matrix, Rain, Quicksilver, Particles, Spiral, Plasma, Tunnel, Lightning, Fireworks, Life, Maze
-- 🎯 **78 Total Presets** - 6 carefully crafted variations for each pattern
+- 🎨 **16 Interactive Patterns** - Waves, Starfield, Matrix, Rain, Quicksilver, Particles, Spiral, Plasma, Tunnel, Lightning, Fireworks, Life, Maze, DNA, Lava Lamp, Smoke
+- 🎯 **96 Total Presets** - 6 carefully crafted variations for each pattern
 - 🌈 **5 Color Themes** - Ocean, Matrix, Starlight, Fire, Monochrome (all patterns adapt)
 - ⌨️ **Advanced Command System** - Multi-key commands for quick pattern/preset/theme switching
 - 💾 **Favorites System** - Save and recall your favorite combinations
@@ -380,6 +380,38 @@ Dynamic maze generation and solving
 - **Metrics**: Maze cells, generation progress, algorithm type
 - **6 Presets**: Recursive Backtrack, Aldous-Broder, Prim, Hunt-Kill, Wilson, Braid
 
+### 14. DNA (Press n from Pattern 13)
+Double helix DNA strand animation
+- Rotating double helix structure with base pairs
+- Smooth 3D perspective projection
+- Base pair connections with proper geometry
+- Mouse interaction affects rotation speed
+- Click to randomize strand colors
+- **Metrics**: Rotation angle, base pair count
+- **6 Presets**: Classic, Fast Spin, Slow Motion, Rainbow, Unraveling, Pulse
+
+### 15. Lava Lamp (Press n from Pattern 14)
+Metaball-based lava lamp simulation
+- Organic blob shapes using metaball algorithm
+- Physics simulation with buoyancy, drift, and turbulence
+- Perlin noise for natural flowing motion
+- Vertical wrapping for continuous lava lamp cycle
+- Mouse attracts/repels blobs with force field
+- Click to spawn new blobs (max 20)
+- **Metrics**: Blob count, average blob radius
+- **6 Presets**: Classic, Turbulent, Gentle, Many Blobs, Giant Blob, Strobe
+
+### 16. Smoke (Press n from Pattern 15)
+Physics-based smoke particle simulation
+- Rising smoke plumes with Perlin noise turbulence
+- Realistic particle opacity and dissipation
+- Height-based color gradient for natural smoke effect
+- Multiple smoke sources with configurable density
+- Mouse creates force field to blow smoke away
+- Click spawns burst of 15 smoke particles
+- **Metrics**: Active particles, plume count, average opacity
+- **6 Presets**: Gentle Wisp, Campfire, Industrial, Incense, Fog, Steam
+
 ## ⚡ Quality Presets
 
 Press `[` or `]` to cycle through performance presets:
@@ -434,7 +466,7 @@ Press `d` to toggle the debug overlay showing:
 ascii-splash uses a clean **3-layer architecture**:
 - **Renderer Layer**: Terminal control with double-buffering for flicker-free rendering
 - **Engine Layer**: Animation loop running at target FPS, commands, performance monitoring
-- **Pattern Layer**: 13 interactive patterns with themes and presets
+- **Pattern Layer**: 14 interactive patterns with themes and presets
 
 ```
 src/

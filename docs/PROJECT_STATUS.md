@@ -11,10 +11,10 @@ ascii-splash is a terminal ASCII animation app that displays animated patterns i
 The project is **feature-complete** with comprehensive testing. Only Phase 6 (polish and npm distribution) remains.
 
 ### Project Statistics
-- **13 Patterns** with **78 Presets** (6 per pattern)
+- **16 Patterns** with **96 Presets** (6 per pattern)
 - **5 Color Themes** (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **40+ Commands** via advanced command system
-- **653 Tests** with **83.01% Coverage**
+- **755 Tests** with **83.01% Coverage**
 - **3-Layer Architecture**: Renderer → Engine → Patterns
   - For technical details, see [ARCHITECTURE.md](ARCHITECTURE.md)
 
@@ -25,7 +25,7 @@ The project is **feature-complete** with comprehensive testing. Only Phase 6 (po
 | Phase 1 | ✅ COMPLETE | Core MVP (renderer, animation loop, basic pattern) |
 | Phase 2 | ✅ COMPLETE | Patterns & Performance (8 patterns, mouse support, metrics) |
 | Phase 3 | ✅ COMPLETE | Configuration & Extensibility (CLI args, config files, themes) |
-| Phase 4 | ✅ COMPLETE | Command System & Presets (78 presets, favorites, shuffle) |
+| Phase 4 | ✅ COMPLETE | Command System & Presets (96 presets, favorites, shuffle) |
 | Phase 5 | ✅ COMPLETE | New Patterns (Tunnel, Lightning, Fireworks) |
 | Phase 6 | ⏳ NOT STARTED | Polish & Distribution (npm package, demos, optimization) |
 
@@ -33,7 +33,7 @@ The project is **feature-complete** with comprehensive testing. Only Phase 6 (po
 
 ### ✅ Implemented Features
 
-**Core:** 13 patterns with 78 presets, 5 themes, full mouse support, double-buffered rendering
+**Core:** 16 patterns with 96 presets, 5 themes, full mouse support, double-buffered rendering
 
 **For comprehensive feature list**, see [README.md](../README.md#-features) and [ARCHITECTURE.md](ARCHITECTURE.md).
 
@@ -48,10 +48,10 @@ The project is **feature-complete** with comprehensive testing. Only Phase 6 (po
 ### 🧪 Testing Coverage
 
 **Test Statistics:**
-- **Total Tests:** 653 tests across 10 suites
+- **Total Tests:** 755 tests across 10 suites
 - **Coverage:** 83.01% (exceeded 80% target)
 - **Status:** All tests passing ✅
-- **Execution Time:** ~7.4 seconds
+- **Execution Time:** ~32 seconds
 
 **Component Coverage:**
 - CommandParser: 100%
@@ -65,9 +65,9 @@ The project is **feature-complete** with comprehensive testing. Only Phase 6 (po
 - TerminalRenderer: 88.49%
 
 **Pattern Testing:**
-- All 13 patterns tested (173 pattern tests)
+- All 16 patterns tested (275 pattern tests)
 - Coverage range: 53%-94%
-- Preset validation (all 78 presets)
+- Preset validation (all 96 presets)
 - Mouse event testing
 - State management testing
 
