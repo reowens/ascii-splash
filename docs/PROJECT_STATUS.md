@@ -223,7 +223,7 @@ See [docs/PLAN.md](PLAN.md) for detailed roadmap.
 ## Documentation
 
 - **[README.md](../README.md)** - User-facing documentation
-- **[CLAUDE.md](../CLAUDE.md)** - Developer documentation
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Technical architecture and implementation details
 - **[docs/PLAN.md](PLAN.md)** - Full project roadmap
 - **[docs/TESTING_PLAN.md](TESTING_PLAN.md)** - Testing strategy
 - **[docs/PHASE5_PLAN.md](PHASE5_PLAN.md)** - Phase 5 details

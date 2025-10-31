@@ -4,11 +4,37 @@ This directory contains comprehensive project documentation for **ascii-splash**
 
 ## Quick Links
 
-- **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - 📊 Current project status and statistics
-- **[PLAN.md](PLAN.md)** - 🗺️ Complete project roadmap and feature specifications
-- **[TESTING_PLAN.md](TESTING_PLAN.md)** - 🧪 Testing strategy and coverage details
+- **[../README.md](../README.md)** - 👤 User guide and features (for end users)
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - 👨‍💻 Technical architecture (for developers)
+- **[PLAN.md](PLAN.md)** - 🗺️ Project roadmap and specifications
+- **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - 📊 Current status and statistics
+- **[TESTING_PLAN.md](TESTING_PLAN.md)** - 🧪 Testing strategy and coverage
 
 ## Document Overview
+
+### 👨‍💻 [ARCHITECTURE.md](ARCHITECTURE.md)
+
+**Purpose:** Deep technical documentation for developers
+**Best for:** Understanding system design, contributing code, performance optimization
+
+**Contents:**
+- 3-layer architecture (Renderer, Engine, Pattern)
+- Data flow and system interactions
+- Key architectural patterns (double buffering, performance monitoring)
+- Configuration system implementation
+- Theme system implementation
+- Command system architecture
+- Performance strategy and optimization
+- Contribution guidelines for new patterns
+
+**When to read:**
+- Contributing new code or patterns
+- Understanding technical implementation
+- Optimizing performance
+- Learning system design principles
+- Debugging complex issues
+
+---
 
 ### 📊 [PROJECT_STATUS.md](PROJECT_STATUS.md)
 

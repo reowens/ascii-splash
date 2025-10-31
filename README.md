@@ -431,16 +431,22 @@ Press `d` to toggle the debug overlay showing:
 
 ## 🏗️ Architecture
 
+ascii-splash uses a clean **3-layer architecture**:
+- **Renderer Layer**: Terminal control with double-buffering for flicker-free rendering
+- **Engine Layer**: Animation loop running at target FPS, commands, performance monitoring
+- **Pattern Layer**: 13 interactive patterns with themes and presets
+
 ```
 src/
-├── types/          Core interfaces (Pattern, Cell, Point, etc.)
-├── renderer/       Terminal rendering with double-buffering
-├── engine/         Animation loop and performance monitoring
-├── patterns/       Pattern implementations
-└── main.ts         Entry point and input handling
+├── types/          # Core interfaces and types
+├── renderer/       # Terminal rendering with double-buffering
+├── engine/         # Animation loop, commands, performance monitoring
+├── patterns/       # Pattern implementations (13 total)
+├── config/         # Configuration system
+└── main.ts         # Entry point and input handling
 ```
 
-See [CLAUDE.md](CLAUDE.md) for detailed architecture documentation.
+For **detailed technical architecture**, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## 🎯 Command System
 
@@ -468,7 +474,7 @@ Press **0** to enter command mode for advanced features:
 - `0/term` - Search patterns/themes
 - `0s` - Save current config to file
 
-See [CLAUDE.md](CLAUDE.md) for complete command reference.
+For the complete command reference, see the section above.
 
 ## 🤝 Contributing
 
@@ -491,7 +497,7 @@ Built with:
 - [GitHub Repository](https://github.com/reowens/ascii-splash)
 - [npm Package](https://www.npmjs.com/package/ascii-splash)
 - [Report Issues](https://github.com/reowens/ascii-splash/issues)
-- [Documentation](https://github.com/reowens/ascii-splash/blob/main/CLAUDE.md)
+- [Technical Architecture](https://github.com/reowens/ascii-splash/blob/main/docs/ARCHITECTURE.md)
 
 ---
 
