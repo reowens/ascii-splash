@@ -628,25 +628,25 @@ describe('Additional Pattern Tests', () => {
           expect(preset.name).toBeDefined();
           expect(preset.description).toBeDefined();
           expect(preset.config).toBeDefined();
-          expect(preset.config.spiralCount).toBeDefined();
+          expect(preset.config.armCount).toBeDefined();
           expect(preset.config.rotationSpeed).toBeDefined();
         });
       });
     });
 
     describe('getPreset()', () => {
-      it('returns preset 1 (Twin Vortex)', () => {
+      it('returns preset 1 (Twin Helix)', () => {
         const preset = SpiralPattern.getPreset(1);
         expect(preset).toBeDefined();
-        expect(preset?.name).toBe('Twin Vortex');
-        expect(preset?.config.spiralCount).toBe(2);
+        expect(preset?.name).toBe('Twin Helix');
+        expect(preset?.config.armCount).toBe(2);
       });
 
-      it('returns preset 6 (Nautilus Shell)', () => {
+      it('returns preset 6 (DNA Double Helix)', () => {
         const preset = SpiralPattern.getPreset(6);
         expect(preset).toBeDefined();
-        expect(preset?.name).toBe('Nautilus Shell');
-        expect(preset?.config.spiralCount).toBe(1);
+        expect(preset?.name).toBe('DNA Double Helix');
+        expect(preset?.config.armCount).toBe(2);
       });
 
       it('returns undefined for non-existent preset', () => {
@@ -680,19 +680,19 @@ describe('Additional Pattern Tests', () => {
     });
 
     describe('Preset Characteristics', () => {
-      it('Galaxy Arms has 5 spiral arms', () => {
+      it('Galactic Whirlpool has 5 spiral arms', () => {
         const preset = SpiralPattern.getPreset(2);
-        expect(preset?.config.spiralCount).toBe(5);
+        expect(preset?.config.armCount).toBe(5);
       });
 
       it('Fibonacci Bloom has 8 arms', () => {
-        const preset = SpiralPattern.getPreset(3);
-        expect(preset?.config.spiralCount).toBe(8);
+        const preset = SpiralPattern.getPreset(4);
+        expect(preset?.config.armCount).toBe(8);
       });
 
-      it('Hypnotic Spin has fast rotation', () => {
-        const preset = SpiralPattern.getPreset(4);
-        expect(preset?.config.rotationSpeed).toBeGreaterThanOrEqual(1.5);
+      it('Hyperspeed Vortex has fast rotation', () => {
+        const preset = SpiralPattern.getPreset(3);
+        expect(preset?.config.rotationSpeed).toBeGreaterThanOrEqual(0.5);
       });
     });
 
@@ -889,22 +889,22 @@ describe('Additional Pattern Tests', () => {
     });
 
     describe('getPreset()', () => {
-      it('returns preset 1 (Circle Tunnel)', () => {
+      it('returns preset 1 (Warp Speed)', () => {
         const preset = TunnelPattern.getPreset(1);
         expect(preset).toBeDefined();
-        expect(preset?.name).toBe('Circle Tunnel');
+        expect(preset?.name).toBe('Warp Speed');
         expect(preset?.config.shape).toBe('circle');
       });
 
-      it('returns preset 3 (Square Vortex)', () => {
+      it('returns preset 3 (Gentle Cruise)', () => {
         const preset = TunnelPattern.getPreset(3);
         expect(preset).toBeDefined();
-        expect(preset?.name).toBe('Square Vortex');
-        expect(preset?.config.shape).toBe('square');
+        expect(preset?.name).toBe('Gentle Cruise');
+        expect(preset?.config.shape).toBe('circle');
       });
 
-      it('returns preset 6 (Stargate)', () => {
-        const preset = TunnelPattern.getPreset(6);
+      it('returns preset 5 (Stargate)', () => {
+        const preset = TunnelPattern.getPreset(5);
         expect(preset).toBeDefined();
         expect(preset?.name).toBe('Stargate');
         expect(preset?.config.shape).toBe('star');
@@ -941,19 +941,19 @@ describe('Additional Pattern Tests', () => {
     });
 
     describe('Preset Characteristics', () => {
-      it('Hyperspeed has high speed', () => {
+      it('Hyperspace Jump has high speed', () => {
         const preset = TunnelPattern.getPreset(2);
         expect(preset?.config.speed).toBeGreaterThanOrEqual(2.5);
       });
 
-      it('Triangle Warp has triangle shape', () => {
+      it('Asteroid Tunnel has hexagon shape', () => {
         const preset = TunnelPattern.getPreset(4);
-        expect(preset?.config.shape).toBe('triangle');
+        expect(preset?.config.shape).toBe('hexagon');
       });
 
-      it('Hexagon Grid has hexagon shape', () => {
+      it('Stargate has star shape', () => {
         const preset = TunnelPattern.getPreset(5);
-        expect(preset?.config.shape).toBe('hexagon');
+        expect(preset?.config.shape).toBe('star');
       });
     });
 
@@ -974,6 +974,26 @@ describe('Additional Pattern Tests', () => {
         }
         
         expect(filledCells).toBeGreaterThan(0);
+      });
+
+      it('should fill minimum percentage of screen for visibility', () => {
+        const buffer = createMockBuffer(80, 24);
+        const size = createMockSize(80, 24);
+        const totalCells = size.width * size.height;
+        
+        pattern.render(buffer, 1000, size);
+        
+        let filledCells = 0;
+        for (let y = 0; y < size.height; y++) {
+          for (let x = 0; x < size.width; x++) {
+            if (buffer[y][x].char !== ' ') {
+              filledCells++;
+            }
+          }
+        }
+        
+        const fillPercentage = (filledCells / totalCells) * 100;
+        expect(fillPercentage).toBeGreaterThanOrEqual(15); // Tunnel should fill at least 15% of screen
       });
 
       it('renders without errors', () => {

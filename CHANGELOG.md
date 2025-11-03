@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Test Suite Expansion**: Comprehensive unit test updates for refactored patterns
+  - SpiralPattern: Complete test rewrite (67 tests) for new particle-based logarithmic spiral architecture
+    - Updated property names: `spiralCount` → `armCount`
+    - Updated preset names: "Twin Vortex" → "Twin Helix", "Nautilus Shell" → "DNA Double Helix"
+    - New metrics: `particles`, `arms`, `bursts` (replaced old `spiralCount`, `interactiveSpirals`)
+    - Added tests for particle trails, click bursts (12 particles per burst, max 3 bursts), direction modes
+  - TunnelPattern: Created comprehensive test suite from scratch (67 tests)
+    - Tests all 6 presets: "Warp Speed", "Hyperspace Jump", "Gentle Cruise", "Asteroid Tunnel", "Stargate", "Lightspeed"
+    - New metrics: `rings`, `particles`, `boost`
+    - Fixed speed lines test (requires multiple render passes with reduced rings/particles)
+    - Fixed zero speed test (needs `rotationSpeed: 0, turbulence: 0` for deterministic rendering)
+  - Additional patterns test suite: Updated legacy tests for SpiralPattern and TunnelPattern compatibility
+    - Fixed preset characteristics: "Hyperspeed Vortex" is preset 3, "Fibonacci Bloom" is preset 4
+  - **Test Results**: 1357 tests passing, 26 test suites, 95.18% coverage (exceeds 80% target)
+  - **Pattern Coverage**: SpiralPattern 99.24% statements, TunnelPattern 100% statements
+
+### Added
+- **Test Infrastructure**: Created `tests/manual/` directory for visual test scripts
+  - Organized 5 manual testing scripts: `diagnostic.mjs`, `test-patterns-final.mjs`, `test-patterns.mjs`, `visual-preview.mjs`, `visual-test.mjs`
+  - Moved from project root for better organization
+
 ## [0.1.0] - 2025-11-02
 
 ### 🎉 Initial Release

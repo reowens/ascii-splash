@@ -48,10 +48,10 @@ The project is **feature-complete** and **live on npm**. Successfully published 
 ### 🧪 Testing Coverage
 
 **Test Statistics:**
-- **Total Tests:** 817 tests across 10 suites
-- **Coverage:** 82.34% (exceeded 80% target)
+- **Total Tests:** 1357 tests across 26 suites
+- **Coverage:** 95.18% statements (exceeded 80% target)
 - **Status:** All tests passing ✅ (100%)
-- **Execution Time:** ~35 seconds
+- **Execution Time:** ~11 seconds
 
 **Component Coverage:**
 - CommandParser: 100%
@@ -65,12 +65,15 @@ The project is **feature-complete** and **live on npm**. Successfully published 
 - TerminalRenderer: 88.49%
 
 **Pattern Testing:**
-- All 17 patterns tested (323+ pattern tests)
-- Coverage range: 53%-94%
+- All 17 patterns tested (667 pattern tests)
+- Coverage range: 95%-100% statements for core patterns
+- SpiralPattern: 99.24% statements, 96.42% branches
+- TunnelPattern: 100% statements, 97.43% branches
 - Preset validation (all 102 presets)
-- Mouse event testing
-- State management testing
+- Mouse event testing (move, click, force fields, bursts)
+- State management testing (reset, metrics, stability)
 - Buffer fill verification tests
+- Edge cases and rapid operation tests
 
 **Documentation:**
 - For comprehensive testing plan and strategy, see [TESTING_PLAN.md](TESTING_PLAN.md)
