@@ -330,8 +330,15 @@ export class SpiralPattern implements Pattern {
         // Calculate intensity based on distance from center
         const dx = pos.x - centerX;
         const dy = pos.y - centerY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const distIntensity = Math.min(1, dist / maxRadius);
+        
+        // Optimization: Use squared distance for early rejection
+        const distSquared = dx * dx + dy * dy;
+        const maxRadiusSquared = maxRadius * maxRadius;
+        
+        // Only calculate sqrt if within reasonable range
+        const distIntensity = distSquared > maxRadiusSquared 
+          ? 1.0 
+          : Math.min(1, Math.sqrt(distSquared) / maxRadius);
         
         // Pulse effect
         let intensity = distIntensity;

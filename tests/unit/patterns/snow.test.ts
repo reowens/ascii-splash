@@ -37,7 +37,7 @@ describe('SnowPattern', () => {
     it('should create particles on initialization', () => {
       const metrics = pattern.getMetrics();
       expect(metrics).toBeDefined();
-      expect(metrics['Active Particles']).toBeGreaterThan(0);
+      expect(metrics.activeParticles).toBeGreaterThan(0);
     });
   });
 
@@ -205,7 +205,7 @@ describe('SnowPattern', () => {
 
       // Get initial particle count
       const initialMetrics = pattern.getMetrics();
-      const initialCount = initialMetrics['Active Particles'] + initialMetrics['Accumulated'];
+      const initialCount = initialMetrics.activeParticles + initialMetrics.accumulated;
       
       // Click
       pattern.onMouseClick({ x: 40, y: 12 });
@@ -215,7 +215,7 @@ describe('SnowPattern', () => {
       
       // Get new particle count
       const newMetrics = pattern.getMetrics();
-      const newCount = newMetrics['Active Particles'] + newMetrics['Accumulated'];
+      const newCount = newMetrics.activeParticles + newMetrics.accumulated;
       
       // Should have more particles after click
       expect(newCount).toBeGreaterThan(initialCount);
@@ -234,7 +234,7 @@ describe('SnowPattern', () => {
       pattern.render(buffer, 1000, size);
       
       const metrics = pattern.getMetrics();
-      const totalParticles = metrics['Active Particles'] + metrics['Accumulated'];
+      const totalParticles = metrics.activeParticles + metrics.accumulated;
       
       // Should not exceed reasonable limit (2x base config)
       expect(totalParticles).toBeLessThan(150);
@@ -497,8 +497,8 @@ describe('SnowPattern', () => {
       pattern.reset();
       
       const metrics = pattern.getMetrics();
-      expect(metrics['Active Particles']).toBeGreaterThan(0);
-      expect(metrics['Accumulated']).toBe(0);
+      expect(metrics.activeParticles).toBeGreaterThan(0);
+      expect(metrics.accumulated).toBe(0);
     });
   });
 
@@ -513,27 +513,27 @@ describe('SnowPattern', () => {
       const metrics = pattern.getMetrics();
       
       expect(metrics).toBeDefined();
-      expect(metrics['Active Particles']).toBeDefined();
-      expect(typeof metrics['Active Particles']).toBe('number');
-      expect(metrics['Active Particles']).toBeGreaterThanOrEqual(0);
+      expect(metrics.activeParticles).toBeDefined();
+      expect(typeof metrics.activeParticles).toBe('number');
+      expect(metrics.activeParticles).toBeGreaterThanOrEqual(0);
     });
 
     it('should return accumulated particles metric', () => {
       pattern.render(buffer, 1000, size);
       const metrics = pattern.getMetrics();
       
-      expect(metrics['Accumulated']).toBeDefined();
-      expect(typeof metrics['Accumulated']).toBe('number');
-      expect(metrics['Accumulated']).toBeGreaterThanOrEqual(0);
+      expect(metrics.accumulated).toBeDefined();
+      expect(typeof metrics.accumulated).toBe('number');
+      expect(metrics.accumulated).toBeGreaterThanOrEqual(0);
     });
 
     it('should return average velocity metric', () => {
       pattern.render(buffer, 1000, size);
       const metrics = pattern.getMetrics();
       
-      expect(metrics['Avg Velocity']).toBeDefined();
-      expect(typeof metrics['Avg Velocity']).toBe('number');
-      expect(metrics['Avg Velocity']).toBeGreaterThanOrEqual(0);
+      expect(metrics.avgVelocity).toBeDefined();
+      expect(typeof metrics.avgVelocity).toBe('number');
+      expect(metrics.avgVelocity).toBeGreaterThanOrEqual(0);
     });
 
     it('should update metrics over time', () => {
@@ -547,7 +547,7 @@ describe('SnowPattern', () => {
       const metrics = pattern.getMetrics();
       
       // Metrics should still be valid
-      expect(metrics['Active Particles']).toBeGreaterThan(0);
+      expect(metrics.activeParticles).toBeGreaterThan(0);
     });
   });
 
@@ -563,7 +563,7 @@ describe('SnowPattern', () => {
       const metrics = accPattern.getMetrics();
       
       // Should have some accumulated particles
-      expect(metrics['Accumulated']).toBeGreaterThanOrEqual(0);
+      expect(metrics.accumulated).toBeGreaterThanOrEqual(0);
     });
 
     it('should not accumulate particles when disabled', () => {
@@ -577,7 +577,7 @@ describe('SnowPattern', () => {
       const metrics = noAccPattern.getMetrics();
       
       // Should have no accumulated particles
-      expect(metrics['Accumulated']).toBe(0);
+      expect(metrics.accumulated).toBe(0);
     });
   });
 });

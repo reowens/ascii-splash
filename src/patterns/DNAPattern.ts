@@ -29,6 +29,7 @@ export class DNAPattern implements Pattern {
   private basePairs: BasePair[] = [];
   private mutationCenters: Array<{ y: number; time: number; radius: number }> = [];
   private twistOffset = 0;
+  private currentTime: number = 0;
 
   // Character sets for different elements
   private strandChars = ['│', '║', '┃'];
@@ -117,6 +118,8 @@ export class DNAPattern implements Pattern {
     // Ensure we have base pairs for current height
     if (this.basePairs.length === 0 || Math.abs(this.basePairs[this.basePairs.length - 1].y - height) > 10) {
       this.initializeBasePairs(height);
+    // Track current time for mutations
+    this.currentTime = time;
     }
 
     // Apply mouse twist effect
@@ -229,7 +232,7 @@ export class DNAPattern implements Pattern {
     // Click spawns mutation burst
     this.mutationCenters.push({
       y: pos.y,
-      time: Date.now(),
+      time: this.currentTime,
       radius: 15
     });
 
@@ -247,6 +250,7 @@ export class DNAPattern implements Pattern {
     this.basePairs = [];
     this.mutationCenters = [];
     this.twistOffset = 0;
+    this.currentTime = 0;
   }
 
   getMetrics(): Record<string, number> {

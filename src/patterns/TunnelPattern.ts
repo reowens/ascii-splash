@@ -467,10 +467,12 @@ export class TunnelPattern implements Pattern {
             const y = Math.floor(centerY + dy);
             
             if (x >= 0 && x < width && y >= 0 && y < height) {
+              // Optimization: Use squared distance for character selection
+              const pulseSizeHalfSquared = (pulseSize / 2) * (pulseSize / 2);
               const dist = Math.sqrt(distSquared);
               const intensity = (1 - dist / pulseSize) * 0.8;
               buffer[y][x] = {
-                char: dist < pulseSize / 2 ? '◉' : '○',
+                char: distSquared < pulseSizeHalfSquared ? '◉' : '○',
                 color: this.theme.getColor(intensity)
               };
             }

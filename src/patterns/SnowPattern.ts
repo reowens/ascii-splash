@@ -384,9 +384,9 @@ export class SnowPattern implements Pattern {
       sum + Math.sqrt(p.vx * p.vx + p.vy * p.vy), 0) / this.particles.length;
 
     return {
-      'Active Particles': activeParticles,
-      'Accumulated': accumulatedParticles,
-      'Avg Velocity': Math.round(avgVelocity * 100) / 100
+      activeParticles: activeParticles,
+      accumulated: accumulatedParticles,
+      avgVelocity: Math.round(avgVelocity * 100) / 100
     };
   }
 }

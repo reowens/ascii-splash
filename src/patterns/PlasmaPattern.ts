@@ -20,6 +20,7 @@ export class PlasmaPattern implements Pattern {
   private plasmaChars = ['█', '▓', '▒', '░', '▪', '▫', '·', ' '];
   private mouseInfluence: Point | null = null;
   private clickWaves: Array<{ x: number; y: number; time: number; strength: number }> = [];
+  private currentTime: number = 0;
 
   private static readonly PRESETS: PlasmaPreset[] = [
     {
@@ -73,6 +74,7 @@ export class PlasmaPattern implements Pattern {
   reset(): void {
     this.mouseInfluence = null;
     this.clickWaves = [];
+    this.currentTime = 0;
   }
 
   render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void {
@@ -88,6 +90,8 @@ export class PlasmaPattern implements Pattern {
     // Clean up old click waves
     this.clickWaves = this.clickWaves.filter(wave => time - wave.time < 3000);
     
+    // Track current time for click waves
+    this.currentTime = time;
     // Generate plasma effect using multiple sine waves
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
@@ -176,7 +180,7 @@ export class PlasmaPattern implements Pattern {
     this.clickWaves.push({
       x: pos.x,
       y: pos.y,
-      time: Date.now(),
+      time: this.currentTime,
       strength: 1.0 + Math.random() * 0.5
     });
     

@@ -29,6 +29,7 @@ export class QuicksilverPattern implements Pattern {
   private droplets: Droplet[] = [];
   private ripples: Array<{ x: number; y: number; time: number; radius: number }> = [];
   private noiseOffset: number = 0;
+  private currentTime: number = 0;
   
   // Characters for metallic liquid effect
   private liquidChars = ['█', '▓', '▒', '░', '●', '◉', '○', '◐', '◑', '◒', '◓', '•', '∘', '·'];
@@ -127,6 +128,9 @@ export class QuicksilverPattern implements Pattern {
   }
 
   render(buffer: Cell[][], time: number, size: Size): void {
+    // Track current time for ripples and droplets
+    this.currentTime = time;
+    
     const { width, height } = size;
     const { speed, flowIntensity, noiseScale } = this.config;
     
@@ -147,10 +151,13 @@ export class QuicksilverPattern implements Pattern {
         for (const ripple of this.ripples) {
           const dx = x - ripple.x;
           const dy = y - ripple.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
+          const distSquared = dx * dx + dy * dy;
           const age = time - ripple.time;
+          const radiusSquared = ripple.radius * ripple.radius;
           
-          if (dist < ripple.radius && age < 1500) {
+          // Early rejection using squared distance
+          if (distSquared < radiusSquared && age < 1500) {
+            const dist = Math.sqrt(distSquared);
             const rippleEffect = Math.sin(dist * 0.3 - age * 0.005) * (1 - dist / ripple.radius) * 2;
             flow += rippleEffect;
           }
@@ -160,9 +167,12 @@ export class QuicksilverPattern implements Pattern {
         for (const droplet of this.droplets) {
           const dx = x - droplet.x;
           const dy = y - droplet.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
+          const distSquared = dx * dx + dy * dy;
+          const radiusSquared = droplet.radius * droplet.radius;
           
-          if (dist < droplet.radius) {
+          // Early rejection using squared distance
+          if (distSquared < radiusSquared) {
+            const dist = Math.sqrt(distSquared);
             const dropletEffect = (1 - dist / droplet.radius) * 1.5;
             flow += dropletEffect;
           }
@@ -221,7 +231,7 @@ export class QuicksilverPattern implements Pattern {
     this.ripples.push({
       x: pos.x,
       y: pos.y,
-      time: Date.now(),
+      time: this.currentTime,
       radius: 15
     });
     
@@ -234,7 +244,8 @@ export class QuicksilverPattern implements Pattern {
   onMouseClick(pos: Point): void {
     // Click creates mercury droplets that splash and fall
     const numDroplets = 12;
-    const time = Date.now();
+    // Use currentTime if available (after render called), otherwise use Date.now()
+    const clickTime = this.currentTime || Date.now();
     
     for (let i = 0; i < numDroplets; i++) {
       const angle = (Math.PI * 2 * i) / numDroplets;
@@ -245,7 +256,7 @@ export class QuicksilverPattern implements Pattern {
         y: pos.y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed - 2,
-        time: time,
+        time: clickTime,
         radius: 3 + Math.random() * 2
       });
     }
@@ -254,7 +265,7 @@ export class QuicksilverPattern implements Pattern {
     this.ripples.push({
       x: pos.x,
       y: pos.y,
-      time: time,
+      time: clickTime,
       radius: 30
     });
   }
@@ -263,6 +274,7 @@ export class QuicksilverPattern implements Pattern {
     this.droplets = [];
     this.ripples = [];
     this.noiseOffset = 0;
+    this.currentTime = 0;
   }
 
   getMetrics(): Record<string, number> {

@@ -40,6 +40,7 @@ export class LightningPattern implements Pattern {
   private bolts: LightningBolt[] = [];
   private lastStrike: number = 0;
   private chargeParticles: Point[] = [];
+  private currentTime: number = 0;
 
   private static readonly PRESETS: LightningPreset[] = [
     {
@@ -109,6 +110,7 @@ export class LightningPattern implements Pattern {
     this.bolts = [];
     this.lastStrike = 0;
     this.chargeParticles = [];
+    this.currentTime = 0;
   }
 
   private generateBolt(
@@ -244,6 +246,8 @@ export class LightningPattern implements Pattern {
     const { width, height } = size;
 
     // Auto-strike at intervals
+    // Track current time for mouse click
+    this.currentTime = time;
     if (time - this.lastStrike > this.config.strikeInterval) {
       const startX = Math.random() * width;
       const endX = startX + (Math.random() - 0.5) * width * 0.5;
@@ -358,7 +362,7 @@ export class LightningPattern implements Pattern {
       this.bolts.shift();
     }
 
-    this.lastStrike = Date.now(); // Reset auto-strike timer
+    this.lastStrike = this.currentTime; // Reset auto-strike timer
   }
 
   getMetrics(): Record<string, number> {
