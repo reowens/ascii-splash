@@ -380,11 +380,13 @@ describe('RainPattern', () => {
       const buffer = createMockBuffer(80, 24);
       const size = createMockSize(80, 24);
       
-      // Create pattern with high speed
-      const fastPattern = new RainPattern(mockTheme, { speed: 3.0 });
+      // Create pattern with high speed and density to ensure visible drops
+      const fastPattern = new RainPattern(mockTheme, { speed: 10.0, density: 0.3 });
       
-      // Render multiple times
-      for (let i = 0; i < 5; i++) {
+      // Render multiple times to allow drops to fall into view
+      // With speed 10.0, drops move 5 units per render (speed * 0.5)
+      // This ensures drops starting at y=-10 will be visible within 15 iterations
+      for (let i = 0; i < 15; i++) {
         fastPattern.render(buffer, i * 100, size);
       }
       
