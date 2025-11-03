@@ -48,6 +48,7 @@ export class TunnelPattern implements Pattern {
   private particles: StreamParticle[] = [];
   private speedLines: SpeedLine[] = [];
   private time: number = 0;
+  private lastTime: number = 0;
   private vanishingOffset: Point = { x: 0, y: 0 };
   private boostActive: boolean = false;
   private boostEndTime: number = 0;
@@ -217,6 +218,7 @@ export class TunnelPattern implements Pattern {
     this.initializeParticles();
     this.initializeSpeedLines();
     this.time = 0;
+    this.lastTime = 0;
     this.vanishingOffset = { x: 0, y: 0 };
     this.boostActive = false;
     this.boostEndTime = 0;
@@ -291,10 +293,11 @@ export class TunnelPattern implements Pattern {
 
     const speedMultiplier = this.boostActive ? 3.0 : 1.0;
     const effectiveSpeed = this.config.speed * speedMultiplier;
-    const deltaTime = 0.016;
+    const deltaTime = this.lastTime === 0 ? 16 : time - this.lastTime;
+    this.lastTime = time;
 
     // Update turbulence
-    this.turbulenceOffset += deltaTime * 2;
+    this.turbulenceOffset += (deltaTime / 1000) * 2;
 
     // Render tunnel layers
     this.renderSpeedLines(buffer, size, time, effectiveSpeed, centerX, centerY);
@@ -343,10 +346,12 @@ export class TunnelPattern implements Pattern {
     width: number,
     height: number
   ): void {
+    const deltaSeconds = deltaTime / 1000;
+    
     // Update ring positions
     for (const ring of this.rings) {
-      ring.z += effectiveSpeed * deltaTime * 0.5;
-      ring.rotation += this.config.rotationSpeed * deltaTime;
+      ring.z += effectiveSpeed * deltaSeconds * 0.5;
+      ring.rotation += this.config.rotationSpeed * deltaSeconds;
 
       if (ring.z > 1) {
         ring.z = 0;
@@ -401,11 +406,12 @@ export class TunnelPattern implements Pattern {
     width: number,
     height: number
   ): void {
+    const deltaSeconds = deltaTime / 1000;
     const baseRadius = Math.min(width, height) * this.config.radius;
 
     for (const particle of this.particles) {
       // Update particle position
-      particle.z += effectiveSpeed * deltaTime * particle.speed;
+      particle.z += effectiveSpeed * deltaSeconds * particle.speed;
 
       if (particle.z > 1) {
         particle.z = 0;

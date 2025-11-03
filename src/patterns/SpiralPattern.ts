@@ -44,6 +44,7 @@ export class SpiralPattern implements Pattern {
   private particles: Particle[] = [];
   private clickBursts: ClickBurst[] = [];
   private armRotation: number = 0;
+  private lastTime: number = 0;
   
   // Gradient characters from dots to stars
   private particleChars = ['·', '∘', '○', '◉', '●', '◎', '✦', '✧', '★'];
@@ -188,6 +189,7 @@ export class SpiralPattern implements Pattern {
     this.initializeParticles();
     this.clickBursts = [];
     this.armRotation = 0;
+    this.lastTime = 0;
   }
 
   private getSpiralPosition(angle: number, armIndex: number, centerX: number, centerY: number, maxRadius: number): Point {
@@ -215,15 +217,17 @@ export class SpiralPattern implements Pattern {
     const maxRadius = Math.min(width, height) / 2 - 2;
     
     const { particleSpeed, rotationSpeed, trailLength, direction, pulseEffect } = this.config;
-    const deltaTime = 0.016; // ~60fps
+    const deltaTime = this.lastTime === 0 ? 16 : time - this.lastTime;
+    this.lastTime = time;
+    const deltaSeconds = deltaTime / 1000;
     
     // Update arm rotation
-    this.armRotation += rotationSpeed * deltaTime;
+    this.armRotation += rotationSpeed * deltaSeconds;
     
     // Update particles
     for (const particle of this.particles) {
       // Move particle along spiral
-      const speedMultiplier = particle.speed * particleSpeed * deltaTime * 3;
+      const speedMultiplier = particle.speed * particleSpeed * deltaSeconds * 3;
       
       if (direction === 'outward') {
         particle.angle += speedMultiplier;
@@ -251,7 +255,7 @@ export class SpiralPattern implements Pattern {
       }
       
       // Update pulse phase
-      particle.phase += deltaTime * 5;
+      particle.phase += deltaSeconds * 5;
       
       // Get current position
       const pos = this.getSpiralPosition(particle.angle, particle.armIndex, centerX, centerY, maxRadius);
@@ -266,7 +270,7 @@ export class SpiralPattern implements Pattern {
     // Update click bursts
     for (let i = this.clickBursts.length - 1; i >= 0; i--) {
       const burst = this.clickBursts[i];
-      burst.time += deltaTime * 1000;
+      burst.time += deltaTime;
       
       // Remove old bursts
       if (burst.time > 2000) {
@@ -276,8 +280,8 @@ export class SpiralPattern implements Pattern {
       
       // Update burst particles
       for (const bp of burst.particles) {
-        bp.angle += bp.speed * deltaTime * 5;
-        bp.life -= deltaTime * 0.5;
+        bp.angle += bp.speed * deltaSeconds * 5;
+        bp.life -= deltaSeconds * 0.5;
       }
     }
     
