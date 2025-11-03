@@ -376,7 +376,13 @@ export class TunnelPattern implements Pattern {
         scaledRadius += wobble;
       }
 
-      const intensity = Math.max(0.2, ring.z * this.config.glowIntensity);
+      // Add pulsing effect to wall brightness (subtle rhythmic pulse)
+      const pulseFrequency = 0.002; // Speed of pulse
+      const pulseAmplitude = 0.15;  // How much brightness varies (15%)
+      const pulseOffset = Math.sin(this.time * pulseFrequency + ring.z * 2) * pulseAmplitude;
+      const baseIntensity = Math.max(0.2, ring.z * this.config.glowIntensity);
+      const intensity = Math.max(0.1, Math.min(1.0, baseIntensity + pulseOffset));
+      
       const points = this.getShapePoints(sides, scaledRadius, ring.rotation);
       const charIndex = Math.min(chars.length - 1, Math.floor(ring.z * chars.length));
       const char = chars[charIndex];

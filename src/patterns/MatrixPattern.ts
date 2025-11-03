@@ -7,6 +7,7 @@ interface Column {
   speed: number;
   chars: string[];
   length: number;
+  age: number; // Time-based aging for fade effect
 }
 
 interface MatrixConfig {
@@ -115,7 +116,8 @@ export class MatrixPattern implements Pattern {
       y: -length,
       speed: (Math.random() * 0.5 + 0.5) * this.config.speed,
       chars,
-      length
+      length,
+      age: 0
     };
   }
 
@@ -147,6 +149,7 @@ export class MatrixPattern implements Pattern {
       
       // Move column down
       col.y += col.speed * 0.3;
+      col.age += 1; // Increment age for fade effect
       
       // Reset if off screen
       if (col.y > height + col.length) {
@@ -176,24 +179,30 @@ export class MatrixPattern implements Pattern {
             }
           }
 
+          // Calculate time-based fade factor (gradually dim over time)
+          const ageFade = Math.max(0, 1 - (col.age / 500)); // Fade over ~500 frames
+
           // Head of column is bright white
           if (j === 0) {
+            const whiteBrightness = Math.floor(255 * ageFade);
             buffer[y][col.x] = {
               char,
-              color: { r: 255, g: 255, b: 255 }
+              color: { r: whiteBrightness, g: whiteBrightness, b: whiteBrightness }
             };
           }
           // Next few characters are bright green
           else if (j < 3) {
+            const greenBrightness = Math.floor(255 * ageFade);
             buffer[y][col.x] = {
               char,
-              color: { r: 0, g: 255, b: 70 }
+              color: { r: 0, g: greenBrightness, b: Math.floor(70 * ageFade) }
             };
           }
-          // Fade to darker green
+          // Fade to darker green (combine position and age fade)
           else {
-            const fade = 1 - (j / col.length);
-            const brightness = Math.floor(fade * 200);
+            const positionFade = 1 - (j / col.length);
+            const combinedFade = positionFade * ageFade;
+            const brightness = Math.floor(combinedFade * 200);
             buffer[y][col.x] = {
               char,
               color: { r: 0, g: brightness, b: Math.floor(brightness * 0.3) }
@@ -238,10 +247,16 @@ export class MatrixPattern implements Pattern {
       ? this.columns.reduce((sum, col) => sum + col.speed, 0) / this.columns.length
       : 0;
     
+    // Calculate average age across all columns
+    const avgAge = this.columns.length > 0
+      ? this.columns.reduce((sum, col) => sum + col.age, 0) / this.columns.length
+      : 0;
+    
     return {
       columns: this.columns.length,
       totalChars,
       avgSpeed: Math.round(avgSpeed * 100) / 100,
+      avgAge: Math.round(avgAge),
       distortions: this.distortions.length,
       density: this.config.density,
       speed: this.config.speed,

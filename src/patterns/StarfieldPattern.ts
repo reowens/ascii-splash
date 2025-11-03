@@ -7,6 +7,7 @@ interface Star {
   speed: number;
   twinklePhase: number; // Random phase offset for twinkling
   twinkleSpeed: number; // Speed of twinkling oscillation
+  size: number; // Size multiplier (0.5-1.5) for variation
 }
 
 interface StarConfig {
@@ -130,7 +131,8 @@ export class StarfieldPattern implements Pattern {
       z: Math.random() * 10 + 1,
       speed: Math.random() * 0.5 + 0.5,
       twinklePhase: Math.random() * Math.PI * 2,
-      twinkleSpeed: Math.random() * 0.002 + 0.001 // 0.001-0.003
+      twinkleSpeed: Math.random() * 0.002 + 0.001, // 0.001-0.003
+      size: Math.random() * 1.0 + 0.5 // 0.5-1.5 size multiplier
     };
   }
 
@@ -182,8 +184,8 @@ export class StarfieldPattern implements Pattern {
 
       // Check if star is on screen
       if (screenX >= 0 && screenX < width && screenY >= 0 && screenY < height) {
-        // Determine star size based on depth
-        const depth = 1 / star.z;
+        // Determine star size based on depth and individual size variation
+        const depth = (1 / star.z) * star.size; // Apply size multiplier to depth
         let charIndex = 0;
         let colorIntensity = 0;
         
@@ -292,6 +294,11 @@ export class StarfieldPattern implements Pattern {
       ? Math.max(...this.stars.map(star => star.z))
       : 0;
     
+    // Calculate size statistics
+    const avgSize = this.stars.length > 0
+      ? this.stars.reduce((sum, star) => sum + star.size, 0) / this.stars.length
+      : 0;
+    
     // Count total explosion particles
     const explosionParticles = this.explosions.reduce((sum, exp) => sum + exp.particles.length, 0);
     
@@ -302,6 +309,7 @@ export class StarfieldPattern implements Pattern {
       avgDepth: Math.round(avgDepth * 100) / 100,
       minDepth: Math.round(minDepth * 100) / 100,
       maxDepth: Math.round(maxDepth * 100) / 100,
+      avgSize: Math.round(avgSize * 100) / 100,
       speed: this.config.speed,
       repelRadius: this.config.mouseRepelRadius
     };

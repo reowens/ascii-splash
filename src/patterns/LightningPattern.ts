@@ -163,7 +163,10 @@ export class LightningPattern implements Pattern {
 
       // Random chance to spawn branch
       if (Math.random() < this.config.branchProbability && depth < maxDepth) {
-        const branchAngle = this.config.branchAngle * (Math.random() < 0.5 ? 1 : -1);
+        // Vary branch angle: use base angle +/- 30% random variation
+        const angleVariation = this.config.branchAngle * 0.3 * (Math.random() - 0.5);
+        const side = Math.random() < 0.5 ? 1 : -1;
+        const branchAngle = (this.config.branchAngle + angleVariation) * side;
         const branchLength = length * (0.3 + Math.random() * 0.4);
         
         // Calculate branch direction
