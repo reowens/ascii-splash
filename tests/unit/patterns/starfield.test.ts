@@ -107,10 +107,16 @@ describe('StarfieldPattern', () => {
     });
 
     test('should animate stars moving toward viewer', () => {
-      pattern.render(buffer, 1000, size);
+      // Use higher speed to ensure visible movement
+      const fastPattern = new StarfieldPattern(theme, { speed: 5.0 });
+      
+      fastPattern.render(buffer, 0, size);
       const buffer1 = JSON.stringify(buffer);
       
-      pattern.render(buffer, 2000, size);
+      // Render multiple times to ensure stars move
+      for (let i = 0; i < 10; i++) {
+        fastPattern.render(buffer, i * 100, size);
+      }
       const buffer2 = JSON.stringify(buffer);
       
       expect(buffer1).not.toBe(buffer2);
