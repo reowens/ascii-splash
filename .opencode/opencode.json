@@ -1,0 +1,35 @@
+{
+  "agents": {
+    "build": {
+      "model": "github-copilot/claude-sonnet-4.5",
+      "systemPrompt": ".opencode/prompts/build.txt",
+      "description": "General development and bug fixes"
+    },
+    "pattern": {
+      "model": "github-copilot/claude-sonnet-4.5",
+      "systemPrompt": ".opencode/prompts/pattern.txt",
+      "description": "ASCII animation pattern development"
+    },
+    "test": {
+      "model": "github-copilot/claude-haiku-4.5",
+      "systemPrompt": ".opencode/prompts/test.txt",
+      "description": "Test writing and maintenance"
+    },
+    "docs": {
+      "model": "github-copilot/claude-haiku-4.5",
+      "systemPrompt": ".opencode/prompts/docs.txt",
+      "description": "Documentation updates"
+    },
+    "production": {
+      "model": "github-copilot/claude-sonnet-4.5",
+      "systemPrompt": ".opencode/prompts/production.txt",
+      "description": "Release management (read-only)"
+    },
+    "ux": {
+      "model": "github-copilot/claude-sonnet-4.5",
+      "systemPrompt": ".opencode/prompts/ux.txt",
+      "description": "Terminal UX analysis (subagent)"
+    }
+  },
+  "defaultAgent": "build"
+}
