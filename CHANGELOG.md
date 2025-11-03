@@ -7,27 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-- **Test Suite Expansion**: Comprehensive unit test updates for refactored patterns
-  - SpiralPattern: Complete test rewrite (67 tests) for new particle-based logarithmic spiral architecture
-    - Updated property names: `spiralCount` → `armCount`
-    - Updated preset names: "Twin Vortex" → "Twin Helix", "Nautilus Shell" → "DNA Double Helix"
-    - New metrics: `particles`, `arms`, `bursts` (replaced old `spiralCount`, `interactiveSpirals`)
-    - Added tests for particle trails, click bursts (12 particles per burst, max 3 bursts), direction modes
-  - TunnelPattern: Created comprehensive test suite from scratch (67 tests)
-    - Tests all 6 presets: "Warp Speed", "Hyperspace Jump", "Gentle Cruise", "Asteroid Tunnel", "Stargate", "Lightspeed"
-    - New metrics: `rings`, `particles`, `boost`
-    - Fixed speed lines test (requires multiple render passes with reduced rings/particles)
-    - Fixed zero speed test (needs `rotationSpeed: 0, turbulence: 0` for deterministic rendering)
-  - Additional patterns test suite: Updated legacy tests for SpiralPattern and TunnelPattern compatibility
-    - Fixed preset characteristics: "Hyperspeed Vortex" is preset 3, "Fibonacci Bloom" is preset 4
-  - **Test Results**: 1357 tests passing, 26 test suites, 95.18% coverage (exceeds 80% target)
-  - **Pattern Coverage**: SpiralPattern 99.24% statements, TunnelPattern 100% statements
+## [0.1.1] - 2025-11-02
+
+### Fixed
+- **Text Overlay Display**: Fixed critical UX issue where text overlays were overwritten by pattern rendering
+  - Command mode overlay, pattern mode overlay, and debug info now properly persist
+  - Root cause: Text rendered on input events but pattern buffer cleared/re-rendered 30-60x per second
+  - Solution: Consolidated all overlay rendering into `afterRenderCallback()` for correct z-order
+  - Removed 18+ redundant overlay render calls from event handlers
+  - Significantly improves user experience when using command mode or pattern selection
 
 ### Added
-- **Test Infrastructure**: Created `tests/manual/` directory for visual test scripts
-  - Organized 5 manual testing scripts: `diagnostic.mjs`, `test-patterns-final.mjs`, `test-patterns.mjs`, `visual-preview.mjs`, `visual-test.mjs`
-  - Moved from project root for better organization
+- **GitHub Actions CI/CD Pipeline**: Complete automated testing and release infrastructure
+  - **CI Workflow**: Runs on push/PR to main/develop branches
+    - Tests on Node.js 16, 18, 20, 22 for compatibility
+    - TypeScript compilation checks
+    - Build verification and package validation
+    - Coverage upload to Codecov
+  - **Release Workflow**: Automated npm publishing on git tag push (v*.*.*)
+    - Full test suite execution
+    - Version/tag verification
+    - Automated npm publish (requires NPM_TOKEN secret)
+    - GitHub Release creation with changelog notes
+  - **Dependency Review**: Security scanning for pull requests
+    - Vulnerability checks for new dependencies
+    - Automated PR comments with security findings
+  - **Documentation**: Comprehensive guides added
+    - `docs/RELEASE_PROCESS.md`: Full release workflow guide
+    - `docs/QUICK_RELEASE.md`: Quick reference for releases
+    - `docs/GITHUB_ACTIONS.md`: Workflow documentation
+- **Build Script**: Added `lint` script to package.json for type-checking (`npm run lint`)
+- **Test Suite Expansion**: Comprehensive unit tests for additional patterns
+  - Added tests for: Fireworks, Plasma, Quicksilver, Rain, Starfield patterns
+  - Added utility module tests: drawing.ts, math.ts, noise.ts
+  - **Test Results**: 1357 tests passing, 26 test suites
+
+### Changed
+- **Test Suite Refactoring**: Updated tests for refactored Spiral and Tunnel patterns
+  - SpiralPattern: Complete test rewrite (67 tests) for particle-based architecture
+    - Updated property names: `spiralCount` → `armCount`
+    - Updated preset names: "Twin Vortex" → "Twin Helix", "Nautilus Shell" → "DNA Double Helix"
+    - New metrics: `particles`, `arms`, `bursts`
+  - TunnelPattern: Created comprehensive test suite (67 tests)
+    - Tests all 6 presets with new metrics: `rings`, `particles`, `boost`
+  - **Pattern Coverage**: SpiralPattern 99.24%, TunnelPattern 100%
+- **Test Infrastructure**: Organized manual test scripts into `tests/manual/` directory
 
 ## [0.1.0] - 2025-11-02
 
@@ -304,4 +328,6 @@ Built with `terminal-kit` for terminal control and inspired by classic terminal 
 - Performance optimizations
 - Extended terminal emulator support
 
+[Unreleased]: https://github.com/reowens/ascii-splash/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/reowens/ascii-splash/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/reowens/ascii-splash/releases/tag/v0.1.0
