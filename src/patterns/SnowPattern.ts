@@ -254,12 +254,7 @@ export class SnowPattern implements Pattern {
       this.updateParticle(particle, deltaTime);
     }
 
-    // Clear buffer
-    for (let y = 0; y < size.height; y++) {
-      for (let x = 0; x < size.width; x++) {
-        buffer[y][x] = { char: ' ', color: { r: 0, g: 0, b: 0 } };
-      }
-    }
+    // Buffer is already cleared by AnimationEngine - no need to clear here
 
     // Render particles
     for (const particle of this.particles) {

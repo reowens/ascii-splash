@@ -144,12 +144,7 @@ export class StarfieldPattern implements Pattern {
 
     this.initStars(size);
 
-    // Clear buffer
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        buffer[y][x] = { char: ' ' };
-      }
-    }
+    // Buffer is already cleared by AnimationEngine - no need to clear here
 
     // Update and render stars
     for (let i = 0; i < this.stars.length; i++) {

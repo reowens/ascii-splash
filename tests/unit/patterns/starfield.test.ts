@@ -134,20 +134,8 @@ describe('StarfieldPattern', () => {
       expect(metrics.stars).toBeGreaterThan(0);
     });
 
-    test('should clear buffer before rendering', () => {
-      // Fill buffer with junk data
-      for (let y = 0; y < size.height; y++) {
-        for (let x = 0; x < size.width; x++) {
-          buffer[y][x] = { char: 'X', color: { r: 255, g: 0, b: 0 } };
-        }
-      }
-      
-      pattern.render(buffer, 1000, size);
-      
-      // Some cells should be cleared (starfield is sparse)
-      const emptyCells = buffer.flat().filter(cell => cell.char === ' ');
-      expect(emptyCells.length).toBeGreaterThan(0);
-    });
+    // Note: Patterns should NOT clear the buffer - that's AnimationEngine's responsibility
+    // This prevents race conditions during terminal resize that can crash the terminal
 
     test('should handle small terminal size', () => {
       const smallSize = { width: 20, height: 10 };

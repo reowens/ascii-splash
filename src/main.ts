@@ -489,6 +489,9 @@ function main() {
     const stats = engine.getPerformanceMonitor().getStats();
     const size = renderer.getSize();
     const currentPattern = patterns[currentPatternIndex];
+    const bufferSafety = engine.getBufferSafety();
+    const errorsByPattern = bufferSafety.getErrorsByPattern();
+    const totalErrors = Object.values(errorsByPattern).reduce((sum, count) => sum + count, 0);
     
     const lines = [
       `PERFORMANCE DEBUG`,
@@ -506,6 +509,15 @@ function main() {
       `Min/Avg/Max FPS: ${stats.minFps.toFixed(1)} / ${stats.avgFps.toFixed(1)} / ${stats.maxFps.toFixed(1)}`,
       `Total Frames: ${stats.totalFrames}`
     ];
+    
+    // Add buffer safety errors if any
+    if (totalErrors > 0) {
+      lines.push(`────────────────────────────`);
+      lines.push(`⚠️  RENDER ERRORS: ${totalErrors}`);
+      for (const [pattern, count] of Object.entries(errorsByPattern)) {
+        lines.push(`  ${pattern}: ${count} errors`);
+      }
+    }
     
     // Add shuffle info if active
     const shuffleInfo = commandExecutor.getShuffleInfo();

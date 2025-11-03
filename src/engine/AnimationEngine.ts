@@ -1,6 +1,7 @@
 import { TerminalRenderer } from '../renderer/TerminalRenderer';
 import { Pattern } from '../types';
 import { PerformanceMonitor } from './PerformanceMonitor';
+import { bufferSafety, safeRenderWrapper } from '../utils/bufferSafety';
 
 export class AnimationEngine {
   private renderer: TerminalRenderer;
@@ -74,7 +75,12 @@ export class AnimationEngine {
     
     // Render pattern into buffer and track time
     const patternStart = performance.now();
-    this.pattern.render(buffer.getBuffer(), time, size);
+    
+    // Wrap pattern render in error handler
+    safeRenderWrapper(this.pattern.name, () => {
+      this.pattern.render(buffer.getBuffer(), time, size);
+    });
+    
     this.perfMonitor.recordPatternRenderTime(performance.now() - patternStart);
     
     // Call before-terminal-render callback (for overlays that need to write to buffer)
@@ -123,6 +129,10 @@ export class AnimationEngine {
 
   getPerformanceMonitor(): PerformanceMonitor {
     return this.perfMonitor;
+  }
+
+  getBufferSafety(): typeof bufferSafety {
+    return bufferSafety;
   }
 
   setAfterRenderCallback(callback: () => void): void {
