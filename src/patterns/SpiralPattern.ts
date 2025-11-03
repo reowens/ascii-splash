@@ -36,48 +36,48 @@ export class SpiralPattern implements Pattern {
       id: 1,
       name: 'Twin Vortex',
       description: 'Two rotating arms, classic spiral',
-      config: { spiralCount: 2, rotationSpeed: 0.6, armLength: 8, density: 25, expandSpeed: 0.35 }
+      config: { spiralCount: 2, rotationSpeed: 0.6, armLength: 10, density: 120, expandSpeed: 0.4 }
     },
     {
       id: 2,
       name: 'Galaxy Arms',
       description: 'Five-armed galactic spiral',
-      config: { spiralCount: 5, rotationSpeed: 0.8, armLength: 6, density: 30, expandSpeed: 0.4 }
+      config: { spiralCount: 5, rotationSpeed: 0.8, armLength: 8, density: 80, expandSpeed: 0.45 }
     },
     {
       id: 3,
       name: 'Fibonacci Bloom',
       description: 'Eight arms, flower-like pattern',
-      config: { spiralCount: 8, rotationSpeed: 0.4, armLength: 5, density: 35, expandSpeed: 0.3 }
+      config: { spiralCount: 8, rotationSpeed: 0.4, armLength: 7, density: 70, expandSpeed: 0.35 }
     },
     {
       id: 4,
       name: 'Hypnotic Spin',
       description: 'Fast rotating, tight spiral',
-      config: { spiralCount: 3, rotationSpeed: 1.5, armLength: 4, density: 40, expandSpeed: 0.25 }
+      config: { spiralCount: 3, rotationSpeed: 1.5, armLength: 6, density: 150, expandSpeed: 0.3 }
     },
     {
       id: 5,
       name: 'Slow Mandala',
       description: 'Gentle, meditative rotation',
-      config: { spiralCount: 6, rotationSpeed: 0.3, armLength: 7, density: 20, expandSpeed: 0.45 }
+      config: { spiralCount: 6, rotationSpeed: 0.3, armLength: 9, density: 90, expandSpeed: 0.5 }
     },
     {
       id: 6,
       name: 'Nautilus Shell',
       description: 'Single arm, natural logarithmic spiral',
-      config: { spiralCount: 1, rotationSpeed: 0.5, armLength: 10, density: 50, expandSpeed: 0.5 }
+      config: { spiralCount: 1, rotationSpeed: 0.5, armLength: 12, density: 200, expandSpeed: 0.55 }
     }
   ];
   
   constructor(theme: Theme, config?: Partial<SpiralConfig>) {
     this.theme = theme;
     this.config = {
-      spiralCount: 5,          // Increased from 3
+      spiralCount: 8,          // Increased for more visibility
       rotationSpeed: 0.8,      // Increased from 0.5
-      armLength: 6,            // Reduced from 8 for tighter spirals
-      density: 30,             // Doubled from 15
-      expandSpeed: 0.4,        // Increased from 0.3
+      armLength: 8,            // Increased for longer arms
+      density: 100,            // MASSIVELY increased from 30 for debugging
+      expandSpeed: 0.5,        // Increased from 0.3
       ...config
     };
   }
@@ -104,13 +104,13 @@ export class SpiralPattern implements Pattern {
     for (let arm = 0; arm < spiralCount; arm++) {
       const armAngleOffset = (Math.PI * 2 * arm) / spiralCount;
       
-      // Draw points along this spiral arm
-      for (let i = 0; i < density * 10; i++) {
+      // Draw points along this spiral arm (with much higher density)
+      for (let i = 0; i < density * 30; i++) {
         const t = i / density;
         
         // Logarithmic spiral formula: r = a * e^(b*theta)
         const theta = t * Math.PI * armLength + rotation + armAngleOffset;
-        const r = expandSpeed * Math.exp(0.2 * theta) * breathe;
+        const r = expandSpeed * Math.exp(0.15 * theta) * breathe;
         
         // Convert polar to cartesian
         const x = Math.floor(centerX + r * Math.cos(theta));

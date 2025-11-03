@@ -37,37 +37,37 @@ export class TunnelPattern implements Pattern {
       id: 1,
       name: 'Circle Tunnel',
       description: 'Classic circular tunnel, smooth rotation',
-      config: { shape: 'circle', ringCount: 20, ringSpacing: 1.0, speed: 1.0, rotationSpeed: 0.5, radius: 0.6 }
+      config: { shape: 'circle', ringCount: 40, ringSpacing: 0.6, speed: 1.0, rotationSpeed: 0.5, radius: 0.75 }
     },
     {
       id: 2,
       name: 'Hyperspeed',
       description: 'Fast forward motion, blurred rings',
-      config: { shape: 'circle', ringCount: 30, ringSpacing: 0.5, speed: 2.5, rotationSpeed: 1.2, radius: 0.7 }
+      config: { shape: 'circle', ringCount: 50, ringSpacing: 0.4, speed: 2.5, rotationSpeed: 1.2, radius: 0.8 }
     },
     {
       id: 3,
       name: 'Square Vortex',
       description: 'Rotating square tunnel',
-      config: { shape: 'square', ringCount: 18, ringSpacing: 1.2, speed: 1.0, rotationSpeed: 0.8, radius: 0.55 }
+      config: { shape: 'square', ringCount: 35, ringSpacing: 0.7, speed: 1.0, rotationSpeed: 0.8, radius: 0.7 }
     },
     {
       id: 4,
       name: 'Triangle Warp',
       description: 'Three-sided tunnel, fast spin',
-      config: { shape: 'triangle', ringCount: 15, ringSpacing: 1.5, speed: 0.8, rotationSpeed: 1.5, radius: 0.5 }
+      config: { shape: 'triangle', ringCount: 30, ringSpacing: 0.8, speed: 0.8, rotationSpeed: 1.5, radius: 0.65 }
     },
     {
       id: 5,
       name: 'Hexagon Grid',
       description: 'Six-sided tunnel, geometric precision',
-      config: { shape: 'hexagon', ringCount: 22, ringSpacing: 0.8, speed: 1.2, rotationSpeed: 0.6, radius: 0.65 }
+      config: { shape: 'hexagon', ringCount: 45, ringSpacing: 0.5, speed: 1.2, rotationSpeed: 0.6, radius: 0.75 }
     },
     {
       id: 6,
       name: 'Stargate',
       description: 'Five-pointed star tunnel, slow mystical rotation',
-      config: { shape: 'star', ringCount: 16, ringSpacing: 1.3, speed: 0.7, rotationSpeed: 0.4, radius: 0.58 }
+      config: { shape: 'star', ringCount: 35, ringSpacing: 0.7, speed: 0.7, rotationSpeed: 0.4, radius: 0.7 }
     }
   ];
 
@@ -75,11 +75,11 @@ export class TunnelPattern implements Pattern {
     this.theme = theme;
     this.config = {
       shape: 'circle',
-      ringCount: 20,
-      ringSpacing: 1.0,
+      ringCount: 40,           // Doubled from 20 for more visibility
+      ringSpacing: 0.5,        // Halved to pack rings closer
       speed: 1.0,
       rotationSpeed: 0.5,
-      radius: 0.6,
+      radius: 0.8,             // Increased from 0.6 for larger rings
       ...config
     };
     this.initializeRings();
