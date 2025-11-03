@@ -48,37 +48,37 @@ export class SnowPattern implements Pattern {
 
   private static readonly PRESETS: SnowPreset[] = [
     {
-      id: 0,
+      id: 1,
       name: 'Light Flurries',
       description: 'Gentle snowfall with light wind',
       config: { particleCount: 50, fallSpeed: 0.3, windStrength: 0.5, turbulence: 0.6, rotationSpeed: 1.0, particleType: 'snow', mouseWindForce: 2.0, accumulation: true }
     },
     {
-      id: 1,
+      id: 2,
       name: 'Blizzard',
       description: 'Heavy snow with strong wind',
       config: { particleCount: 150, fallSpeed: 1.2, windStrength: 1.8, turbulence: 1.5, rotationSpeed: 3.0, particleType: 'snow', mouseWindForce: 3.5, accumulation: false }
     },
     {
-      id: 2,
+      id: 3,
       name: 'Cherry Blossoms',
       description: 'Delicate pink petals drifting',
       config: { particleCount: 80, fallSpeed: 0.2, windStrength: 0.8, turbulence: 1.0, rotationSpeed: 2.0, particleType: 'cherry', mouseWindForce: 2.5, accumulation: false }
     },
     {
-      id: 3,
+      id: 4,
       name: 'Autumn Leaves',
       description: 'Colorful falling leaves',
       config: { particleCount: 60, fallSpeed: 0.5, windStrength: 1.2, turbulence: 1.2, rotationSpeed: 2.5, particleType: 'autumn', mouseWindForce: 3.0, accumulation: true }
     },
     {
-      id: 4,
+      id: 5,
       name: 'Confetti',
       description: 'Celebration confetti burst',
       config: { particleCount: 120, fallSpeed: 0.8, windStrength: 0.4, turbulence: 0.8, rotationSpeed: 5.0, particleType: 'confetti', mouseWindForce: 4.0, accumulation: false }
     },
     {
-      id: 5,
+      id: 6,
       name: 'Ash',
       description: 'Floating volcanic ash',
       config: { particleCount: 100, fallSpeed: 0.15, windStrength: 1.5, turbulence: 2.0, rotationSpeed: 0.5, particleType: 'ash', mouseWindForce: 1.5, accumulation: false }
@@ -359,10 +359,6 @@ export class SnowPattern implements Pattern {
     this.initializeParticles();
   }
 
-  getPresets() {
-    return SnowPattern.PRESETS;
-  }
-
   applyPreset(presetId: number): boolean {
     const preset = SnowPattern.PRESETS.find(p => p.id === presetId);
     if (!preset) return false;
@@ -370,6 +366,14 @@ export class SnowPattern implements Pattern {
     this.config = { ...preset.config };
     this.reset();
     return true;
+  }
+
+  static getPresets(): SnowPreset[] {
+    return [...SnowPattern.PRESETS];
+  }
+
+  static getPreset(id: number): SnowPreset | undefined {
+    return SnowPattern.PRESETS.find(p => p.id === id);
   }
 
   getMetrics(): Record<string, number> {

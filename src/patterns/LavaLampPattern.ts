@@ -264,10 +264,6 @@ export class LavaLampPattern implements Pattern {
     this.noise = new PerlinNoise(Math.random() * 10000);
   }
 
-  getPresets(): LavaLampPreset[] {
-    return LavaLampPattern.PRESETS;
-  }
-
   applyPreset(presetId: number): boolean {
     const preset = LavaLampPattern.PRESETS.find(p => p.id === presetId);
     if (!preset) return false;
@@ -275,6 +271,14 @@ export class LavaLampPattern implements Pattern {
     this.config = { ...preset.config };
     this.reset();
     return true;
+  }
+
+  static getPresets(): LavaLampPreset[] {
+    return [...LavaLampPattern.PRESETS];
+  }
+
+  static getPreset(id: number): LavaLampPreset | undefined {
+    return LavaLampPattern.PRESETS.find(p => p.id === id);
   }
 
   getMetrics(): Record<string, number> {

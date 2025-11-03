@@ -257,26 +257,26 @@ describe('SmokePattern', () => {
   });
 
   describe('presets', () => {
-    it('should have getPresets method', () => {
-      expect(pattern.getPresets).toBeDefined();
+    it('should have getPresets static method', () => {
+      expect(SmokePattern.getPresets).toBeDefined();
     });
 
     it('should return 6 presets', () => {
-      const presets = pattern.getPresets!();
+      const presets = SmokePattern.getPresets();
       expect(presets).toHaveLength(6);
     });
 
-    it('should have preset with id 0-5', () => {
-      const presets = pattern.getPresets!();
+    it('should have preset with id 1-6', () => {
+      const presets = SmokePattern.getPresets();
       presets.forEach((preset, index) => {
-        expect(preset.id).toBe(index);
+        expect(preset.id).toBe(index + 1); // IDs are now 1-6
         expect(preset.name).toBeDefined();
         expect(preset.description).toBeDefined();
       });
     });
 
-    it('should apply Gentle Wisp preset (0)', () => {
-      const result = pattern.applyPreset!(0);
+    it('should apply Gentle Wisp preset (1)', () => {
+      const result = pattern.applyPreset!(1);
       expect(result).toBe(true);
       
       // Should render without errors
@@ -285,16 +285,7 @@ describe('SmokePattern', () => {
       }).not.toThrow();
     });
 
-    it('should apply Campfire preset (1)', () => {
-      const result = pattern.applyPreset!(1);
-      expect(result).toBe(true);
-      
-      expect(() => {
-        pattern.render(buffer, 1000, size);
-      }).not.toThrow();
-    });
-
-    it('should apply Industrial preset (2)', () => {
+    it('should apply Campfire preset (2)', () => {
       const result = pattern.applyPreset!(2);
       expect(result).toBe(true);
       
@@ -303,7 +294,7 @@ describe('SmokePattern', () => {
       }).not.toThrow();
     });
 
-    it('should apply Incense preset (3)', () => {
+    it('should apply Industrial preset (3)', () => {
       const result = pattern.applyPreset!(3);
       expect(result).toBe(true);
       
@@ -312,7 +303,7 @@ describe('SmokePattern', () => {
       }).not.toThrow();
     });
 
-    it('should apply Fog preset (4)', () => {
+    it('should apply Incense preset (4)', () => {
       const result = pattern.applyPreset!(4);
       expect(result).toBe(true);
       
@@ -321,8 +312,17 @@ describe('SmokePattern', () => {
       }).not.toThrow();
     });
 
-    it('should apply Steam preset (5)', () => {
+    it('should apply Fog preset (5)', () => {
       const result = pattern.applyPreset!(5);
+      expect(result).toBe(true);
+      
+      expect(() => {
+        pattern.render(buffer, 1000, size);
+      }).not.toThrow();
+    });
+
+    it('should apply Steam preset (6)', () => {
+      const result = pattern.applyPreset!(6);
       expect(result).toBe(true);
       
       expect(() => {
