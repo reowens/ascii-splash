@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2025-11-03
+
+### Fixed
+- **Time Handling Consistency**: Fixed 7 patterns using `Date.now()` directly instead of `time` parameter
+  - Affected patterns: Wave, Starfield, Rain, DNA, Lightning, Plasma, Quicksilver
+  - **Impact**: Enables proper time-based testing, pause/resume functionality, and consistent behavior
+  - Each pattern now tracks `currentTime` internally and uses it in mouse handlers
+  - All patterns properly reset `currentTime` to 0 in `reset()` method
+- **Reset Method Cleanup**: Audited and fixed `reset()` methods across all patterns
+  - Ensures clean state when switching patterns
+  - Prevents stale time values and other state from carrying over
+
+### Changed
+- **Metrics Naming Standardization**: All patterns now use camelCase for metric keys
+  - SnowPattern updated: `'Active Particles'` → `activeParticles`, `'Accumulated'` → `accumulated`, `'Avg Velocity'` → `avgVelocity`
+  - Consistent naming across all 17 patterns improves debug overlay readability
+  - Updated 15+ test assertions to match new naming convention
+
+### Performance
+- **Spiral Pattern**: Optimized distance calculations with early rejection
+  - Only calls `Math.sqrt()` when particles are within range
+  - Prevents wasted computation on out-of-bounds particles
+- **Tunnel Pattern**: Optimized character selection using squared distance
+  - Reduced unnecessary `sqrt()` calls in pulse rendering
+  - Maintains identical visual output with better performance
+- **Quicksilver Pattern**: Added early rejection in ripple/droplet effect loops
+  - Uses squared distance for boundary checks before computing actual distance
+  - Reduces expensive calculations in nested pixel loops
+- **Life Pattern**: Implemented neighbor count caching
+  - Added `neighborCounts[][]` grid to store computed values
+  - Cache updated once per generation, reused in render method
+  - **Major win**: Eliminates redundant `countNeighbors()` calls per frame
+  - Significantly improves performance for Game of Life simulation
+
+### Added
+- **Pattern Enhancement Plan**: Added comprehensive `PATTERN_ENHANCEMENT_PLAN.md`
+  - Documents systematic analysis of all 17 patterns
+  - Tracks completed and planned improvements
+  - Phase 1 (Critical Fixes) and Phase 2 (Performance) completed
+
+### Tests
+- All 1407 tests passing
+- Zero regressions introduced
+- All optimizations maintain visual parity with original implementations
+
 ## [0.1.1] - 2025-11-02
 
 ### Fixed
