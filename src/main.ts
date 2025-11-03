@@ -366,9 +366,13 @@ function main() {
   let patternBufferTimeout: NodeJS.Timeout | null = null;
   const patternBufferTimeoutMs = 5000; // 5 seconds
   
+  // Preset tracking state (for cycling presets)
+  let currentPresetIndex = 1; // Default to preset 1 (1-6)
+  
   function switchPattern(index: number) {
     if (index >= 0 && index < patterns.length) {
       currentPatternIndex = index;
+      currentPresetIndex = 1; // Reset to preset 1 when switching patterns
       engine.setPattern(patterns[currentPatternIndex]);
       commandExecutor.updateState(currentPatternIndex, currentThemeIndex);
       showPatternName(patterns[currentPatternIndex].name);
@@ -419,13 +423,16 @@ function main() {
       const helpLines = [
         'KEYBOARD CONTROLS',
         '─────────────────',
-        '0        Command mode (advanced)',
+        'c        Command mode (advanced)',
         '1-9      Switch patterns (1-9)',
-        'n        Next pattern',
+        'n/b      Next/Previous pattern',
+        './,      Next/Previous preset',
         'p        Pattern mode (p12, p3.5, pwaves)',
+        'r        Random (pattern+preset+theme)',
+        's        Save current config',
         'SPACE    Pause/Resume',
         '+/-      Speed up/down',
-        '[/]      Quality presets (low/high)',
+        '[/]      Performance mode (low/high)',
         't        Cycle themes',
         '?        Toggle this help',
         'd        Toggle debug info',
@@ -791,7 +798,7 @@ function main() {
       cleanup();
     }
     // Command mode activation
-    else if (name === '0') {
+    else if (name === 'c') {
       commandBuffer.activate();
       renderCommandOverlay();
     }
@@ -822,9 +829,37 @@ function main() {
     // Pattern selection - next/previous
     else if (name === 'n') {
       switchPattern((currentPatternIndex + 1) % patterns.length);
+    } else if (name === 'b') {
+      // Previous pattern (back)
+      const prevIndex = currentPatternIndex === 0 ? patterns.length - 1 : currentPatternIndex - 1;
+      switchPattern(prevIndex);
     } else if (name === 'p') {
       // Activate pattern buffer mode
       activatePatternBuffer();
+    }
+    // Preset cycling
+    else if (name === '.') {
+      const currentPattern = patterns[currentPatternIndex];
+      if (currentPattern.applyPreset) {
+        // Cycle to next preset (1-6)
+        const nextPreset = (currentPresetIndex % 6) + 1;
+        if (currentPattern.applyPreset(nextPreset)) {
+          currentPresetIndex = nextPreset;
+          const displayName = patternDisplayNames[patternNames[currentPatternIndex]] || patternNames[currentPatternIndex];
+          showMessage(`${displayName} - Preset ${nextPreset}`);
+        }
+      }
+    } else if (name === ',') {
+      const currentPattern = patterns[currentPatternIndex];
+      if (currentPattern.applyPreset) {
+        // Cycle to previous preset
+        const prevPreset = currentPresetIndex === 1 ? 6 : currentPresetIndex - 1;
+        if (currentPattern.applyPreset(prevPreset)) {
+          currentPresetIndex = prevPreset;
+          const displayName = patternDisplayNames[patternNames[currentPatternIndex]] || patternNames[currentPatternIndex];
+          showMessage(`${displayName} - Preset ${prevPreset}`);
+        }
+      }
     }
     // Speed controls
     else if (name === '+' || name === '=') {
@@ -847,6 +882,22 @@ function main() {
     // Theme cycling
     else if (name === 't') {
       cycleTheme();
+    }
+    // Quick random (pattern + preset + theme)
+    else if (name === 'r') {
+      const parsed = commandParser.parse('**');
+      if (parsed) {
+        const result = commandExecutor.execute(parsed);
+        showCommandResult(result.message, result.success);
+      }
+    }
+    // Quick save
+    else if (name === 's') {
+      const parsed = commandParser.parse('s');
+      if (parsed) {
+        const result = commandExecutor.execute(parsed);
+        showCommandResult(result.message, result.success);
+      }
     }
     // Quality presets
     else if (name === '[') {

@@ -13,6 +13,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The first public release of ascii-splash - a terminal ASCII animation app with visual flow for your IDE workspace.
 
+### Changed (Breaking Changes - Keyboard Controls)
+- **BREAKING**: Command mode key changed from `0` to `c` for better mnemonics
+  - Old: `0` prefix for commands (e.g., `01`, `0p3`, `0t2`)
+  - New: `c` prefix for commands (e.g., `c01`, `cp3`, `ct2`)
+  - Reason: `c` is more intuitive (stands for "command") and follows keyboard proximity patterns
+- **Renamed**: "Quality presets" → "Performance mode" throughout CLI, help text, and documentation
+  - Avoids confusion between quality presets and pattern presets
+  - More accurately describes LOW/MEDIUM/HIGH FPS settings
+
+### Added (Phase 6 - Keyboard Improvements)
+- **Preset cycling**: Press `.` for next preset, `,` for previous preset
+  - Explore all 102 presets easily without memorizing preset numbers
+  - Wraps around at boundaries (preset 6 → preset 1)
+  - Visual feedback shows current preset number
+- **Previous pattern navigation**: Press `b` to go back to previous pattern
+  - Complements existing `n` (next) key for bi-directional pattern browsing
+  - Wraps around (pattern 1 → pattern 17)
+- **Quick random**: Press `r` for instant random pattern + preset + theme
+  - Shortcut for `c**` command
+  - Perfect for discovering new combinations quickly
+- **Quick save**: Press `s` to save current configuration to file
+  - Shortcut for `cs` command
+  - Persists current pattern, preset, theme, and settings
+- **Enhanced help overlay**: Updated with all new keyboard shortcuts and clearer organization
+
 ### Added (Phase 6 - UI/UX Improvements)
 - **Enhanced Pattern Selection**: New interactive pattern mode activated by pressing `p`
   - Type pattern number: `p12` → Pattern 12
@@ -122,14 +147,14 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
 
 #### ⌨️ Advanced Command System
 - **Dual-layer input**: Direct keys (instant) + Command buffer (extended features)
-- **Command Buffer** (prefix with `0`):
-  - Presets: `01-99` (load preset)
-  - Favorites: `0f1-0f99` (load), `0F1-0F99` (save), `0fl` (list)
-  - Pattern jumps: `0p3`, `0p3.5`, `0pwaves`
-  - Theme commands: `0t2`, `0tfire`, `0tr` (random)
-  - Special: `0*` (random preset), `0**` (random all), `0?` (list presets), `0??` (catalog)
-  - Shuffle: `0!` (toggle, 10s default), `0!5` (custom interval), `0!!` (shuffle all)
-  - Combinations: `0p3+05+t2` (pattern + preset + theme)
+- **Command Buffer** (prefix with `c`):
+  - Presets: `c01-c99` (load preset)
+  - Favorites: `cf1-cf99` (load), `cF1-cF99` (save), `cfl` (list)
+  - Pattern jumps: `cp3`, `cp3.5`, `cpwaves`
+  - Theme commands: `ct2`, `ctfire`, `ctr` (random)
+  - Special: `c*` (random preset), `c**` (random all), `c?` (list presets), `c??` (catalog)
+  - Shuffle: `c!` (toggle, 10s default), `c!5` (custom interval), `c!!` (shuffle all)
+  - Combinations: `cp3+05+t2` (pattern + preset + theme)
 - **10-second timeout** with visual feedback
 - **Command history** with up/down arrow navigation
 
@@ -165,7 +190,7 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
 - Toggle debug overlay with `d` key
 - **Target**: <5% CPU idle, <50MB RAM
 
-#### 🎯 Quality Presets
+#### 🎯 Performance Mode
 - **LOW**: 20 FPS - Battery saver mode
 - **MEDIUM**: 30 FPS - Balanced (default)
 - **HIGH**: 60 FPS - Smooth animations
@@ -210,16 +235,20 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
 
 **Direct Keys** (instant actions):
 - `1-9`: Switch to patterns 1-9
-- `n` / `p`: Next/Previous pattern
+- `n` / `b`: Next/Previous pattern
+- `.` / `,`: Next/Previous preset
+- `p`: Pattern mode (interactive selection)
 - `SPACE`: Pause/Resume
 - `t`: Cycle themes
+- `r`: Random pattern + preset + theme
+- `s`: Save configuration
 - `+` / `-`: Adjust FPS
-- `[` / `]`: Cycle quality presets
+- `[` / `]`: Cycle performance mode (LOW/MEDIUM/HIGH)
 - `d`: Toggle debug overlay
 - `?`: Toggle help overlay
 - `q` / `ESC` / `Ctrl+C`: Quit
 
-**Command Buffer** (prefix with `0`):
+**Command Buffer** (prefix with `c`):
 - See command system features above
 
 ### 🛠️ Technical Details

@@ -50,18 +50,18 @@ Orchestrates the animation loop and system control:
 - Pattern-specific metrics collection
 
 **CommandBuffer** (Multi-Key Input System)
-- Accumulates keystrokes with `0` prefix
+- Accumulates keystrokes with `c` prefix
 - 10-second timeout before clearing buffer
 - Command history for up/down arrow navigation
 
 **CommandParser**
 - Parses accumulated commands: presets, patterns, themes, favorites
 - Pattern matching for:
-  - Presets: `01`, `02-99`
-  - Patterns: `0p3`, `0pwaves`, `0p3.5`
-  - Themes: `0t2`, `0tfire`, `0tr` (random)
-  - Favorites: `0F#` (save), `0f#` (load), `0fl` (list)
-  - Special: `0*`, `0**`, `0?`, `0??`, `0!`, `0!!`, `0s`
+  - Presets: `c01`, `c02-c99`
+  - Patterns: `cp3`, `cpwaves`, `cp3.5`
+  - Themes: `ct2`, `ctfire`, `ctr` (random)
+  - Favorites: `cF#` (save), `cf#` (load), `cfl` (list)
+  - Special: `c*`, `c**`, `c?`, `c??`, `c!`, `c!!`, `cs`
 
 **CommandExecutor**
 - Executes parsed commands
@@ -257,7 +257,7 @@ terminal.on('mouse', (event) => {
 
 ### Command Buffer Pattern
 
-**Problem**: Need to accept multi-key sequences (e.g., `0p3t2`) as single commands.
+**Problem**: Need to accept multi-key sequences (e.g., `cp3t2`) as single commands.
 
 **Solution**:
 ```typescript
@@ -266,10 +266,10 @@ class CommandBuffer {
   timeout: NodeJS.Timeout | null = null;
 
   addChar(char: string) {
-    if (char === '0' && this.buffer === '') {
-      this.buffer = '0';
+    if (char === 'c' && this.buffer === '') {
+      this.buffer = 'c';
       this.resetTimeout();
-    } else if (this.buffer.startsWith('0')) {
+    } else if (this.buffer.startsWith('c')) {
       this.buffer += char;
       this.resetTimeout();
     }
@@ -506,13 +506,13 @@ class CommandExecutor {
   private shuffleIntervalMs: number = 10000;
 
   executeShuffleCommand(cmd: string) {
-    if (cmd === '0!') {
+    if (cmd === 'c!') {
       // Toggle preset shuffle
       this.toggleShuffle('presets', 10000);
-    } else if (cmd === '0!!') {
+    } else if (cmd === 'c!!') {
       // Toggle all shuffle
       this.toggleShuffle('all', 10000);
-    } else if (cmd.startsWith('0!')) {
+    } else if (cmd.startsWith('c!')) {
       // Custom interval
       const intervalSeconds = parseInt(cmd.substring(2));
       this.toggleShuffle('presets', intervalSeconds * 1000);
@@ -542,13 +542,13 @@ class CommandExecutor {
 
 ### Two Shuffle Modes
 
-1. **Preset Shuffle** (`0!`)
+1. **Preset Shuffle** (`c!`)
    - Cycles only through presets of current pattern
    - Maintains pattern consistency
    - Default interval: 10 seconds
-   - Custom interval: `0!5` (5 seconds)
+   - Custom interval: `c!5` (5 seconds)
 
-2. **Full Shuffle** (`0!!`)
+2. **Full Shuffle** (`c!!`)
    - Randomizes pattern, preset, AND theme
    - Complete visual variety
    - Default interval: 10 seconds

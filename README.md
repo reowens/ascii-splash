@@ -85,11 +85,11 @@ splash
 splash --pattern starfield
 splash -p matrix
 
-# Set quality preset
+# Set performance mode
 splash --quality high
 splash -q low
 
-# Custom FPS (overrides quality preset)
+# Custom FPS (overrides performance mode)
 splash --fps 45
 splash -f 15
 
@@ -117,8 +117,8 @@ splash -h
 | Option | Short | Description | Values |
 |--------|-------|-------------|--------|
 | `--pattern` | `-p` | Starting pattern | waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, life, maze, dna, lavalamp, smoke, snow |
-| `--quality` | `-q` | Quality preset | low, medium (default), high |
-| `--fps` | `-f` | Custom FPS (10-60) | Number (overrides quality preset FPS) |
+| `--quality` | `-q` | Performance mode | low, medium (default), high |
+| `--fps` | `-f` | Custom FPS (10-60) | Number (overrides performance mode FPS) |
 | `--theme` | `-t` | Color theme | ocean (default), matrix, starlight, fire, monochrome |
 | `--no-mouse` | | Disable mouse | Flag (no value) |
 | `--version` | `-V` | Show version | |
@@ -211,18 +211,21 @@ Each pattern has its own configuration options. See [examples/.splashrc.example]
 ## 🎮 Controls
 
 ### ⌨️ Keyboard
-- **0**: Command mode (advanced multi-key commands - presets, favorites, search, shuffle)
+- **c**: Command mode (advanced multi-key commands - presets, favorites, search, shuffle)
 - **1-9**: Switch to pattern 1-9
-- **n**: Next pattern (cycles through all 17 patterns)
+- **n/b**: Next/Previous pattern (cycles through all 17 patterns)
+- **./,**: Next/Previous preset (cycles through 6 presets per pattern)
 - **p**: Pattern mode - Type pattern number, name, or pattern.preset combo:
   - `p` → `12` → Enter: Switch to pattern 12
   - `p` → `3.5` → Enter: Switch to pattern 3, preset 5
   - `p` → `waves` → Enter: Switch to waves pattern
   - `p` → Enter (empty): Previous pattern
   - 5-second timeout or ESC to cancel
+- **r**: Random (pattern + preset + theme)
+- **s**: Save current config to file
 - **Space**: Pause/Resume
 - **+/-**: Adjust FPS (10-60)
-- **[/]**: Cycle quality presets (LOW/MEDIUM/HIGH)
+- **[/]**: Cycle performance modes (LOW/MEDIUM/HIGH)
 - **t**: Cycle color themes
 - **?**: Toggle help overlay
 - **d**: Toggle debug info (performance metrics)
@@ -430,9 +433,9 @@ Falling particles with seasonal effects
 - **Metrics**: Active particles, accumulated, average velocity
 - **6 Presets**: Light Flurries, Blizzard, Cherry Blossoms, Autumn Leaves, Confetti, Ash
 
-## ⚡ Quality Presets
+## ⚡ Performance Modes
 
-Press `[` or `]` to cycle through performance presets:
+Press `[` or `]` to cycle through performance modes:
 
 ### LOW (15 FPS)
 Optimized for low-end systems or minimal CPU usage
@@ -457,7 +460,7 @@ Maximum quality for high-end systems
 Press `d` to toggle the debug overlay showing:
 - Current pattern and theme
 - Real-time FPS (color-coded: green/yellow/red)
-- Current quality preset
+- Current performance mode
 - Frame timing breakdown
 - Pattern render time
 - Changed cells ratio (buffer efficiency)
@@ -468,9 +471,9 @@ Press `d` to toggle the debug overlay showing:
 ## 🚄 Performance Characteristics
 
 **Measured on Apple M1:**
-- MEDIUM preset: 30 FPS stable, 2-4% CPU
-- HIGH preset: 60 FPS stable, 4-6% CPU
-- LOW preset: 15 FPS stable, 1-2% CPU
+- MEDIUM mode: 30 FPS stable, 2-4% CPU
+- HIGH mode: 60 FPS stable, 4-6% CPU
+- LOW mode: 15 FPS stable, 1-2% CPU
 - Memory: ~40-50MB RSS
 
 **Optimizations:**
@@ -500,29 +503,29 @@ For **detailed technical architecture**, see [docs/ARCHITECTURE.md](docs/ARCHITE
 
 ## 🎯 Command System
 
-Press **0** to enter command mode for advanced features:
+Press **c** to enter command mode for advanced features:
 
 ### Quick Commands
-- `01`, `02`, etc. - Apply preset to current pattern
-- `0p3` - Switch to pattern 3
-- `0t2` - Switch to theme 2
-- `0p3+t2` - Switch pattern AND theme
+- `c1`, `c2`, etc. - Apply preset to current pattern
+- `cp3` - Switch to pattern 3
+- `ct2` - Switch to theme 2
+- `cp3+t2` - Switch pattern AND theme
 
 ### Favorites
-- `0F1` - Save current state to favorite slot 1
-- `0f1` - Load favorite slot 1
-- `0fl` - List all saved favorites
+- `cF1` - Save current state to favorite slot 1
+- `cf1` - Load favorite slot 1
+- `cfl` - List all saved favorites
 
 ### Special Commands
-- `0*` - Random preset (current pattern)
-- `0**` - Random pattern + preset + theme
-- `0?` - List presets for current pattern
-- `0??` - Show ALL presets catalog
-- `0!` - Toggle shuffle mode (10s intervals)
-- `0!5` - Shuffle with 5s intervals
-- `0!!` - Shuffle ALL (pattern+preset+theme)
-- `0/term` - Search patterns/themes
-- `0s` - Save current config to file
+- `c*` - Random preset (current pattern)
+- `c**` - Random pattern + preset + theme
+- `c?` - List presets for current pattern
+- `c??` - Show ALL presets catalog
+- `c!` - Toggle shuffle mode (10s intervals)
+- `c!5` - Shuffle with 5s intervals
+- `c!!` - Shuffle ALL (pattern+preset+theme)
+- `c/term` - Search patterns/themes
+- `cs` - Save current config to file
 
 For the complete command reference, see the section above.
 

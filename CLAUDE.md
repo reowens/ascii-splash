@@ -212,16 +212,22 @@ interface Theme {
 
 ## Command System (Brief Overview)
 
-**Multi-key command system** with `0` prefix:
-- `01-99`: Apply presets
-- `0p#`: Switch pattern
-- `0t#`: Switch theme
-- `0F#`: Save favorite
-- `0f#`: Load favorite
-- `0*`: Random preset
-- `0**`: Random everything
-- `0!`: Toggle shuffle
-- `0!!`: Toggle shuffle all
+**Multi-key command system** with `c` prefix:
+- `c01-c99`: Apply presets
+- `cp#`: Switch pattern
+- `ct#`: Switch theme
+- `cF#`: Save favorite
+- `cf#`: Load favorite
+- `c*`: Random preset
+- `c**`: Random everything
+- `c!`: Toggle shuffle
+- `c!!`: Toggle shuffle all
+
+**Quick shortcuts** (no prefix needed):
+- `r`: Random pattern + preset + theme (same as `c**`)
+- `s`: Save configuration (same as `cs`)
+- `.` / `,`: Cycle presets
+- `b`: Previous pattern
 
 **For full command reference**, see [README.md#controls](README.md#controls).
 
