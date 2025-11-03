@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The first public release of ascii-splash - a terminal ASCII animation app with visual flow for your IDE workspace.
 
+**Published to npm**: https://www.npmjs.com/package/ascii-splash  
+**GitHub Release**: https://github.com/reowens/ascii-splash/releases/tag/v0.1.0  
+**Installation**: `npm install -g ascii-splash` or `npx ascii-splash`
+
 ### Changed (Breaking Changes - Keyboard Controls)
 - **BREAKING**: Command mode key changed from `0` to `c` for better mnemonics
   - Old: `0` prefix for commands (e.g., `01`, `0p3`, `0t2`)

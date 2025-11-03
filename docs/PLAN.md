@@ -464,8 +464,8 @@ splash/
 **Future Goal**: 22 patterns × 6 presets each = **132 total presets**
 **Current Status (v0.1.0)**: 17 patterns × 6 presets = **102 total presets** ✅
 
-#### 6.3 Stage 3: v0.1.0 Release ✅ COMPLETE
-**Goal**: Prepare initial release package
+#### 6.3 Stage 3: v0.1.0 Publication ✅ COMPLETE
+**Goal**: Publish initial release to npm and GitHub
 
 - [x] Set version to 0.1.0 (appropriate for initial release)
 - [x] Update package.json with correct metadata
@@ -475,14 +475,18 @@ splash/
 - [x] Final coverage: 82.34% (exceeds 80% target)
 - [x] Documentation updates for release
 - [x] Package ready for `npm publish`
+- [x] Run `npm publish` to publish v0.1.0
+- [x] Verify package on npmjs.com
+- [x] Test global installation: `npm install -g ascii-splash`
+- [x] Test npx execution: `npx ascii-splash`
+- [x] Create GitHub release with tag v0.1.0
+- [x] Push to GitHub with `git push origin main --tags`
+- [x] Update GitHub repository description and topics
+- [x] Attach release tarball to GitHub release
 
-**Next Steps for Publication:**
-- [ ] Run `npm publish` to publish v0.1.0
-- [ ] Verify package on npmjs.com
-- [ ] Test global installation: `npm install -g ascii-splash`
-- [ ] Test npx execution: `npx ascii-splash`
-- [ ] Create GitHub release with tag v0.1.0
-- [ ] Push to GitHub with `git push origin main --tags`
+**Publication Complete:** November 2, 2025
+- npm: https://www.npmjs.com/package/ascii-splash
+- GitHub: https://github.com/reowens/ascii-splash/releases/tag/v0.1.0
 
 #### 6.4 Stage 4: Future Enhancements (Post-v0.1.0) 🔮
 **Goal**: Improve discoverability and expand features

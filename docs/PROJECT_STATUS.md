@@ -6,9 +6,13 @@
 
 ascii-splash is a terminal ASCII animation app that displays animated patterns in a terminal window. It's designed as a lightweight ambient visual effect for IDE workspaces, targeting <5% CPU and <50MB RAM usage.
 
-## Current Status: v0.1.0 Released! 🎉
+## Current Status: v0.1.0 Published! 🎉
 
-The project is **feature-complete** and **published to npm**. Ready for production use!
+The project is **feature-complete** and **live on npm**. Successfully published and ready for production use!
+
+- **npm Package**: https://www.npmjs.com/package/ascii-splash
+- **GitHub Release**: https://github.com/reowens/ascii-splash/releases/tag/v0.1.0
+- **Installation**: `npm install -g ascii-splash` or `npx ascii-splash`
 
 ### Project Statistics
 - **17 Patterns** with **102 Presets** (6 per pattern)
@@ -27,7 +31,7 @@ The project is **feature-complete** and **published to npm**. Ready for producti
 | Phase 3 | ✅ COMPLETE | Configuration & Extensibility (CLI args, config files, themes) |
 | Phase 4 | ✅ COMPLETE | Command System & Presets (96 presets, favorites, shuffle) |
 | Phase 5 | ✅ COMPLETE | New Patterns (Tunnel, Lightning, Fireworks) |
-| Phase 6 | ✅ COMPLETE | Polish & Distribution (npm package ready for publication) |
+| Phase 6 | ✅ COMPLETE | Polish & Distribution (npm package published to registry) |
 
 ## Features Summary
 
@@ -124,7 +128,7 @@ Highlights:
 - [x] Buffer fill verification tests (all patterns tested)
 - [x] Documentation updates for release readiness
 
-**Package Published:** ✅ v0.1.0 ready for `npm publish`
+**Package Published:** ✅ v0.1.0 live on npm registry (November 2, 2025)
 
 **Future Enhancements (Post-v0.1.0):**
 - [ ] Demo GIFs/videos for README (optional)
@@ -133,7 +137,7 @@ Highlights:
 - [ ] Performance profiling and optimization
 - [ ] Community feedback integration
 
-See [AUDIT.md](../AUDIT.md) for detailed resolution status and [docs/PLAN.md](PLAN.md) for roadmap.
+See [docs/PLAN.md](PLAN.md) for roadmap.
 
 ## Documentation
 
@@ -159,8 +163,9 @@ This project is feature-complete for 1.0. Future contributions could include:
 
 ---
 
-**Project Status:** v0.1.0 - Release Ready ✅  
+**Project Status:** v0.1.0 - Published and Live ✅  
 **Test Coverage:** 82.34% (817 tests) ✅  
 **All Phases 1-6:** Complete ✅  
 **Package Version:** 0.1.0 (initial release)  
-**Ready for:** `npm publish`
+**npm Registry:** https://www.npmjs.com/package/ascii-splash  
+**GitHub Release:** https://github.com/reowens/ascii-splash/releases/tag/v0.1.0

@@ -29,14 +29,12 @@ Transform your terminal into a mesmerizing visual experience with **17 interacti
 ## 🚀 Quick Start
 
 ```bash
-# Install globally
-npm install -g ascii-splash
-
-# Run
-splash
-
-# Or use npx (no install required)
+# Run instantly with npx (no install required)
 npx ascii-splash
+
+# Or install globally
+npm install -g ascii-splash
+splash
 ```
 
 **Local Development:**
