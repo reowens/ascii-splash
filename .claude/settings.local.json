@@ -4,7 +4,8 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "mcp__perplexity-mcp__reason"
     ],
     "deny": [],
     "ask": []

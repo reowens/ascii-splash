@@ -53,6 +53,7 @@ export class TerminalRenderer {
   clearScreen(): void {
     term.clear();
     this.buffer.clear();
+    this.buffer.clearAllOverlays();
     this.buffer.swap();
   }
 
@@ -88,5 +89,19 @@ export class TerminalRenderer {
     term.hideCursor(false);
     term.grabInput(false);
     // Let caller handle process exit, not renderer
+  }
+
+  // Overlay management (delegates to Buffer)
+
+  setOverlayText(x: number, y: number, text: string, color?: { r: number; g: number; b: number }): void {
+    this.buffer.setOverlayText(x, y, text, color);
+  }
+
+  clearOverlayRow(y: number): void {
+    this.buffer.clearOverlayRow(y);
+  }
+
+  clearAllOverlays(): void {
+    this.buffer.clearAllOverlays();
   }
 }

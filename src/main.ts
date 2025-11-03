@@ -595,20 +595,16 @@ function main() {
   }
 
   function renderMessageOverlay() {
-    if (!overlayMessage) return;
-    
-    // Write message directly to buffer instead of terminal
-    // This ensures it renders AFTER pattern and gets picked up by dirty tracking
-    const buffer = renderer.getBuffer();
-    const theme = currentTheme;
-    const color = theme.getColor(0.8); // Bright color for visibility
-    
-    // Write each character of the message to the buffer
-    for (let i = 0; i < overlayMessage.length && i < renderer.getSize().width; i++) {
-      buffer.setCell(i, 0, {
-        char: overlayMessage[i],
-        color: color
-      });
+    if (overlayMessage) {
+      // Use the new overlay API to render persistent overlays
+      const theme = currentTheme;
+      const color = theme.getColor(0.8); // Bright color for visibility
+
+      // Set overlay text using the new composite-on-flush system
+      renderer.setOverlayText(0, 0, overlayMessage, color);
+    } else {
+      // Clear overlay when message is null
+      renderer.clearOverlayRow(0);
     }
   }
 
