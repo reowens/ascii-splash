@@ -65,18 +65,11 @@ splash/
 
 ## Core Features
 
-> **For detailed technical architecture, system design patterns, and implementation details**, see [ARCHITECTURE.md](ARCHITECTURE.md).
+**For detailed feature list and usage**, see [README.md](../README.md) or run `splash --help`.
 
-**Feature Summary**:
-- 13 interactive patterns with 78 presets (6 per pattern)
-- Dual-layer input system: direct keys + command buffer with `0` prefix
-- 5 color themes (Ocean, Matrix, Starlight, Fire, Monochrome)
-- Full mouse support (move/click interactions)
-- Preset system with favorites storage
-- Configuration file at `~/.config/ascii-splash/.splashrc.json`
-- Advanced command system (pattern jumping, shuffling, searching)
+**For technical architecture and implementation details**, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
-**For detailed controls and usage**, see [README.md](../README.md) or run `splash --help`.
+**For current project statistics**, see [PROJECT_STATUS.md](PROJECT_STATUS.md).
 
 ## Development Phases
 
@@ -286,37 +279,11 @@ splash/
 - [x] Documentation updates (README.md, CLAUDE.md, examples/.splashrc.example)
 - [x] Comprehensive test suite: 817 tests with 82.34% coverage
 
-**Result**: 13 total patterns with 78 presets (6 per pattern)!
+**Result**: 17 total patterns with 102 presets (6 per pattern)!
 
-### Testing Achievements 🧪
+**For detailed test coverage and statistics**, see [PROJECT_STATUS.md](PROJECT_STATUS.md#-testing-coverage) and [TESTING_PLAN.md](TESTING_PLAN.md).
 
-**Test Coverage**: 82.34% (exceeded 80% target)
-- **Test Suites**: 10 suites, all passing ✅
-- **Total Tests**: 817 tests, all passing ✅
-- **Execution Time**: ~35 seconds
-
-**Component Coverage**:
-- CommandParser: 100%
-- Buffer: 100%
-- ConfigLoader: 100%
-- PerformanceMonitor: 100%
-- Theme: 100%
-- CommandBuffer: 100%
-- AnimationEngine: 98.14%
-- CommandExecutor: 96.63%
-- TerminalRenderer: 88.49%
-
-**Pattern Coverage**: All 13 patterns tested
-- 173 pattern tests covering rendering, mouse events, presets, and state management
-- Coverage range: 53%-94% across patterns
-- Comprehensive preset testing (66 presets validated)
-
-**Documentation**:
-- Detailed testing plan in `docs/TESTING_PLAN.md`
-- Test utilities for color comparison and buffer validation
-- Coverage reports in `coverage/` directory
-
-### Phase 6: Polish & Distribution 📦 IN PROGRESS
+### Phase 6: Polish & Distribution 📦 ✅ COMPLETE
 
 #### 6.1 Stage 1: Essential Pre-Publish ✅ COMPLETE
 **Goal**: Prepare package for npm publication
@@ -461,8 +428,10 @@ splash/
 - [ ] Build and verify all patterns work
 - [ ] Test all 22 patterns with all 5 themes (110 combinations)
 
-**Future Goal**: 22 patterns × 6 presets each = **132 total presets**
+**Future Goal**: 22 patterns × 6 presets each = **132 total presets**  
 **Current Status (v0.1.0)**: 17 patterns × 6 presets = **102 total presets** ✅
+
+**For current project statistics and status**, see [PROJECT_STATUS.md](PROJECT_STATUS.md).
 
 #### 6.3 Stage 3: v0.1.0 Publication ✅ COMPLETE
 **Goal**: Publish initial release to npm and GitHub
@@ -526,26 +495,12 @@ splash/
 - [ ] Add to awesome-cli-apps lists
 - [ ] Create demo video for YouTube
 
-## Usage Examples
+## Quick Reference
 
-**For detailed usage examples and command reference**, see [README.md](../README.md#-controls) and [README.md](../README.md#-command-system).
-
-## Package Details
-
-- **Package name**: `ascii-splash`
-- **Binary name**: `splash`
-- **Entry point**: `./dist/main.js`
-- **Target**: ES2020, CommonJS
-- **Min Node version**: 16.x
-
-## Performance Strategy
-
-**For detailed performance optimization strategies and metrics**, see [ARCHITECTURE.md](ARCHITECTURE.md#performance-strategy).
-
-**Target Metrics**:
-- CPU usage: <5% idle, <15% active
-- Memory: <50MB
-- FPS: Adjustable 10-60 (default 30)
+**Usage & Commands**: [README.md](../README.md#-controls)  
+**Architecture & Performance**: [ARCHITECTURE.md](ARCHITECTURE.md)  
+**Current Status**: [PROJECT_STATUS.md](PROJECT_STATUS.md)  
+**Testing**: [TESTING_PLAN.md](TESTING_PLAN.md)
 
 ## Notes
 
