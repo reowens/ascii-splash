@@ -5,6 +5,9 @@ interface WaveConfig {
   amplitude: number;
   frequency: number;
   layers: number;
+  foamEnabled: boolean;
+  foamThreshold: number; // Wave height threshold (0-1) for foam generation
+  foamDensity: number; // 0-1: probability of foam appearing
 }
 
 interface WavePreset {
@@ -20,6 +23,7 @@ export class WavePattern implements Pattern {
   private theme: Theme;
   private ripples: Array<{ x: number; y: number; time: number; radius: number }> = [];
   private waveChars = ['~', '≈', '∼', '-', '.', ' '];
+  private foamChars = ['◦', '∘', '°', '·'];
 
   private currentTime: number = 0;
   // Tier 1 Presets (01-09): Essential/Popular
@@ -28,37 +32,49 @@ export class WavePattern implements Pattern {
       id: 1,
       name: 'Calm Seas',
       description: 'Gentle, slow-moving waves',
-      config: { speed: 0.5, amplitude: 3, frequency: 0.08, layers: 2 }
+      config: { speed: 0.5, amplitude: 3, frequency: 0.08, layers: 2, foamEnabled: false, foamThreshold: 0, foamDensity: 0 }
     },
     {
       id: 2,
       name: 'Ocean Storm',
       description: 'Turbulent, high-energy waves',
-      config: { speed: 2.0, amplitude: 8, frequency: 0.15, layers: 5 }
+      config: { speed: 2.0, amplitude: 8, frequency: 0.15, layers: 5, foamEnabled: false, foamThreshold: 0, foamDensity: 0 }
     },
     {
       id: 3,
       name: 'Ripple Tank',
       description: 'Physics lab interference patterns',
-      config: { speed: 0.8, amplitude: 4, frequency: 0.2, layers: 4 }
+      config: { speed: 0.8, amplitude: 4, frequency: 0.2, layers: 4, foamEnabled: false, foamThreshold: 0, foamDensity: 0 }
     },
     {
       id: 4,
       name: 'Glass Lake',
       description: 'Barely perceptible movement',
-      config: { speed: 0.3, amplitude: 2, frequency: 0.05, layers: 1 }
+      config: { speed: 0.3, amplitude: 2, frequency: 0.05, layers: 1, foamEnabled: false, foamThreshold: 0, foamDensity: 0 }
     },
     {
       id: 5,
       name: 'Tsunami',
       description: 'Massive, powerful waves',
-      config: { speed: 1.5, amplitude: 12, frequency: 0.06, layers: 3 }
+      config: { speed: 1.5, amplitude: 12, frequency: 0.06, layers: 3, foamEnabled: false, foamThreshold: 0, foamDensity: 0 }
     },
     {
       id: 6,
       name: 'Choppy Waters',
       description: 'Irregular, textured surface',
-      config: { speed: 1.2, amplitude: 6, frequency: 0.25, layers: 6 }
+      config: { speed: 1.2, amplitude: 6, frequency: 0.25, layers: 6, foamEnabled: false, foamThreshold: 0, foamDensity: 0 }
+    },
+    {
+      id: 7,
+      name: 'Stormy Seas',
+      description: 'High waves with crashing foam',
+      config: { speed: 1.8, amplitude: 10, frequency: 0.12, layers: 4, foamEnabled: true, foamThreshold: 0.7, foamDensity: 0.6 }
+    },
+    {
+      id: 8,
+      name: 'Gentle Surf',
+      description: 'Soft waves with light foam',
+      config: { speed: 0.8, amplitude: 5, frequency: 0.1, layers: 3, foamEnabled: true, foamThreshold: 0.8, foamDensity: 0.3 }
     }
   ];
 
@@ -69,6 +85,9 @@ export class WavePattern implements Pattern {
       amplitude: 5,
       frequency: 0.1,
       layers: 3,
+      foamEnabled: false,
+      foamThreshold: 0,
+      foamDensity: 0,
       ...config
     };
   }
@@ -164,6 +183,24 @@ export class WavePattern implements Pattern {
         } else if (intensity < 6) {
           char = this.waveChars[4];
           colorIntensity = 0.4 - (intensity - 4) / 2.0 * 0.2; // 0.4 → 0.2
+        }
+
+        // Add foam on wave crests if enabled
+        if (this.config.foamEnabled && intensity < 0.5) {
+          const normalizedWave = Math.abs(totalWave) / amplitude;
+          
+          // Only show foam on high wave crests
+          if (normalizedWave > this.config.foamThreshold) {
+            // Intermittent foam pattern based on position and time
+            const foamNoise = Math.sin(x * 0.5 + time * 0.003) * 0.5 + 0.5;
+            
+            if (foamNoise < this.config.foamDensity) {
+              // Select foam character based on noise
+              const foamIndex = Math.floor(foamNoise * this.foamChars.length / this.config.foamDensity);
+              char = this.foamChars[Math.min(foamIndex, this.foamChars.length - 1)];
+              colorIntensity = 0.9; // Slightly dimmer than wave crest for contrast
+            }
+          }
         }
         
         const color = this.theme.getColor(colorIntensity);
