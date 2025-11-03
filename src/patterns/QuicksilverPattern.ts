@@ -151,10 +151,13 @@ export class QuicksilverPattern implements Pattern {
         for (const ripple of this.ripples) {
           const dx = x - ripple.x;
           const dy = y - ripple.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
+          const distSquared = dx * dx + dy * dy;
           const age = time - ripple.time;
+          const radiusSquared = ripple.radius * ripple.radius;
           
-          if (dist < ripple.radius && age < 1500) {
+          // Early rejection using squared distance
+          if (distSquared < radiusSquared && age < 1500) {
+            const dist = Math.sqrt(distSquared);
             const rippleEffect = Math.sin(dist * 0.3 - age * 0.005) * (1 - dist / ripple.radius) * 2;
             flow += rippleEffect;
           }
@@ -164,9 +167,12 @@ export class QuicksilverPattern implements Pattern {
         for (const droplet of this.droplets) {
           const dx = x - droplet.x;
           const dy = y - droplet.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
+          const distSquared = dx * dx + dy * dy;
+          const radiusSquared = droplet.radius * droplet.radius;
           
-          if (dist < droplet.radius) {
+          // Early rejection using squared distance
+          if (distSquared < radiusSquared) {
+            const dist = Math.sqrt(distSquared);
             const dropletEffect = (1 - dist / droplet.radius) * 1.5;
             flow += dropletEffect;
           }

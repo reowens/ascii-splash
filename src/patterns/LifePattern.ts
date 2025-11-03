@@ -23,6 +23,7 @@ export class LifePattern implements Pattern {
   private theme: Theme;
   private grid: boolean[][] = []; // true = alive, false = dead
   private nextGrid: boolean[][] = [];
+  private neighborCounts: number[][] = []; // Cache neighbor counts for rendering
   private lastUpdateTime = 0;
   private generation = 0;
   private gridWidth = 0;
@@ -154,6 +155,7 @@ export class LifePattern implements Pattern {
     this.lastUpdateTime = 0;
     this.grid = [];
     this.nextGrid = [];
+    this.neighborCounts = [];
     this.population = 0;
   }
 
@@ -167,6 +169,9 @@ export class LifePattern implements Pattern {
     );
     this.nextGrid = Array(this.gridHeight).fill(null).map(() => 
       Array(this.gridWidth).fill(false)
+    );
+    this.neighborCounts = Array(this.gridHeight).fill(null).map(() => 
+      Array(this.gridWidth).fill(0)
     );
 
     // Apply initial pattern
@@ -356,6 +361,9 @@ export class LifePattern implements Pattern {
         const neighbors = this.countNeighbors(x, y);
         const isAlive = this.grid[y][x];
 
+        // Cache neighbor count for rendering
+        this.neighborCounts[y][x] = neighbors;
+
         if (isAlive) {
           // Cell survives if it has 2 or 3 neighbors
           this.nextGrid[y][x] = neighbors === 2 || neighbors === 3;
@@ -409,9 +417,10 @@ export class LifePattern implements Pattern {
           const char = isAlive ? this.config.aliveChar : this.config.deadChar;
           
           // Color based on cell age/neighbors for visual interest
+          // Use cached neighbor count instead of recalculating
           let intensity = 0.2;
           if (isAlive) {
-            const neighbors = this.countNeighbors(gx, gy);
+            const neighbors = this.neighborCounts[gy][gx];
             intensity = 0.5 + (neighbors / 8) * 0.5; // 0.5 to 1.0 based on neighbors
           }
 
