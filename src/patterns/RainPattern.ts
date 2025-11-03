@@ -11,6 +11,8 @@ interface RainConfig {
   density: number;
   speed: number;
   characters: string[];
+  windSpeed: number;      // Horizontal wind force (-1 to 1)
+  gustiness: number;      // Wind variation intensity (0 to 1)
 }
 
 interface RainPreset {
@@ -33,37 +35,55 @@ export class RainPattern implements Pattern {
       id: 1,
       name: 'Light Drizzle',
       description: 'Gentle, sparse rainfall',
-      config: { density: 0.1, speed: 0.6, characters: ['\'', ',', '.', '`'] }
+      config: { density: 0.1, speed: 0.6, characters: ['\'', ',', '.', '`'], windSpeed: 0, gustiness: 0 }
     },
     {
       id: 2,
       name: 'Steady Rain',
       description: 'Normal rainfall intensity',
-      config: { density: 0.2, speed: 1.0, characters: ['\'', ',', '.', '|', '!', '`', '·', '∙'] }
+      config: { density: 0.2, speed: 1.0, characters: ['\'', ',', '.', '|', '!', '`', '·', '∙'], windSpeed: 0, gustiness: 0 }
     },
     {
       id: 3,
       name: 'Thunderstorm',
       description: 'Heavy downpour with intense drops',
-      config: { density: 0.4, speed: 1.8, characters: ['|', '!', '‖', '║', '┃'] }
+      config: { density: 0.4, speed: 1.8, characters: ['|', '!', '‖', '║', '┃'], windSpeed: 0, gustiness: 0 }
     },
     {
       id: 4,
       name: 'Mist',
       description: 'Fine, slow-falling mist',
-      config: { density: 0.3, speed: 0.3, characters: ['.', '·', '∙', '˙', '˚'] }
+      config: { density: 0.3, speed: 0.3, characters: ['.', '·', '∙', '˙', '˚'], windSpeed: 0, gustiness: 0 }
     },
     {
       id: 5,
       name: 'Monsoon',
       description: 'Torrential rain with maximum density',
-      config: { density: 0.5, speed: 2.2, characters: ['║', '┃', '|', '!', '‖'] }
+      config: { density: 0.5, speed: 2.2, characters: ['║', '┃', '|', '!', '‖'], windSpeed: 0, gustiness: 0 }
     },
     {
       id: 6,
       name: 'Spring Shower',
       description: 'Varied drops, medium intensity',
-      config: { density: 0.25, speed: 1.2, characters: ['\'', ',', '.', '|', '!', '`', '·', '∙', '˙'] }
+      config: { density: 0.25, speed: 1.2, characters: ['\'', ',', '.', '|', '!', '`', '·', '∙', '˙'], windSpeed: 0, gustiness: 0 }
+    },
+    {
+      id: 7,
+      name: 'Breezy Day',
+      description: 'Light wind pushing rain gently sideways',
+      config: { density: 0.2, speed: 1.0, characters: ['\'', ',', '.', '|', '!', '`', '·'], windSpeed: 0.3, gustiness: 0.2 }
+    },
+    {
+      id: 8,
+      name: 'Windy Storm',
+      description: 'Strong gusts driving rain at an angle',
+      config: { density: 0.35, speed: 1.5, characters: ['/', '|', '!', '‖', '┃'], windSpeed: 0.6, gustiness: 0.5 }
+    },
+    {
+      id: 9,
+      name: 'Hurricane',
+      description: 'Violent wind with nearly horizontal rain',
+      config: { density: 0.4, speed: 2.0, characters: ['─', '/', '—', '|', '‖'], windSpeed: 0.9, gustiness: 0.8 }
     }
   ];
 
@@ -73,6 +93,8 @@ export class RainPattern implements Pattern {
       density: 0.2,
       speed: 1.0,
       characters: ['\'', ',', '.', '|', '!', '`', '·', '∙'],
+      windSpeed: 0,
+      gustiness: 0,
       ...config
     };
   }
@@ -125,6 +147,18 @@ export class RainPattern implements Pattern {
           if (drop.x < 0) drop.x = 0;
           if (drop.x >= width) drop.x = width - 1;
         }
+      }
+
+      // Apply wind effect with gustiness
+      const gustOffset = Math.sin(time * 0.001 + drop.y * 0.1) * this.config.gustiness;
+      const totalWind = (this.config.windSpeed + gustOffset) * 0.5;
+      drop.x += totalWind;
+      
+      // Wrap horizontally when drops move off screen
+      if (drop.x < 0) {
+        drop.x = width - 1;
+      } else if (drop.x >= width) {
+        drop.x = 0;
       }
 
       // Move drop down

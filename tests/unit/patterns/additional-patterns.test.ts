@@ -198,15 +198,15 @@ describe('Additional Pattern Tests', () => {
     });
 
     describe('getPresets()', () => {
-      it('returns array of 6 presets', () => {
+      it('returns array of 9 presets', () => {
         const presets = RainPattern.getPresets();
-        expect(presets).toHaveLength(6);
+        expect(presets).toHaveLength(9);
       });
 
-      it('preset IDs are sequential 1-6', () => {
+      it('preset IDs are sequential 1-9', () => {
         const presets = RainPattern.getPresets();
         const ids = presets.map(p => p.id).sort();
-        expect(ids).toEqual([1, 2, 3, 4, 5, 6]);
+        expect(ids).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
       });
 
       it('each preset has required fields', () => {
@@ -259,7 +259,7 @@ describe('Additional Pattern Tests', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
         
-        for (let id = 1; id <= 6; id++) {
+        for (let id = 1; id <= 9; id++) {
           expect(pattern.applyPreset(id)).toBe(true);
           expect(() => {
             pattern.render(buffer, 1000 * id, size);
@@ -283,6 +283,24 @@ describe('Additional Pattern Tests', () => {
       it('Mist has slow speed', () => {
         const preset = RainPattern.getPreset(4);
         expect(preset?.config.speed).toBeLessThan(0.5);
+      });
+
+      it('Breezy Day has light wind', () => {
+        const preset = RainPattern.getPreset(7);
+        expect(preset?.config.windSpeed).toBe(0.3);
+        expect(preset?.config.gustiness).toBe(0.2);
+      });
+
+      it('Windy Storm has strong wind', () => {
+        const preset = RainPattern.getPreset(8);
+        expect(preset?.config.windSpeed).toBe(0.6);
+        expect(preset?.config.gustiness).toBe(0.5);
+      });
+
+      it('Hurricane has near-horizontal rain', () => {
+        const preset = RainPattern.getPreset(9);
+        expect(preset?.config.windSpeed).toBeGreaterThanOrEqual(0.9);
+        expect(preset?.config.gustiness).toBeGreaterThanOrEqual(0.8);
       });
     });
 
