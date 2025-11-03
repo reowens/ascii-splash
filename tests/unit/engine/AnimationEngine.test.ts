@@ -52,7 +52,8 @@ describe('AnimationEngine', () => {
     mockRenderer = {
       getSize: jest.fn().mockReturnValue({ width: 80, height: 24 }),
       getBuffer: jest.fn().mockReturnValue(mockBuffer),
-      render: jest.fn().mockReturnValue(10) // 10 changed cells
+      render: jest.fn().mockReturnValue(10), // 10 changed cells
+      clearScreen: jest.fn() // Clear terminal screen
     } as any;
 
     // Create mock pattern
@@ -315,13 +316,13 @@ describe('AnimationEngine', () => {
       expect(mockPattern.resetCalled).toBe(true);
     });
 
-    it('setPattern() clears the buffer', () => {
+    it('setPattern() clears the screen', () => {
       const engine = new AnimationEngine(mockRenderer, mockPattern);
       const newPattern = new MockPattern();
 
       engine.setPattern(newPattern);
 
-      expect(mockBuffer.clear).toHaveBeenCalled();
+      expect(mockRenderer.clearScreen).toHaveBeenCalled();
     });
 
     it('setPattern() during animation renders new pattern', () => {

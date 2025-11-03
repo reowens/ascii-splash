@@ -50,6 +50,12 @@ export class TerminalRenderer {
     this.buffer.clear();
   }
 
+  clearScreen(): void {
+    term.clear();
+    this.buffer.clear();
+    this.buffer.swap();
+  }
+
   render(): number {
     const changes = this.buffer.getChanges();
     

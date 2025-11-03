@@ -334,6 +334,10 @@ function main() {
   let showingHelp = false;
   let debugMode = false;
   
+  // Overlay message state
+  let overlayMessage: string | null = null;
+  let overlayMessageTimeout: NodeJS.Timeout | null = null;
+  
   // Determine initial FPS from config
   const initialFps = ConfigLoader.getFpsFromConfig(config);
   
@@ -413,13 +417,18 @@ function main() {
 
   function showPatternName(name: string) {
     const displayName = patternDisplayNames[name] || name;
-    term.moveTo(1, 1);
-    term.eraseLine();
-    term.bold.cyan(`Pattern: ${displayName}`);
     
-    setTimeout(() => {
-      term.moveTo(1, 1);
-      term.eraseLine();
+    // Clear existing timeout
+    if (overlayMessageTimeout) {
+      clearTimeout(overlayMessageTimeout);
+    }
+    
+    // Set overlay message
+    overlayMessage = `Pattern: ${displayName}`;
+    
+    // Clear after 2 seconds
+    overlayMessageTimeout = setTimeout(() => {
+      overlayMessage = null;
     }, 2000);
   }
 
@@ -582,6 +591,24 @@ function main() {
       
       term.defaultColor();
       term.bgDefaultColor();
+    }
+  }
+
+  function renderMessageOverlay() {
+    if (!overlayMessage) return;
+    
+    // Write message directly to buffer instead of terminal
+    // This ensures it renders AFTER pattern and gets picked up by dirty tracking
+    const buffer = renderer.getBuffer();
+    const theme = currentTheme;
+    const color = theme.getColor(0.8); // Bright color for visibility
+    
+    // Write each character of the message to the buffer
+    for (let i = 0; i < overlayMessage.length && i < renderer.getSize().width; i++) {
+      buffer.setCell(i, 0, {
+        char: overlayMessage[i],
+        color: color
+      });
     }
   }
 
@@ -933,13 +960,17 @@ function main() {
   });
 
   function showMessage(msg: string) {
-    term.moveTo(1, 1);
-    term.eraseLine();
-    term.bold.cyan(msg);
+    // Clear existing timeout
+    if (overlayMessageTimeout) {
+      clearTimeout(overlayMessageTimeout);
+    }
     
-    setTimeout(() => {
-      term.moveTo(1, 1);
-      term.eraseLine();
+    // Set overlay message
+    overlayMessage = msg;
+    
+    // Clear after 1.5 seconds
+    overlayMessageTimeout = setTimeout(() => {
+      overlayMessage = null;
     }, 1500);
   }
 
@@ -952,26 +983,20 @@ function main() {
   // Start animation
   engine.start();
   
-  // Set up overlay rendering after each frame
+  // Set up buffer-based overlays (render before terminal write to prevent garbled text)
+  engine.setBeforeTerminalRenderCallback(() => {
+    renderMessageOverlay();
+  });
+  
+  // Set up terminal-based overlays (render after terminal write)
   engine.setAfterRenderCallback(() => {
     renderDebugOverlay();
     renderCommandOverlay();
     renderPatternOverlay();
   });
   
-  // Display welcome message briefly
-  term.moveTo(1, 1);
-  term.bold.cyan('ascii-splash');
-  term.moveTo(1, 2);
-  term.dim('Press ? for help | q to quit');
-  
-  // Clear message after 3 seconds
-  setTimeout(() => {
-    term.moveTo(1, 1);
-    term.eraseLine();
-    term.moveTo(1, 2);
-    term.eraseLine();
-  }, 3000);
+  // Display welcome message briefly using the overlay system
+  showMessage('ascii-splash - Press ? for help | q to quit');
   
   return cleanup;
 }

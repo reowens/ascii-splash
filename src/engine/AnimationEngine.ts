@@ -13,6 +13,7 @@ export class AnimationEngine {
   private animationTimer: NodeJS.Timeout | null = null;
   private perfMonitor: PerformanceMonitor;
   private afterRenderCallback?: () => void;
+  private beforeTerminalRenderCallback?: () => void;
 
   constructor(renderer: TerminalRenderer, pattern: Pattern, fps: number = 30) {
     this.renderer = renderer;
@@ -75,25 +76,35 @@ export class AnimationEngine {
     const patternStart = performance.now();
     this.pattern.render(buffer.getBuffer(), time, size);
     this.perfMonitor.recordPatternRenderTime(performance.now() - patternStart);
+    
+    // Call before-terminal-render callback (for overlays that need to write to buffer)
+    if (this.beforeTerminalRenderCallback) {
+      this.beforeTerminalRenderCallback();
+    }
   }
 
   private render(): void {
     const changedCells = this.renderer.render();
     this.perfMonitor.recordChangedCells(changedCells);
     
-    // Call after-render callback (for debug overlay, etc)
+    // Call after-render callback (for overlays that write directly to terminal)
     if (this.afterRenderCallback) {
       this.afterRenderCallback();
     }
   }
 
   setPattern(pattern: Pattern): void {
+    // Reset OLD pattern to clean up its state
     this.pattern.reset();
+    
+    // Switch to NEW pattern
     this.pattern = pattern;
-    // Clear the screen when switching patterns
-    const buffer = this.renderer.getBuffer();
-    buffer.clear();
-    buffer.swap(); // CRITICAL: Sync previous buffer with cleared state
+    
+    // Reset NEW pattern to ensure clean starting state
+    this.pattern.reset();
+    
+    // CRITICAL: Physically clear the terminal screen to remove old pattern
+    this.renderer.clearScreen();
   }
 
   getPattern(): Pattern {
@@ -116,5 +127,9 @@ export class AnimationEngine {
 
   setAfterRenderCallback(callback: () => void): void {
     this.afterRenderCallback = callback;
+  }
+
+  setBeforeTerminalRenderCallback(callback: () => void): void {
+    this.beforeTerminalRenderCallback = callback;
   }
 }
