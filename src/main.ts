@@ -194,11 +194,14 @@ function main() {
         spawnRate: cfg.patterns?.particles?.spawnRate
       }),
       new SpiralPattern(theme, {
-        spiralCount: cfg.patterns?.spiral?.spiralCount,
+        armCount: cfg.patterns?.spiral?.armCount,
+        particleCount: cfg.patterns?.spiral?.particleCount,
+        spiralTightness: cfg.patterns?.spiral?.spiralTightness,
         rotationSpeed: cfg.patterns?.spiral?.rotationSpeed,
-        armLength: cfg.patterns?.spiral?.armLength,
-        density: cfg.patterns?.spiral?.density,
-        expandSpeed: cfg.patterns?.spiral?.expandSpeed
+        particleSpeed: cfg.patterns?.spiral?.particleSpeed,
+        trailLength: cfg.patterns?.spiral?.trailLength,
+        direction: cfg.patterns?.spiral?.direction,
+        pulseEffect: cfg.patterns?.spiral?.pulseEffect
       }),
       new PlasmaPattern(theme, {
         frequency: cfg.patterns?.plasma?.frequency,
@@ -208,8 +211,12 @@ function main() {
       new TunnelPattern(theme, {
         shape: cfg.patterns?.tunnel?.shape,
         ringCount: cfg.patterns?.tunnel?.ringCount,
-        ringSpacing: cfg.patterns?.tunnel?.ringSpacing,
         speed: cfg.patterns?.tunnel?.speed,
+        particleCount: cfg.patterns?.tunnel?.particleCount,
+        speedLineCount: cfg.patterns?.tunnel?.speedLineCount,
+        turbulence: cfg.patterns?.tunnel?.turbulence,
+        glowIntensity: cfg.patterns?.tunnel?.glowIntensity,
+        chromatic: cfg.patterns?.tunnel?.chromatic,
         rotationSpeed: cfg.patterns?.tunnel?.rotationSpeed,
         radius: cfg.patterns?.tunnel?.radius
       }),
@@ -751,9 +758,18 @@ function main() {
         commandBuffer.moveCursorRight();
         renderCommandOverlay();
       } else if (data.isCharacter) {
-        // Regular character input
-        commandBuffer.addChar(String.fromCharCode(data.codepoint));
-        renderCommandOverlay();
+        // Regular character input - but allow single-digit keys to pass through
+        const char = String.fromCharCode(data.codepoint);
+        if (/^[1-9]$/.test(char)) {
+          // Single digit - cancel command mode and let normal handling proceed
+          commandBuffer.cancel();
+          renderCommandOverlay();
+          // Don't return - let normal key handling process the digit
+        } else {
+          commandBuffer.addChar(char);
+          renderCommandOverlay();
+          return; // Stay in command mode
+        }
       }
       
       return; // Don't process other keys in command mode
@@ -773,18 +789,28 @@ function main() {
         // Accept numbers, letters, and dots
         const char = String.fromCharCode(data.codepoint);
         if (/[0-9a-zA-Z.]/.test(char)) {
-          patternBuffer += char;
-          renderPatternOverlay();
-          
-          // Reset timeout on input
-          if (patternBufferTimeout) {
-            clearTimeout(patternBufferTimeout);
-          }
-          patternBufferTimeout = setTimeout(() => {
+          // Allow single-digit keys (1-9) to also work as direct pattern switching
+          if (/^[1-9]$/.test(char) && patternBuffer === '') {
+            // Single digit with empty buffer - cancel pattern mode and let normal handling proceed
             patternBufferActive = false;
             patternBuffer = '';
             renderPatternOverlay();
-          }, patternBufferTimeoutMs);
+            // Don't return - let normal key handling process the digit
+          } else {
+            patternBuffer += char;
+            renderPatternOverlay();
+            
+            // Reset timeout on input
+            if (patternBufferTimeout) {
+              clearTimeout(patternBufferTimeout);
+            }
+            patternBufferTimeout = setTimeout(() => {
+              patternBufferActive = false;
+              patternBuffer = '';
+              renderPatternOverlay();
+            }, patternBufferTimeoutMs);
+            return; // Stay in pattern mode
+          }
         }
       }
       

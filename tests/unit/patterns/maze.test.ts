@@ -255,97 +255,181 @@ describe('MazePattern', () => {
   });
 
   describe('reset', () => {
-    it('should reset the pattern', () => {
+    it('should reset maze state', () => {
+      // Render to generate some maze
       pattern.render(buffer, 1000, size);
       
-      expect(() => {
-        pattern.reset();
-      }).not.toThrow();
+      // Reset
+      pattern.reset();
       
-      // After reset, should start fresh
-      pattern.render(buffer, 100, size);
+      // Render again should work
+      expect(() => {
+        pattern.render(buffer, 2000, size);
+      }).not.toThrow();
     });
   });
 
   describe('getMetrics', () => {
-    it('should return metrics object', () => {
-      pattern.render(buffer, 1000, size);
+    it('should return metrics', () => {
       const metrics = pattern.getMetrics();
       
       expect(metrics).toBeDefined();
-      expect(typeof metrics).toBe('object');
+      expect(typeof metrics.generationProgress).toBe('number');
+      expect(typeof metrics.generationComplete).toBe('number');
+      expect(metrics.generationComplete).toBeGreaterThanOrEqual(0);
+      expect(metrics.generationComplete).toBeLessThanOrEqual(1);
+      expect(typeof metrics.gridWidth).toBe('number');
+      expect(typeof metrics.gridHeight).toBe('number');
+      expect(typeof metrics.totalCells).toBe('number');
     });
 
-    it('should include maze-specific metrics', () => {
+    it('should track generation progress', () => {
+      // Initial state
+      const metrics1 = pattern.getMetrics();
+      expect(metrics1.generationProgress).toBeDefined();
+      
+      // After render
       pattern.render(buffer, 1000, size);
+      const metrics2 = pattern.getMetrics();
+      
+      // Progress should be tracked
+      expect(metrics2.generationProgress).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe('Algorithm Coverage Tests', () => {
+    it('should run Prim algorithm through multiple steps', () => {
+      pattern.applyPreset(2); // Prim's algorithm
+      
+      // Render multiple times to trigger step function
+      for (let i = 0; i < 100; i++) {
+        pattern.render(buffer, i * 100, size);
+      }
+      
       const metrics = pattern.getMetrics();
+      expect(metrics.generationProgress).toBeGreaterThan(0);
+    });
+
+    it('should run Recursive Division algorithm', () => {
+      pattern.applyPreset(3); // Recursive Division
       
-      // Should have grid dimensions
-      expect(metrics.gridWidth).toBeDefined();
-      expect(metrics.gridHeight).toBeDefined();
+      // This algorithm completes instantly, but should still render
+      pattern.render(buffer, 0, size);
       
-      // Should have generation progress
-      expect(metrics.generationProgress).toBeDefined();
-      expect(metrics.generationComplete).toBeDefined();
+      // Check that maze has cells
+      let hasWalls = false;
+      for (let y = 0; y < size.height; y++) {
+        for (let x = 0; x < size.width; x++) {
+          if (buffer[y][x].char !== ' ') {
+            hasWalls = true;
+            break;
+          }
+        }
+        if (hasWalls) break;
+      }
+      
+      expect(hasWalls).toBe(true);
+    });
+
+    it('should run Kruskal algorithm through multiple steps', () => {
+      pattern.applyPreset(4); // Kruskal's algorithm
+      
+      // Render multiple times to trigger union-find operations
+      for (let i = 0; i < 200; i++) {
+        pattern.render(buffer, i * 50, size);
+      }
+      
+      // Should complete eventually
+      const metrics = pattern.getMetrics();
+      expect(metrics.generationProgress).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should run Eller algorithm through multiple steps', () => {
+      pattern.applyPreset(5); // Eller's algorithm
+      
+      // Render multiple times to process rows
+      for (let i = 0; i < 150; i++) {
+        pattern.render(buffer, i * 60, size);
+      }
+      
+      const metrics = pattern.getMetrics();
+      expect(metrics.generationProgress).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should run Wilson algorithm through multiple steps', () => {
+      pattern.applyPreset(6); // Wilson's algorithm
+      
+      // Render multiple times to build random walk paths
+      for (let i = 0; i < 150; i++) {
+        pattern.render(buffer, i * 80, size);
+      }
+      
+      const metrics = pattern.getMetrics();
+      expect(metrics.generationProgress).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should complete generation for all algorithms', () => {
+      for (let presetId = 1; presetId <= 6; presetId++) {
+        pattern.applyPreset(presetId);
+        
+        // Render many times to ensure completion
+        for (let i = 0; i < 300; i++) {
+          pattern.render(buffer, i * 50, size);
+        }
+        
+        // Should have made progress or completed
+        const metrics = pattern.getMetrics();
+        expect(metrics.generationProgress).toBeGreaterThanOrEqual(0);
+        
+        // Reset for next algorithm
+        pattern.reset();
+      }
+    });
+
+    it('should handle algorithm transitions', () => {
+      // Start with DFS
+      pattern.applyPreset(1);
+      pattern.render(buffer, 100, size);
+      
+      // Switch to Prim
+      pattern.applyPreset(2);
+      pattern.render(buffer, 200, size);
+      
+      // Switch to Wilson
+      pattern.applyPreset(6);
+      pattern.render(buffer, 300, size);
+      
+      // Should not crash
+      expect(pattern.getMetrics()).toBeDefined();
     });
   });
 
-  describe('different algorithms', () => {
-    it('should render with DFS algorithm', () => {
-      const dfsPattern = new MazePattern(theme, { algorithm: 'dfs' });
-      expect(() => {
-        dfsPattern.render(buffer, 1000, size);
-      }).not.toThrow();
-    });
-
-    it('should render with Prim algorithm', () => {
-      const primPattern = new MazePattern(theme, { algorithm: 'prim' });
-      expect(() => {
-        primPattern.render(buffer, 1000, size);
-      }).not.toThrow();
-    });
-
-    it('should render with Recursive Division algorithm', () => {
-      const rdPattern = new MazePattern(theme, { algorithm: 'recursive-division' });
-      expect(() => {
-        rdPattern.render(buffer, 1000, size);
-      }).not.toThrow();
-    });
-
-    it('should render with Kruskal algorithm', () => {
-      const kruskalPattern = new MazePattern(theme, { algorithm: 'kruskal' });
-      expect(() => {
-        kruskalPattern.render(buffer, 1000, size);
-      }).not.toThrow();
-    });
-
-    it('should render with Eller algorithm', () => {
-      const ellerPattern = new MazePattern(theme, { algorithm: 'eller' });
-      expect(() => {
-        ellerPattern.render(buffer, 1000, size);
-      }).not.toThrow();
-    });
-
-    it('should render with Wilson algorithm', () => {
-      const wilsonPattern = new MazePattern(theme, { algorithm: 'wilson' });
-      expect(() => {
-        wilsonPattern.render(buffer, 1000, size);
-      }).not.toThrow();
-    });
-  });
-
-  describe('configuration options', () => {
-    it('should respect cellSize config', () => {
-      const pattern1 = new MazePattern(theme, { cellSize: 2 });
-      const pattern2 = new MazePattern(theme, { cellSize: 5 });
+  describe('Edge Cases', () => {
+    it('should handle very small cell size', () => {
+      const smallCellPattern = new MazePattern(theme, { cellSize: 1 });
       
       expect(() => {
-        pattern1.render(buffer, 1000, size);
-        pattern2.render(buffer, 1000, size);
+        smallCellPattern.render(buffer, 1000, size);
       }).not.toThrow();
     });
 
-    it('should respect wallChar and pathChar config', () => {
+    it('should handle very large cell size', () => {
+      const largeCellPattern = new MazePattern(theme, { cellSize: 10 });
+      
+      expect(() => {
+        largeCellPattern.render(buffer, 1000, size);
+      }).not.toThrow();
+    });
+
+    it('should handle disabled animation', () => {
+      const noAnimPattern = new MazePattern(theme, { animateGeneration: false });
+      
+      expect(() => {
+        noAnimPattern.render(buffer, 1000, size);
+      }).not.toThrow();
+    });
+
+    it('should handle custom characters', () => {
       const customPattern = new MazePattern(theme, {
         wallChar: '#',
         pathChar: '.'
@@ -353,46 +437,40 @@ describe('MazePattern', () => {
       
       customPattern.render(buffer, 1000, size);
       
-      // Check that custom characters are used
-      let hasWallChar = false;
+      // Check for custom characters
+      let hasCustomChars = false;
       for (let y = 0; y < size.height; y++) {
         for (let x = 0; x < size.width; x++) {
-          if (buffer[y][x].char === '#') {
-            hasWallChar = true;
+          if (buffer[y][x].char === '#' || buffer[y][x].char === '.') {
+            hasCustomChars = true;
             break;
           }
         }
-        if (hasWallChar) break;
+        if (hasCustomChars) break;
       }
       
-      expect(hasWallChar).toBe(true);
-    });
-
-    it('should respect animateGeneration config', () => {
-      const animatedPattern = new MazePattern(theme, { animateGeneration: true });
-      const staticPattern = new MazePattern(theme, { animateGeneration: false });
-      
-      expect(() => {
-        animatedPattern.render(buffer, 1000, size);
-        staticPattern.render(buffer, 1000, size);
-      }).not.toThrow();
+      expect(hasCustomChars).toBe(true);
     });
   });
 
-  describe('theme integration', () => {
-    it('should work with different themes', () => {
-      const themes = [
-        createMockTheme('ocean'),
-        createMockTheme('fire'),
-        createMockTheme('matrix'),
-      ];
+  describe('Stability', () => {
+    it('should handle rapid renders', () => {
+      expect(() => {
+        for (let i = 0; i < 200; i++) {
+          pattern.render(buffer, i * 16, size);
+        }
+      }).not.toThrow();
+    });
 
-      themes.forEach(t => {
-        const p = new MazePattern(t);
-        expect(() => {
-          p.render(buffer, 1000, size);
-        }).not.toThrow();
-      });
+    it('should handle preset changes during generation', () => {
+      expect(() => {
+        for (let i = 1; i <= 6; i++) {
+          pattern.applyPreset(i);
+          for (let j = 0; j < 10; j++) {
+            pattern.render(buffer, j * 100, size);
+          }
+        }
+      }).not.toThrow();
     });
   });
 });

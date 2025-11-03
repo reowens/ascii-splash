@@ -91,7 +91,9 @@ export class AnimationEngine {
     this.pattern.reset();
     this.pattern = pattern;
     // Clear the screen when switching patterns
-    this.renderer.getBuffer().clear();
+    const buffer = this.renderer.getBuffer();
+    buffer.clear();
+    buffer.swap(); // CRITICAL: Sync previous buffer with cleared state
   }
 
   getPattern(): Pattern {

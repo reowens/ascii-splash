@@ -1,11 +1,14 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types';
 
 interface SpiralConfig {
-  spiralCount: number;
+  armCount: number;
+  particleCount: number;
+  spiralTightness: number;
   rotationSpeed: number;
-  armLength: number;
-  density: number;
-  expandSpeed: number;
+  particleSpeed: number;
+  trailLength: number;
+  direction: 'outward' | 'inward' | 'bidirectional';
+  pulseEffect: boolean;
 }
 
 interface SpiralPreset {
@@ -15,198 +18,395 @@ interface SpiralPreset {
   config: SpiralConfig;
 }
 
-interface InteractiveSpiral {
+interface Particle {
+  angle: number;          // Current angle on spiral
+  armIndex: number;       // Which spiral arm (0 to armCount-1)
+  speed: number;          // Individual particle speed multiplier
+  phase: number;          // For pulsing effect
+  trail: Array<{x: number; y: number; intensity: number}>; // Trail history
+}
+
+interface ClickBurst {
   x: number;
   y: number;
-  rotation: number;
-  age: number;
-  size: number;
+  particles: Array<{
+    angle: number;
+    speed: number;
+    life: number;
+  }>;
+  time: number;
 }
 
 export class SpiralPattern implements Pattern {
   name = 'spiral';
   private config: SpiralConfig;
   private theme: Theme;
-  private spiralChars = ['█', '▓', '▒', '░', '●', '◉', '○', '◐', '·'];
-  private mouseSpirals: InteractiveSpiral[] = [];
-  private breathePhase: number = 0;
+  private particles: Particle[] = [];
+  private clickBursts: ClickBurst[] = [];
+  private armRotation: number = 0;
+  
+  // Gradient characters from dots to stars
+  private particleChars = ['·', '∘', '○', '◉', '●', '◎', '✦', '✧', '★'];
+  private trailChars = ['·', '∘', '○'];
 
   private static readonly PRESETS: SpiralPreset[] = [
     {
       id: 1,
-      name: 'Twin Vortex',
-      description: 'Two rotating arms, classic spiral',
-      config: { spiralCount: 2, rotationSpeed: 0.6, armLength: 10, density: 120, expandSpeed: 0.4 }
+      name: 'Twin Helix',
+      description: 'Two elegant spiral arms flowing outward',
+      config: { 
+        armCount: 2, 
+        particleCount: 80, 
+        spiralTightness: 0.12, 
+        rotationSpeed: 0.3, 
+        particleSpeed: 1.0, 
+        trailLength: 5,
+        direction: 'outward',
+        pulseEffect: true
+      }
     },
     {
       id: 2,
-      name: 'Galaxy Arms',
-      description: 'Five-armed galactic spiral',
-      config: { spiralCount: 5, rotationSpeed: 0.8, armLength: 8, density: 80, expandSpeed: 0.45 }
+      name: 'Galactic Whirlpool',
+      description: 'Five-armed galaxy spiral, mesmerizing rotation',
+      config: { 
+        armCount: 5, 
+        particleCount: 150, 
+        spiralTightness: 0.08, 
+        rotationSpeed: 0.15, 
+        particleSpeed: 0.7, 
+        trailLength: 6,
+        direction: 'outward',
+        pulseEffect: true
+      }
     },
     {
       id: 3,
-      name: 'Fibonacci Bloom',
-      description: 'Eight arms, flower-like pattern',
-      config: { spiralCount: 8, rotationSpeed: 0.4, armLength: 7, density: 70, expandSpeed: 0.35 }
+      name: 'Hyperspeed Vortex',
+      description: 'Fast particles spiraling inward with intense trails',
+      config: { 
+        armCount: 3, 
+        particleCount: 120, 
+        spiralTightness: 0.15, 
+        rotationSpeed: 0.5, 
+        particleSpeed: 2.0, 
+        trailLength: 8,
+        direction: 'inward',
+        pulseEffect: false
+      }
     },
     {
       id: 4,
-      name: 'Hypnotic Spin',
-      description: 'Fast rotating, tight spiral',
-      config: { spiralCount: 3, rotationSpeed: 1.5, armLength: 6, density: 150, expandSpeed: 0.3 }
+      name: 'Fibonacci Bloom',
+      description: 'Eight-armed flower pattern, bidirectional flow',
+      config: { 
+        armCount: 8, 
+        particleCount: 180, 
+        spiralTightness: 0.1, 
+        rotationSpeed: 0.2, 
+        particleSpeed: 0.8, 
+        trailLength: 4,
+        direction: 'bidirectional',
+        pulseEffect: true
+      }
     },
     {
       id: 5,
-      name: 'Slow Mandala',
-      description: 'Gentle, meditative rotation',
-      config: { spiralCount: 6, rotationSpeed: 0.3, armLength: 9, density: 90, expandSpeed: 0.5 }
+      name: 'Black Hole',
+      description: 'Single arm, particles accelerate toward center',
+      config: { 
+        armCount: 1, 
+        particleCount: 100, 
+        spiralTightness: 0.2, 
+        rotationSpeed: 0.8, 
+        particleSpeed: 1.5, 
+        trailLength: 7,
+        direction: 'inward',
+        pulseEffect: true
+      }
     },
     {
       id: 6,
-      name: 'Nautilus Shell',
-      description: 'Single arm, natural logarithmic spiral',
-      config: { spiralCount: 1, rotationSpeed: 0.5, armLength: 12, density: 200, expandSpeed: 0.55 }
+      name: 'DNA Double Helix',
+      description: 'Two counter-rotating spirals with sparkles',
+      config: { 
+        armCount: 2, 
+        particleCount: 90, 
+        spiralTightness: 0.18, 
+        rotationSpeed: -0.4, 
+        particleSpeed: 1.2, 
+        trailLength: 3,
+        direction: 'bidirectional',
+        pulseEffect: true
+      }
     }
   ];
   
   constructor(theme: Theme, config?: Partial<SpiralConfig>) {
     this.theme = theme;
     this.config = {
-      spiralCount: 8,          // Increased for more visibility
-      rotationSpeed: 0.8,      // Increased from 0.5
-      armLength: 8,            // Increased for longer arms
-      density: 100,            // MASSIVELY increased from 30 for debugging
-      expandSpeed: 0.5,        // Increased from 0.3
+      armCount: 4,
+      particleCount: 100,
+      spiralTightness: 0.1,
+      rotationSpeed: 0.3,
+      particleSpeed: 1.0,
+      trailLength: 5,
+      direction: 'outward',
+      pulseEffect: true,
       ...config
     };
+    this.initializeParticles();
+  }
+
+  private initializeParticles(): void {
+    this.particles = [];
+    const { particleCount, armCount, direction } = this.config;
+    
+    for (let i = 0; i < particleCount; i++) {
+      // Distribute particles across arms
+      const armIndex = Math.floor(Math.random() * armCount);
+      
+      // Random angle along the spiral (0 to ~20 radians for good spread)
+      let angle: number;
+      if (direction === 'bidirectional') {
+        angle = Math.random() * 15;
+      } else {
+        angle = Math.random() * 20;
+      }
+      
+      this.particles.push({
+        angle,
+        armIndex,
+        speed: 0.8 + Math.random() * 0.4, // 0.8-1.2x speed variation
+        phase: Math.random() * Math.PI * 2, // For pulse effect
+        trail: []
+      });
+    }
   }
 
   reset(): void {
-    this.mouseSpirals = [];
-    this.breathePhase = 0;
+    this.initializeParticles();
+    this.clickBursts = [];
+    this.armRotation = 0;
+  }
+
+  private getSpiralPosition(angle: number, armIndex: number, centerX: number, centerY: number, maxRadius: number): Point {
+    const { armCount, spiralTightness } = this.config;
+    
+    // Logarithmic spiral: r = a * e^(b*θ)
+    const a = 2; // Starting radius
+    const b = spiralTightness;
+    const radius = Math.min(a * Math.exp(b * angle), maxRadius);
+    
+    // Offset angle for this arm + current arm rotation
+    const armOffset = (Math.PI * 2 * armIndex) / armCount;
+    const finalAngle = angle + armOffset + this.armRotation;
+    
+    return {
+      x: centerX + radius * Math.cos(finalAngle),
+      y: centerY + radius * Math.sin(finalAngle)
+    };
   }
 
   render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void {
     const { width, height } = size;
     const centerX = width / 2;
     const centerY = height / 2;
-    const { spiralCount, rotationSpeed, armLength, density, expandSpeed } = this.config;
+    const maxRadius = Math.min(width, height) / 2 - 2;
     
-    // Calculate rotation based on time
-    const rotation = (time * rotationSpeed) / 1000;
+    const { particleSpeed, rotationSpeed, trailLength, direction, pulseEffect } = this.config;
+    const deltaTime = 0.016; // ~60fps
     
-    // Add breathing effect for visual interest
-    this.breathePhase = (time * 0.002) % (Math.PI * 2);
-    const breathe = Math.sin(this.breathePhase) * 0.2 + 1.0; // 0.8 to 1.2
+    // Update arm rotation
+    this.armRotation += rotationSpeed * deltaTime;
     
-    // Draw main spiral arms
-    for (let arm = 0; arm < spiralCount; arm++) {
-      const armAngleOffset = (Math.PI * 2 * arm) / spiralCount;
+    // Update particles
+    for (const particle of this.particles) {
+      // Move particle along spiral
+      const speedMultiplier = particle.speed * particleSpeed * deltaTime * 3;
       
-      // Draw points along this spiral arm (with much higher density)
-      for (let i = 0; i < density * 30; i++) {
-        const t = i / density;
+      if (direction === 'outward') {
+        particle.angle += speedMultiplier;
+        // Wrap to beginning when too far out
+        if (particle.angle > 20) {
+          particle.angle = 0;
+          particle.trail = [];
+        }
+      } else if (direction === 'inward') {
+        particle.angle -= speedMultiplier;
+        // Wrap to end when reaching center
+        if (particle.angle < 0) {
+          particle.angle = 20;
+          particle.trail = [];
+        }
+      } else { // bidirectional
+        // Half particles go out, half go in
+        if (particle.armIndex % 2 === 0) {
+          particle.angle += speedMultiplier;
+          if (particle.angle > 15) particle.angle = 0;
+        } else {
+          particle.angle -= speedMultiplier;
+          if (particle.angle < 0) particle.angle = 15;
+        }
+      }
+      
+      // Update pulse phase
+      particle.phase += deltaTime * 5;
+      
+      // Get current position
+      const pos = this.getSpiralPosition(particle.angle, particle.armIndex, centerX, centerY, maxRadius);
+      
+      // Add to trail
+      particle.trail.unshift({ x: pos.x, y: pos.y, intensity: 1.0 });
+      if (particle.trail.length > trailLength) {
+        particle.trail.pop();
+      }
+    }
+    
+    // Update click bursts
+    for (let i = this.clickBursts.length - 1; i >= 0; i--) {
+      const burst = this.clickBursts[i];
+      burst.time += deltaTime * 1000;
+      
+      // Remove old bursts
+      if (burst.time > 2000) {
+        this.clickBursts.splice(i, 1);
+        continue;
+      }
+      
+      // Update burst particles
+      for (const bp of burst.particles) {
+        bp.angle += bp.speed * deltaTime * 5;
+        bp.life -= deltaTime * 0.5;
+      }
+    }
+    
+    // Draw center glow
+    const cx = Math.floor(centerX);
+    const cy = Math.floor(centerY);
+    if (cx >= 0 && cx < width && cy >= 0 && cy < height) {
+      const pulseIntensity = pulseEffect ? (Math.sin(time / 200) * 0.2 + 0.8) : 1.0;
+      buffer[cy][cx] = { 
+        char: '◉', 
+        color: this.theme.getColor(pulseIntensity) 
+      };
+    }
+    
+    // Draw particle trails first (so particles appear on top)
+    for (const particle of this.particles) {
+      for (let i = 0; i < particle.trail.length; i++) {
+        const trailPoint = particle.trail[i];
+        const x = Math.floor(trailPoint.x);
+        const y = Math.floor(trailPoint.y);
         
-        // Logarithmic spiral formula: r = a * e^(b*theta)
-        const theta = t * Math.PI * armLength + rotation + armAngleOffset;
-        const r = expandSpeed * Math.exp(0.15 * theta) * breathe;
-        
-        // Convert polar to cartesian
-        const x = Math.floor(centerX + r * Math.cos(theta));
-        const y = Math.floor(centerY + r * Math.sin(theta));
-        
-        // Check bounds
         if (x >= 0 && x < width && y >= 0 && y < height) {
-          // Calculate intensity based on distance from center and position along arm
-          const distFromCenter = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
-          const maxDist = Math.sqrt(width ** 2 + height ** 2) / 2;
-          const distIntensity = 1 - Math.min(1, distFromCenter / maxDist);
+          // Fade trail based on age
+          const ageFactor = 1 - (i / particle.trail.length);
+          const intensity = trailPoint.intensity * ageFactor * 0.5;
           
-          // Add pulsing based on arm position
-          const pulseIntensity = Math.sin(t * Math.PI * 2 + rotation * 2) * 0.3 + 0.7;
-          const intensity = distIntensity * pulseIntensity;
+          const charIndex = Math.min(this.trailChars.length - 1, Math.floor(ageFactor * this.trailChars.length));
           
-          // Choose character based on intensity
-          const charIndex = Math.floor(intensity * (this.spiralChars.length - 1));
-          const char = this.spiralChars[charIndex];
-          
-          // Use theme color with intensity
           buffer[y][x] = {
-            char,
+            char: this.trailChars[charIndex],
             color: this.theme.getColor(intensity)
           };
         }
       }
     }
     
-    // Update and render mouse-spawned spirals
-    for (let i = this.mouseSpirals.length - 1; i >= 0; i--) {
-      const spiral = this.mouseSpirals[i];
-      spiral.age += 0.02;
-      spiral.rotation += 0.05;
+    // Draw particles
+    for (const particle of this.particles) {
+      if (particle.trail.length === 0) continue;
       
-      // Remove old spirals
-      if (spiral.age > 1) {
-        this.mouseSpirals.splice(i, 1);
-        continue;
-      }
+      const pos = particle.trail[0];
+      const x = Math.floor(pos.x);
+      const y = Math.floor(pos.y);
       
-      // Draw this interactive spiral
-      const life = 1 - spiral.age;
-      const arms = 3;
-      
-      for (let arm = 0; arm < arms; arm++) {
-        const armAngleOffset = (Math.PI * 2 * arm) / arms;
+      if (x >= 0 && x < width && y >= 0 && y < height) {
+        // Calculate intensity based on distance from center
+        const dx = pos.x - centerX;
+        const dy = pos.y - centerY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const distIntensity = Math.min(1, dist / maxRadius);
         
-        for (let j = 0; j < 50; j++) {
-          const t = j / 10;
-          const theta = t * Math.PI * 2 + spiral.rotation + armAngleOffset;
-          const r = spiral.size * Math.exp(0.3 * theta) * life;
+        // Pulse effect
+        let intensity = distIntensity;
+        if (pulseEffect) {
+          const pulse = Math.sin(particle.phase) * 0.3 + 0.7;
+          intensity *= pulse;
+        }
+        
+        // Choose character based on intensity
+        const charIndex = Math.min(
+          this.particleChars.length - 1, 
+          Math.floor(intensity * this.particleChars.length)
+        );
+        
+        buffer[y][x] = {
+          char: this.particleChars[charIndex],
+          color: this.theme.getColor(intensity)
+        };
+      }
+    }
+    
+    // Draw click bursts
+    for (const burst of this.clickBursts) {
+      for (const bp of burst.particles) {
+        if (bp.life <= 0) continue;
+        
+        const r = bp.angle * 2;
+        const angle = bp.angle * 3;
+        const x = Math.floor(burst.x + r * Math.cos(angle));
+        const y = Math.floor(burst.y + r * Math.sin(angle));
+        
+        if (x >= 0 && x < width && y >= 0 && y < height) {
+          const charIndex = Math.min(
+            this.particleChars.length - 1,
+            Math.floor(bp.life * this.particleChars.length)
+          );
           
-          const x = Math.floor(spiral.x + r * Math.cos(theta));
-          const y = Math.floor(spiral.y + r * Math.sin(theta));
-          
-          if (x >= 0 && x < width && y >= 0 && y < height) {
-            const intensity = life * (1 - t / 5);
-            const charIndex = Math.floor(intensity * (this.spiralChars.length - 1));
-            
-            buffer[y][x] = {
-              char: this.spiralChars[charIndex],
-              color: this.theme.getColor(intensity)
-            };
-          }
+          buffer[y][x] = {
+            char: this.particleChars[charIndex],
+            color: this.theme.getColor(bp.life)
+          };
         }
       }
     }
   }
 
-  onMouseMove(pos: Point): void {
-    // Optional: Could add subtle spiral following mouse
-    // For now, keeping it simple - click is the main interaction
+  onMouseMove(_pos: Point): void {
+    // Could add mouse attraction/repulsion here later
   }
 
   onMouseClick(pos: Point): void {
-    // Spawn a new interactive spiral at click position
-    this.mouseSpirals.push({
+    // Spawn a burst of particles at click position
+    const burstParticles = [];
+    for (let i = 0; i < 12; i++) {
+      burstParticles.push({
+        angle: (Math.PI * 2 * i) / 12,
+        speed: 0.8 + Math.random() * 0.4,
+        life: 1.0
+      });
+    }
+    
+    this.clickBursts.push({
       x: pos.x,
       y: pos.y,
-      rotation: Math.random() * Math.PI * 2,
-      age: 0,
-      size: 0.3 + Math.random() * 0.2
+      particles: burstParticles,
+      time: 0
     });
     
-    // Limit to 10 interactive spirals for performance
-    if (this.mouseSpirals.length > 10) {
-      this.mouseSpirals.shift();
+    // Limit bursts
+    if (this.clickBursts.length > 3) {
+      this.clickBursts.shift();
     }
   }
 
   getMetrics(): Record<string, number> {
     return {
-      arms: this.config.spiralCount,
-      points: this.config.density * 10 * this.config.spiralCount,
-      interactiveSpirals: this.mouseSpirals.length
+      particles: this.particles.length,
+      arms: this.config.armCount,
+      bursts: this.clickBursts.length
     };
   }
 

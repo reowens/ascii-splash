@@ -100,11 +100,14 @@ export interface ParticlePatternConfig {
 }
 
 export interface SpiralPatternConfig {
-  spiralCount?: number;
+  armCount?: number;
+  particleCount?: number;
+  spiralTightness?: number;
   rotationSpeed?: number;
-  armLength?: number;
-  density?: number;
-  expandSpeed?: number;
+  particleSpeed?: number;
+  trailLength?: number;
+  direction?: 'outward' | 'inward' | 'bidirectional';
+  pulseEffect?: boolean;
 }
 
 export interface PlasmaPatternConfig {
@@ -114,10 +117,14 @@ export interface PlasmaPatternConfig {
 }
 
 export interface TunnelPatternConfig {
-  shape?: 'circle' | 'square' | 'triangle' | 'hexagon' | 'star';
+  shape?: 'circle' | 'square' | 'hexagon' | 'star';
   ringCount?: number;
-  ringSpacing?: number;
   speed?: number;
+  particleCount?: number;
+  speedLineCount?: number;
+  turbulence?: number;
+  glowIntensity?: number;
+  chromatic?: boolean;
   rotationSpeed?: number;
   radius?: number;
 }

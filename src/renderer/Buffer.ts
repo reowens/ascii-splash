@@ -60,11 +60,18 @@ export class Buffer {
       for (let x = 0; x < this.size.width; x++) {
         const curr = this.buffer[y][x];
         const prev = this.prevBuffer[y][x];
+
+        const currR = curr.color?.r ?? 0;
+        const currG = curr.color?.g ?? 0;
+        const currB = curr.color?.b ?? 0;
+        const prevR = prev.color?.r ?? 0;
+        const prevG = prev.color?.g ?? 0;
+        const prevB = prev.color?.b ?? 0;
         
         if (curr.char !== prev.char || 
-            curr.color?.r !== prev.color?.r ||
-            curr.color?.g !== prev.color?.g ||
-            curr.color?.b !== prev.color?.b) {
+            currR !== prevR ||
+            currG !== prevG ||
+            currB !== prevB) {
           changes.push({ x, y, cell: curr });
         }
       }
