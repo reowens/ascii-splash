@@ -67,18 +67,24 @@ export class AnimationEngine {
   }
 
   private update(time: number): void {
-    const size = this.renderer.getSize();
+    const fullSize = this.renderer.getSize();
     const buffer = this.renderer.getBuffer();
     
     // Clear buffer
     buffer.clear();
+    
+    // Reserve bottom row for banner/status - give patterns reduced height
+    const patternSize = {
+      width: fullSize.width,
+      height: fullSize.height - 1  // Exclude bottom row
+    };
     
     // Render pattern into buffer and track time
     const patternStart = performance.now();
     
     // Wrap pattern render in error handler
     safeRenderWrapper(this.pattern.name, () => {
-      this.pattern.render(buffer.getBuffer(), time, size);
+      this.pattern.render(buffer.getBuffer(), time, patternSize);
     });
     
     this.perfMonitor.recordPatternRenderTime(performance.now() - patternStart);

@@ -337,7 +337,6 @@ function main() {
   // Overlay message state
   let overlayMessage: string | null = null;
   let overlayMessageTimeout: NodeJS.Timeout | null = null;
-  let overlayActive: boolean = false; // Track if overlay is currently displayed
   
   // Determine initial FPS from config
   const initialFps = ConfigLoader.getFpsFromConfig(config);
@@ -427,9 +426,13 @@ function main() {
     // Set overlay message
     overlayMessage = `Pattern: ${displayName}`;
     
+    // Render immediately (not in animation loop)
+    renderMessageOverlay();
+    
     // Clear after 2 seconds
     overlayMessageTimeout = setTimeout(() => {
       overlayMessage = null;
+      renderMessageOverlay(); // Clear immediately when timeout fires
     }, 2000);
   }
 
@@ -609,20 +612,20 @@ function main() {
 
   function renderMessageOverlay() {
     const size = renderer.getSize();
-    const bottomRow = size.height - 1; // Use bottom row instead of top (0-based)
+    const bottomRow = size.height; // terminal-kit uses 1-based coordinates
     
     if (overlayMessage) {
-      // Use the new overlay API to render persistent overlays
+      // Render directly to terminal without touching buffer system
       const theme = currentTheme;
       const color = theme.getColor(0.8); // Bright color for visibility
-
-      // Set overlay text at BOTTOM of screen to avoid interfering with patterns
-      renderer.setOverlayText(0, bottomRow, overlayMessage, color);
-      overlayActive = true;
-    } else if (overlayActive) {
-      // Only clear overlay if it was previously active (prevents unnecessary redraws)
-      renderer.clearOverlayRow(bottomRow);
-      overlayActive = false;
+      
+      term.moveTo(1, bottomRow);
+      term.eraseLine();
+      term.colorRgb(color.r, color.g, color.b, overlayMessage);
+    } else {
+      // Clear the banner line
+      term.moveTo(1, bottomRow);
+      term.eraseLine();
     }
   }
 
@@ -785,9 +788,10 @@ function main() {
       } else if (data.isCharacter) {
         // Regular character input - but allow direct shortcuts to pass through
         const char = String.fromCharCode(data.codepoint);
-        // Allow single digits (1-9) AND pattern navigation keys (n, b) to exit command mode
-        if (/^[1-9nNbB]$/.test(char)) {
-          // Single digit or pattern nav - cancel command mode and let normal handling proceed
+        // Allow pattern navigation keys (n, b) to exit command mode, but NOT digits
+        // (digits need to stay in command mode for multi-digit commands like c14)
+        if (/^[nNbB]$/.test(char)) {
+          // Pattern nav - cancel command mode and let normal handling proceed
           commandBuffer.cancel();
           // Don't return - let normal key handling process the key
         } else {
@@ -812,25 +816,17 @@ function main() {
         // Accept numbers, letters, and dots
         const char = String.fromCharCode(data.codepoint);
         if (/[0-9a-zA-Z.]/.test(char)) {
-          // Allow single-digit keys (1-9) to also work as direct pattern switching
-          if (/^[1-9]$/.test(char) && patternBuffer === '') {
-            // Single digit with empty buffer - cancel pattern mode and let normal handling proceed
+          patternBuffer += char;
+          
+          // Reset timeout on input
+          if (patternBufferTimeout) {
+            clearTimeout(patternBufferTimeout);
+          }
+          patternBufferTimeout = setTimeout(() => {
             patternBufferActive = false;
             patternBuffer = '';
-            // Don't return - let normal key handling process the digit
-          } else {
-            patternBuffer += char;
-            
-            // Reset timeout on input
-            if (patternBufferTimeout) {
-              clearTimeout(patternBufferTimeout);
-            }
-            patternBufferTimeout = setTimeout(() => {
-              patternBufferActive = false;
-              patternBuffer = '';
-            }, patternBufferTimeoutMs);
-            return; // Stay in pattern mode
-          }
+          }, patternBufferTimeoutMs);
+          return; // Stay in pattern mode
         }
       }
       
@@ -983,9 +979,13 @@ function main() {
     // Set overlay message
     overlayMessage = msg;
     
+    // Render immediately (not in animation loop)
+    renderMessageOverlay();
+    
     // Clear after 1.5 seconds
     overlayMessageTimeout = setTimeout(() => {
       overlayMessage = null;
+      renderMessageOverlay(); // Clear immediately when timeout fires
     }, 1500);
   }
 
@@ -998,12 +998,9 @@ function main() {
   // Start animation
   engine.start();
   
-  // Set up buffer-based overlays (render before terminal write to prevent garbled text)
-  engine.setBeforeTerminalRenderCallback(() => {
-    renderMessageOverlay();
-  });
-  
   // Set up terminal-based overlays (render after terminal write)
+  // Note: Banner (renderMessageOverlay) is NOT in the render loop - it renders
+  // immediately when showMessage() is called, preventing interference with patterns
   engine.setAfterRenderCallback(() => {
     renderDebugOverlay();
     renderCommandOverlay();
