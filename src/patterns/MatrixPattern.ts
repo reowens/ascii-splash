@@ -158,9 +158,10 @@ export class MatrixPattern implements Pattern {
           for (const distortion of this.distortions) {
             const dx = col.x - distortion.x;
             const dy = y - distortion.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
+            const distSquared = dx * dx + dy * dy;
+            const radiusSquared = distortion.radius * distortion.radius;
             
-            if (dist < distortion.radius) {
+            if (distSquared < radiusSquared) {
               isDistorted = true;
               char = this.getRandomChar();
               break;
