@@ -239,9 +239,30 @@ export class RainPattern implements Pattern {
   }
 
   getMetrics(): Record<string, number> {
+    // Calculate average drop height
+    const avgHeight = this.drops.length > 0
+      ? this.drops.reduce((sum, drop) => sum + drop.y, 0) / this.drops.length
+      : 0;
+    
+    // Count total splash particles (splash expansion area)
+    const splashParticles = this.splashes.reduce((sum, splash) => {
+      const currentTime = Date.now();
+      const age = currentTime - splash.time;
+      const maxAge = 400;
+      if (age < maxAge) {
+        const currentRadius = Math.floor((age / maxAge) * splash.radius);
+        return sum + ((currentRadius * 2 + 1) * 3); // Width * height of splash area
+      }
+      return sum;
+    }, 0);
+    
     return {
       drops: this.drops.length,
-      splashes: this.splashes.length
+      splashes: this.splashes.length,
+      splashParticles,
+      avgHeight: Math.round(avgHeight * 100) / 100,
+      density: this.config.density,
+      speed: this.config.speed
     };
   }
 

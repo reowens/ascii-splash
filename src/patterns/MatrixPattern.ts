@@ -230,9 +230,22 @@ export class MatrixPattern implements Pattern {
   }
 
   getMetrics(): Record<string, number> {
+    // Calculate total characters across all columns
+    const totalChars = this.columns.reduce((sum, col) => sum + col.length, 0);
+    
+    // Calculate average speed across all columns
+    const avgSpeed = this.columns.length > 0
+      ? this.columns.reduce((sum, col) => sum + col.speed, 0) / this.columns.length
+      : 0;
+    
     return {
       columns: this.columns.length,
-      density: this.config.density
+      totalChars,
+      avgSpeed: Math.round(avgSpeed * 100) / 100,
+      distortions: this.distortions.length,
+      density: this.config.density,
+      speed: this.config.speed,
+      charset: this.config.charset === 'katakana' ? 1 : this.config.charset === 'numbers' ? 2 : 3
     };
   }
 

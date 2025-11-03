@@ -266,10 +266,24 @@ export class QuicksilverPattern implements Pattern {
   }
 
   getMetrics(): Record<string, number> {
+    // Calculate average droplet velocity
+    const avgVelocity = this.droplets.length > 0
+      ? this.droplets.reduce((sum, d) => sum + Math.sqrt(d.vx * d.vx + d.vy * d.vy), 0) / this.droplets.length
+      : 0;
+    
+    // Calculate average ripple radius
+    const avgRippleRadius = this.ripples.length > 0
+      ? this.ripples.reduce((sum, r) => sum + r.radius, 0) / this.ripples.length
+      : 0;
+    
     return {
       droplets: this.droplets.length,
       ripples: this.ripples.length,
-      flowIntensity: this.config.flowIntensity
+      avgVelocity: Math.round(avgVelocity * 100) / 100,
+      avgRippleRadius: Math.round(avgRippleRadius * 100) / 100,
+      flowIntensity: this.config.flowIntensity,
+      speed: this.config.speed,
+      noiseScale: this.config.noiseScale
     };
   }
 
