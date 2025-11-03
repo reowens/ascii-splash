@@ -4,7 +4,7 @@
 **Severity**: Critical  
 **Reported**: 2025-11-02  
 **Resolved**: 2025-11-02  
-**Commits**: 3fd6d8d, TBD
+**Commits**: 3fd6d8d, fd2232c
 
 ## Symptom
 
@@ -34,7 +34,7 @@ Patterns 7 (Spiral) and 9 (Tunnel) appeared completely blank when running the ap
 4. For sparse patterns, most cells were spaces in both → few changes detected
 5. Result: Most cells never rendered to terminal
 
-**Fix** (commit TBD):
+**Fix** (commit fd2232c):
 
 Added `buffer.swap()` call to sync previous buffer with cleared state:
 
