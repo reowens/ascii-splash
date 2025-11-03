@@ -723,7 +723,6 @@ interface YourPatternConfig {
 ## References
 
 - **User Guide**: [README.md](../README.md)
-- **Project Roadmap**: [PLAN.md](PLAN.md)
 - **Testing Strategy**: [TESTING_PLAN.md](TESTING_PLAN.md)
 - **Project Status**: [PROJECT_STATUS.md](PROJECT_STATUS.md)
 - **Configuration Example**: [examples/.splashrc.example](../examples/.splashrc.example)

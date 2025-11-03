@@ -231,9 +231,9 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
 - **README.md**: Installation, usage, features overview
 - **CLAUDE.md**: Development guide, architecture, pattern development
 - **examples/.splashrc.example**: Comprehensive config file example
-- **docs/PLAN.md**: Project roadmap and phase completion
+- **docs/ARCHITECTURE.md**: Technical architecture and design patterns
 - **docs/TESTING_PLAN.md**: Testing strategy and coverage goals
-- **docs/PROJECT_STATUS.md**: Current status and next steps
+- **docs/PROJECT_STATUS.md**: Current status and feature completion
 
 ### 🎮 Controls Reference
 
@@ -273,8 +273,6 @@ Built with `terminal-kit` for terminal control and inspired by classic terminal 
 ---
 
 ## Future Releases
-
-See [docs/PLAN.md](docs/PLAN.md) for planned features and improvements.
 
 **Potential future enhancements**:
 - Additional patterns and presets

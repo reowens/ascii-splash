@@ -24,7 +24,7 @@ The project is **feature-complete** and **live on npm**. Successfully published 
 
 ## Phase Completion
 
-**All 6 phases complete!** See [PLAN.md](PLAN.md) for detailed phase checklists and roadmap.
+**All 6 phases complete!** The project is published and in production use.
 
 | Phase | Status |
 |-------|--------|
@@ -118,8 +118,6 @@ Highlights:
 - Performance profiling and optimization
 - Community feedback integration
 
-**For detailed roadmap and phase checklists**, see [PLAN.md](PLAN.md).
-
 ## Documentation
 
 **For users:**
@@ -127,7 +125,6 @@ Highlights:
 
 **For developers:**
 - [ARCHITECTURE.md](ARCHITECTURE.md) - Technical architecture
-- [PLAN.md](PLAN.md) - Project roadmap and phase details
 - [TESTING_PLAN.md](TESTING_PLAN.md) - Testing strategy
 
 **Configuration:**

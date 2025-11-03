@@ -8,7 +8,6 @@ Welcome to the **ascii-splash** documentation. Choose your path based on your ro
 |----------|----------|----------|
 | **[../README.md](../README.md)** | 👤 Users | Installation, features, usage guide, controls, configuration |
 | **[ARCHITECTURE.md](ARCHITECTURE.md)** | 👨‍💻 Developers | Technical architecture, system design, contribution guidelines |
-| **[PLAN.md](PLAN.md)** | 🗺️ Planners | Complete roadmap, development phases, specifications |
 | **[PROJECT_STATUS.md](PROJECT_STATUS.md)** | 📊 Everyone | Current status, statistics, quick reference |
 | **[TESTING_PLAN.md](TESTING_PLAN.md)** | 🧪 Testers | Test strategy, coverage, test suite organization |
 
@@ -22,7 +21,6 @@ Welcome to the **ascii-splash** documentation. Choose your path based on your ro
 | **Understand the project** | [PROJECT_STATUS.md](PROJECT_STATUS.md) → [ARCHITECTURE.md](ARCHITECTURE.md) |
 | **Add a new pattern** | [ARCHITECTURE.md](ARCHITECTURE.md#contribution-points) → [../src/patterns/](../src/patterns/) |
 | **Write tests** | [TESTING_PLAN.md](TESTING_PLAN.md) → [../tests/unit/](../tests/unit/) |
-| **Plan features** | [PLAN.md](PLAN.md) → [PROJECT_STATUS.md](PROJECT_STATUS.md) |
 
 ---
 

@@ -110,7 +110,6 @@ splash/
 ├── docs/                         # Developer documentation
 │   ├── ARCHITECTURE.md          # ⭐ Technical architecture (for developers)
 │   ├── README.md                # Documentation navigation index
-│   ├── PLAN.md                  # Project roadmap
 │   ├── PROJECT_STATUS.md        # Current status snapshot
 │   ├── TESTING_PLAN.md          # Testing strategy & coverage
 │   └── DOCUMENTATION_AUDIT.md   # Documentation structure audit
@@ -130,7 +129,7 @@ splash/
 **Key Navigation**:
 - 👤 **User documentation**: [README.md](README.md)
 - 👨‍💻 **Technical details**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- 🗺️ **Project map**: [docs/PLAN.md](docs/PLAN.md)
+- 📊 **Project status**: [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md)
 - 🧪 **Testing info**: [docs/TESTING_PLAN.md](docs/TESTING_PLAN.md)
 
 ---
@@ -235,7 +234,7 @@ interface Theme {
 
 ## Current Status (AI Awareness)
 
-**Phase**: 6 - Polish and Distribution (In Progress)
+**Status**: v0.1.0 - Published and Live ✅
 
 **Completion**:
 - ✅ 17 Interactive patterns (11 core + Life + Maze + DNA + LavaLamp + Smoke + Snow)
@@ -243,13 +242,15 @@ interface Theme {
 - ✅ 5 color themes
 - ✅ Configuration system
 - ✅ Favorites & shuffle mode
-- ✅ 803 tests, 83% coverage
+- ✅ 817 tests, 82.34% coverage
 - ✅ Complete documentation
+- ✅ Published to npm (November 2, 2025)
 
-**Next Steps**:
-- Phase 6.1: Distribution preparation
-- Phase 6.2: npm publishing & promotion
-- See [docs/PLAN.md](docs/PLAN.md) for detailed roadmap
+**Future Enhancements**:
+- Additional patterns (Constellation, Ripple Grid, Waveform, Mandelbrot, Kaleidoscope)
+- Demo GIFs/videos for README
+- Performance profiling and optimization
+- Community feedback integration
 
 ---
 
@@ -324,7 +325,6 @@ npm run test:coverage # Coverage report
 ### Documentation
 - 👤 **User Guide**: [README.md](README.md) - Installation, features, controls
 - 👨‍💻 **Technical Details**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Architecture, design patterns
-- 🗺️ **Roadmap**: [docs/PLAN.md](docs/PLAN.md) - Project phases and roadmap
 - 📊 **Status**: [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) - Current project status
 - 🧪 **Testing**: [docs/TESTING_PLAN.md](docs/TESTING_PLAN.md) - Test strategy and coverage
 - 📋 **Audit**: [docs/DOCUMENTATION_AUDIT.md](docs/DOCUMENTATION_AUDIT.md) - Documentation structure
@@ -341,7 +341,7 @@ npm run test:coverage # Coverage report
 ## Quick Checklist for AI Coding Sessions
 
 - [ ] Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for technical details
-- [ ] Check [docs/PLAN.md](docs/PLAN.md) for current phase and roadmap
+- [ ] Check [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for current status
 - [ ] Review relevant test file in `tests/unit/` before modifying code
 - [ ] Run `npm test` after changes
 - [ ] Remember: 0-based coordinates in patterns, 1-based for terminal-kit!

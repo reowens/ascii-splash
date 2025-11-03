@@ -888,7 +888,7 @@ With 817 tests and 82.34% coverage achieved, all primary testing goals are compl
 4. **Cross-Terminal Testing** (Manual) - Verify behavior across different terminal emulators
 5. **Performance Profiling** (Manual) - Long-running stability tests (5+ hours)
 
-**For current project status and roadmap**, see [PLAN.md](PLAN.md) and [PROJECT_STATUS.md](PROJECT_STATUS.md).
+**For current project status**, see [PROJECT_STATUS.md](PROJECT_STATUS.md).
 
 ---
 
