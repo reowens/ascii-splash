@@ -6,34 +6,50 @@
 
 ascii-splash is a terminal ASCII animation app that displays animated patterns in a terminal window. It's designed as a lightweight ambient visual effect for IDE workspaces, targeting <5% CPU and <50MB RAM usage.
 
-## Current Status: v0.1.0 Published! 🎉
+## Current Status: v0.1.3-dev (Phase 3 Visual Enhancements) 🎨
 
-The project is **feature-complete** and **live on npm**. Successfully published and ready for production use!
+The project is **live on npm** (v0.1.2) with **Phase 3 Visual Enhancements in progress**.
 
 - **npm Package**: https://www.npmjs.com/package/ascii-splash
-- **GitHub Release**: https://github.com/reowens/ascii-splash/releases/tag/v0.1.0
+- **Latest Release**: v0.1.2 (Time handling fixes and performance improvements)
+- **In Development**: v0.1.3 - Comprehensive visual enhancements to all 17 patterns
 - **Installation**: `npm install -g ascii-splash` or `npx ascii-splash`
 
 ### Project Statistics
 - **17 Patterns** with **102 Presets** (6 per pattern)
 - **5 Color Themes** (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **40+ Commands** via advanced command system
-- **817 Tests** with **82.34% Coverage**
+- **1419 Tests** with **93.07% Coverage**
 - **3-Layer Architecture**: Renderer → Engine → Patterns
   - For technical details, see [ARCHITECTURE.md](ARCHITECTURE.md)
 
+### Phase 3 Visual Enhancements (In Progress)
+- **Status**: 6 commits on `enhance/visual-improvements` branch
+- **Patterns Enhanced**: All 17 patterns with new visual effects
+- **Key Features Added**:
+  - Star twinkling, wave foam, rain wind/gusts
+  - Plasma color cycling, pattern size variations
+  - Particle trails, cell age coloring, path highlighting
+  - Surface tension variation, pulsing effects, gradients
+- **Tests**: All 1419 tests passing
+- **Performance**: Maintained <5% CPU target
+
 ## Phase Completion
 
-**All 6 phases complete!** The project is published and in production use.
+**Initial 6 phases complete!** Project published on npm. Now in **Phase 3 (Post-Release): Visual Enhancements**.
 
 | Phase | Status |
 |-------|--------|
-| Phase 1 - Core MVP | ✅ COMPLETE |
-| Phase 2 - Patterns & Performance | ✅ COMPLETE |
-| Phase 3 - Configuration & Extensibility | ✅ COMPLETE |
-| Phase 4 - Command System & Presets | ✅ COMPLETE |
-| Phase 5 - New Patterns | ✅ COMPLETE |
-| Phase 6 - Polish & Distribution | ✅ COMPLETE |
+| Phase 1 - Core MVP | ✅ COMPLETE (v0.1.0) |
+| Phase 2 - Patterns & Performance | ✅ COMPLETE (v0.1.0) |
+| Phase 3 - Configuration & Extensibility | ✅ COMPLETE (v0.1.0) |
+| Phase 4 - Command System & Presets | ✅ COMPLETE (v0.1.0) |
+| Phase 5 - New Patterns | ✅ COMPLETE (v0.1.0) |
+| Phase 6 - Polish & Distribution | ✅ COMPLETE (v0.1.0) |
+| **Post-Release Phases** | |
+| Phase 1 (Post) - Critical Fixes | ✅ COMPLETE (v0.1.2) |
+| Phase 2 (Post) - Performance | ✅ COMPLETE (v0.1.2) |
+| **Phase 3 (Post) - Visual Enhancements** | 🚧 **IN PROGRESS** |
 
 ## Features
 
@@ -48,10 +64,10 @@ The project is **feature-complete** and **live on npm**. Successfully published 
 ### 🧪 Testing Coverage
 
 **Test Statistics:**
-- **Total Tests:** 1357 tests across 26 suites
-- **Coverage:** 95.18% statements (exceeded 80% target)
+- **Total Tests:** 1419 tests across 26 suites
+- **Coverage:** 93.07% statements (exceeded 80% target)
 - **Status:** All tests passing ✅ (100%)
-- **Execution Time:** ~11 seconds
+- **Execution Time:** ~10.3 seconds
 
 **Component Coverage:**
 - CommandParser: 100%
@@ -112,13 +128,19 @@ Highlights:
 
 ## What's Next
 
-**Phase 6 Complete:** v0.1.0 published November 2, 2025 ✅
+**Phase 3 (Post-Release) In Progress:** Visual enhancements to all 17 patterns 🚧
 
-**Future Enhancements:**
+**Current Focus:**
+- ✅ All 17 patterns enhanced with new visual effects
+- ✅ 6 commits on `enhance/visual-improvements` branch
+- 🔄 Documentation updates (in progress)
+- ⏭️ Ready for merge and release as v0.1.3
+
+**Future Enhancements (Phase 4+):**
 - Additional patterns (Constellation, Ripple Grid, Waveform, Mandelbrot, Kaleidoscope)
-- Demo GIFs/videos for README
+- Demo GIFs/videos for README showcasing new visual effects
 - Multi-terminal emulator testing
-- Performance profiling and optimization
+- Further performance profiling and optimization
 - Community feedback integration
 
 ## Documentation
@@ -141,9 +163,9 @@ Highlights:
 
 ---
 
-**Project Status:** v0.1.0 - Published and Live ✅  
-**Test Coverage:** 82.34% (817 tests) ✅  
-**All Phases 1-6:** Complete ✅  
-**Package Version:** 0.1.0 (initial release)  
+**Project Status:** v0.1.3-dev - Phase 3 Visual Enhancements 🎨  
+**Latest Release:** v0.1.2 (Published November 3, 2025) ✅  
+**Test Coverage:** 93.07% (1419 tests) ✅  
+**Development Branch:** `enhance/visual-improvements` (6 commits, ready for merge)  
 **npm Registry:** https://www.npmjs.com/package/ascii-splash  
-**GitHub Release:** https://github.com/reowens/ascii-splash/releases/tag/v0.1.0
+**Latest GitHub Release:** https://github.com/reowens/ascii-splash/releases/tag/v0.1.2
