@@ -20,6 +20,7 @@ interface BasePair {
   y: number;
   type: 'AT' | 'GC' | 'TA' | 'CG';
   flash: number; // for mutation effect
+  pulsePhase: number; // for breathing effect (0-2π)
 }
 
 export class DNAPattern implements Pattern {
@@ -97,7 +98,8 @@ export class DNAPattern implements Pattern {
       this.basePairs.push({
         y,
         type: this.randomBasePairType(),
-        flash: 0
+        flash: 0,
+        pulsePhase: Math.random() * Math.PI * 2
       });
     }
   }
@@ -133,6 +135,10 @@ export class DNAPattern implements Pattern {
       if (pair.y < 0 || pair.y >= height) continue;
 
       const y = Math.floor(pair.y);
+      
+      // Update pulse phase for breathing effect
+      pair.pulsePhase += 0.02;
+      if (pair.pulsePhase > Math.PI * 2) pair.pulsePhase -= Math.PI * 2;
       
       // Calculate twist angle for this height
       const heightRatio = pair.y / height;
@@ -180,7 +186,8 @@ export class DNAPattern implements Pattern {
       for (let x = minX; x <= maxX; x++) {
         if (inBounds(x, y, width, height)) {
           const progress = (x - minX) / (maxX - minX || 1);
-          const intensity = clamp(0.4 + mutationIntensity * 0.6 + pair.flash, 0, 1);
+          const pulseFactor = 0.9 + Math.sin(pair.pulsePhase) * 0.1; // 0.8-1.0 range
+          const intensity = clamp((0.4 + mutationIntensity * 0.6 + pair.flash) * pulseFactor, 0, 1);
           
           let char = this.pairChars[1];
           if (x === minX || x === maxX) {
@@ -198,17 +205,19 @@ export class DNAPattern implements Pattern {
       if (showLabels && y % 2 === 0) {
         const [base1, base2] = pair.type.split('') as ['A' | 'T' | 'G' | 'C', 'A' | 'T' | 'G' | 'C'];
         
+        const pulseFactor = 0.9 + Math.sin(pair.pulsePhase) * 0.1;
+        
         if (inBounds(x1, y, width, height) && depth1 > 0.3) {
           buffer[y][x1] = {
             char: this.baseChars[base1],
-            color: this.theme.getColor(clamp(depth1 + mutationIntensity, 0, 1))
+            color: this.theme.getColor(clamp((depth1 + mutationIntensity) * pulseFactor, 0, 1))
           };
         }
         
         if (inBounds(x2, y, width, height) && depth2 > 0.3) {
           buffer[y][x2] = {
             char: this.baseChars[base2],
-            color: this.theme.getColor(clamp(depth2 + mutationIntensity, 0, 1))
+            color: this.theme.getColor(clamp((depth2 + mutationIntensity) * pulseFactor, 0, 1))
           };
         }
       }
@@ -242,6 +251,7 @@ export class DNAPattern implements Pattern {
       if (dist < 15) {
         pair.type = this.randomBasePairType();
         pair.flash = 1.0;
+        pair.pulsePhase = 0; // Reset pulse for synchronized breathing
       }
     }
   }

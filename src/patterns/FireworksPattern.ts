@@ -23,6 +23,7 @@ interface Particle {
   vy: number;
   life: number;
   trail: Point[];
+  hue: number; // Color variation (0-1) for rainbow effect
 }
 
 interface Firework {
@@ -95,6 +96,27 @@ export class FireworksPattern implements Pattern {
     };
   }
 
+  // Convert hue (0-1) to RGB color with rainbow gradient
+  private hueToColor(hue: number, intensity: number): Color {
+    const h = hue * 6;
+    const x = (1 - Math.abs(h % 2 - 1)) * intensity;
+    const c = intensity;
+    
+    let r = 0, g = 0, b = 0;
+    if (h < 1) { r = c; g = x; }
+    else if (h < 2) { r = x; g = c; }
+    else if (h < 3) { g = c; b = x; }
+    else if (h < 4) { g = x; b = c; }
+    else if (h < 5) { r = x; b = c; }
+    else { r = c; b = x; }
+    
+    return {
+      r: Math.floor(r * 255),
+      g: Math.floor(g * 255),
+      b: Math.floor(b * 255)
+    };
+  }
+
   reset(): void {
     this.fireworks = [];
     this.lastSpawn = 0;
@@ -140,7 +162,8 @@ export class FireworksPattern implements Pattern {
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         life: 1.0,
-        trail: []
+        trail: [],
+        hue: i / this.config.burstSize // Rainbow effect across burst
       });
     }
   }
@@ -244,12 +267,16 @@ export class FireworksPattern implements Pattern {
               char = ['·', '∙', '.'][Math.floor(Math.random() * 3)];
             }
 
+            // Blend between burst color and rainbow hue color
+            const rainbowColor = this.hueToColor(p.hue, p.life);
+            const blendFactor = 0.6; // 60% rainbow, 40% theme color
+            
             buffer[py][px] = {
               char,
               color: {
-                r: Math.floor(fw.burstColor.r * p.life),
-                g: Math.floor(fw.burstColor.g * p.life),
-                b: Math.floor(fw.burstColor.b * p.life)
+                r: Math.floor(rainbowColor.r * blendFactor + fw.burstColor.r * (1 - blendFactor) * p.life),
+                g: Math.floor(rainbowColor.g * blendFactor + fw.burstColor.g * (1 - blendFactor) * p.life),
+                b: Math.floor(rainbowColor.b * blendFactor + fw.burstColor.b * (1 - blendFactor) * p.life)
               }
             };
           }
@@ -263,12 +290,15 @@ export class FireworksPattern implements Pattern {
             if (tx >= 0 && tx < width && ty >= 0 && ty < height) {
               const trailLife = (k / p.trail.length) * p.life;
               if (trailLife > 0.1) {
+                const rainbowColor = this.hueToColor(p.hue, trailLife);
+                const blendFactor = 0.6;
+                
                 buffer[ty][tx] = {
                   char: '·',
                   color: {
-                    r: Math.floor(fw.burstColor.r * trailLife),
-                    g: Math.floor(fw.burstColor.g * trailLife),
-                    b: Math.floor(fw.burstColor.b * trailLife)
+                    r: Math.floor(rainbowColor.r * blendFactor + fw.burstColor.r * (1 - blendFactor) * trailLife),
+                    g: Math.floor(rainbowColor.g * blendFactor + fw.burstColor.g * (1 - blendFactor) * trailLife),
+                    b: Math.floor(rainbowColor.b * blendFactor + fw.burstColor.b * (1 - blendFactor) * trailLife)
                   }
                 };
               }

@@ -20,6 +20,7 @@ interface Droplet {
   vy: number;
   time: number;
   radius: number;
+  tension: number; // Surface tension: 0.5 = normal, higher = more cohesive
 }
 
 export class QuicksilverPattern implements Pattern {
@@ -145,7 +146,11 @@ export class QuicksilverPattern implements Pattern {
         const noise2 = this.noise(noiseX * 2 + 100, noiseY * 2);
         const noise3 = this.noise(noiseX * 0.5, noiseY * 0.5 + time * 0.0001);
         
-        let flow = (noise1 + noise2 * 0.5 + noise3 * 0.3) * flowIntensity;
+        // Calculate surface tension field (slow-changing)
+        const tensionNoise = this.noise(x * 0.01, y * 0.01 + time * 0.00005);
+        const surfaceTension = 0.4 + (tensionNoise + 1) * 0.3; // Range 0.4-1.0
+        
+        let flow = (noise1 + noise2 * 0.5 + noise3 * 0.3) * flowIntensity * surfaceTension;
 
         // Add ripple effects
         for (const ripple of this.ripples) {
@@ -173,7 +178,9 @@ export class QuicksilverPattern implements Pattern {
           // Early rejection using squared distance
           if (distSquared < radiusSquared) {
             const dist = Math.sqrt(distSquared);
-            const dropletEffect = (1 - dist / droplet.radius) * 1.5;
+            // Higher tension = more defined edges, sharper droplet
+            const edgeSharpness = 1 + droplet.tension;
+            const dropletEffect = Math.pow(1 - dist / droplet.radius, edgeSharpness) * 1.5;
             flow += dropletEffect;
           }
         }
@@ -216,8 +223,14 @@ export class QuicksilverPattern implements Pattern {
       
       d.x += d.vx;
       d.y += d.vy;
-      d.vy += 0.2; // Gravity
-      d.radius = Math.max(1, d.radius - 0.05);
+      
+      // Higher tension = resists gravity more (surface tension holds droplet together)
+      const gravityEffect = 0.2 * (1 - d.tension * 0.3);
+      d.vy += gravityEffect;
+      
+      // Higher tension = slower size reduction (more cohesive)
+      const shrinkRate = 0.05 * (1 - d.tension * 0.4);
+      d.radius = Math.max(1, d.radius - shrinkRate);
       
       return d.y < height && d.radius > 0;
     });
@@ -257,7 +270,8 @@ export class QuicksilverPattern implements Pattern {
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed - 2,
         time: clickTime,
-        radius: 3 + Math.random() * 2
+        radius: 3 + Math.random() * 2,
+        tension: 0.3 + Math.random() * 0.4 // Random tension: 0.3-0.7
       });
     }
     
