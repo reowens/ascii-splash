@@ -634,10 +634,7 @@ function main() {
     patternBufferTimeout = setTimeout(() => {
       patternBufferActive = false;
       patternBuffer = '';
-      renderPatternOverlay();
     }, patternBufferTimeoutMs);
-    
-    renderPatternOverlay();
   }
   
   function cancelPatternBuffer() {
@@ -647,7 +644,6 @@ function main() {
       clearTimeout(patternBufferTimeout);
       patternBufferTimeout = null;
     }
-    renderPatternOverlay();
   }
   
   function executePatternBuffer() {
@@ -657,7 +653,6 @@ function main() {
       clearTimeout(patternBufferTimeout);
       patternBufferTimeout = null;
     }
-    renderPatternOverlay();
     
     if (!input) {
       // Empty input = previous pattern
@@ -727,10 +722,8 @@ function main() {
       // Command mode is active - route to command buffer
       if (name === 'ESCAPE') {
         commandBuffer.cancel();
-        renderCommandOverlay();
       } else if (name === 'ENTER') {
         const cmdString = commandBuffer.execute();
-        renderCommandOverlay();
         
         // Parse and execute command
         if (cmdString) {
@@ -744,30 +737,23 @@ function main() {
         }
       } else if (name === 'BACKSPACE') {
         commandBuffer.backspace();
-        renderCommandOverlay();
       } else if (name === 'UP') {
         commandBuffer.previousCommand();
-        renderCommandOverlay();
       } else if (name === 'DOWN') {
         commandBuffer.nextCommand();
-        renderCommandOverlay();
       } else if (name === 'LEFT') {
         commandBuffer.moveCursorLeft();
-        renderCommandOverlay();
       } else if (name === 'RIGHT') {
         commandBuffer.moveCursorRight();
-        renderCommandOverlay();
       } else if (data.isCharacter) {
         // Regular character input - but allow single-digit keys to pass through
         const char = String.fromCharCode(data.codepoint);
         if (/^[1-9]$/.test(char)) {
           // Single digit - cancel command mode and let normal handling proceed
           commandBuffer.cancel();
-          renderCommandOverlay();
           // Don't return - let normal key handling process the digit
         } else {
           commandBuffer.addChar(char);
-          renderCommandOverlay();
           return; // Stay in command mode
         }
       }
@@ -784,7 +770,6 @@ function main() {
         executePatternBuffer();
       } else if (name === 'BACKSPACE') {
         patternBuffer = patternBuffer.slice(0, -1);
-        renderPatternOverlay();
       } else if (data.isCharacter) {
         // Accept numbers, letters, and dots
         const char = String.fromCharCode(data.codepoint);
@@ -794,11 +779,9 @@ function main() {
             // Single digit with empty buffer - cancel pattern mode and let normal handling proceed
             patternBufferActive = false;
             patternBuffer = '';
-            renderPatternOverlay();
             // Don't return - let normal key handling process the digit
           } else {
             patternBuffer += char;
-            renderPatternOverlay();
             
             // Reset timeout on input
             if (patternBufferTimeout) {
@@ -807,7 +790,6 @@ function main() {
             patternBufferTimeout = setTimeout(() => {
               patternBufferActive = false;
               patternBuffer = '';
-              renderPatternOverlay();
             }, patternBufferTimeoutMs);
             return; // Stay in pattern mode
           }
@@ -826,7 +808,6 @@ function main() {
     // Command mode activation
     else if (name === 'c') {
       commandBuffer.activate();
-      renderCommandOverlay();
     }
     // Pause/Resume
     else if (name === 'SPACE') {
@@ -975,9 +956,11 @@ function main() {
   // Start animation
   engine.start();
   
-  // Set up debug overlay rendering
+  // Set up overlay rendering after each frame
   engine.setAfterRenderCallback(() => {
     renderDebugOverlay();
+    renderCommandOverlay();
+    renderPatternOverlay();
   });
   
   // Display welcome message briefly
