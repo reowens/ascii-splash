@@ -26,6 +26,7 @@ export class RainPattern implements Pattern {
   private theme: Theme;
   private drops: Drop[] = [];
   private splashes: Array<{ x: number; y: number; time: number; radius: number }> = [];
+  private currentTime: number = 0;
 
   private static readonly PRESETS: RainPreset[] = [
     {
@@ -95,6 +96,9 @@ export class RainPattern implements Pattern {
 
   render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void {
     const { width, height } = size;
+    
+    // Track current time for splashes and age calculations
+    this.currentTime = time;
 
     this.initDrops(size);
 
@@ -134,7 +138,7 @@ export class RainPattern implements Pattern {
         this.splashes.push({
           x: drop.x,
           y: height - 1,
-          time: Date.now(),
+          time: this.currentTime,
           radius: 2
         });
         
@@ -156,7 +160,7 @@ export class RainPattern implements Pattern {
     }
 
     // Render splashes
-    const currentTime = Date.now();
+    const currentTime = this.currentTime;
     for (let i = this.splashes.length - 1; i >= 0; i--) {
       const splash = this.splashes[i];
       const age = currentTime - splash.time;
@@ -212,10 +216,11 @@ export class RainPattern implements Pattern {
 
   onMouseClick(pos: Point): void {
     // Create big dramatic splash
+    // Use currentTime if available (after render called), otherwise use Date.now()
     this.splashes.push({
       x: pos.x,
       y: pos.y,
-      time: Date.now(),
+      time: this.currentTime || Date.now(),
       radius: 5
     });
     
@@ -246,7 +251,7 @@ export class RainPattern implements Pattern {
     
     // Count total splash particles (splash expansion area)
     const splashParticles = this.splashes.reduce((sum, splash) => {
-      const currentTime = Date.now();
+      const currentTime = this.currentTime;
       const age = currentTime - splash.time;
       const maxAge = 400;
       if (age < maxAge) {

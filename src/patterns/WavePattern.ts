@@ -21,6 +21,7 @@ export class WavePattern implements Pattern {
   private ripples: Array<{ x: number; y: number; time: number; radius: number }> = [];
   private waveChars = ['~', '≈', '∼', '-', '.', ' '];
 
+  private currentTime: number = 0;
   // Tier 1 Presets (01-09): Essential/Popular
   private static readonly PRESETS: WavePreset[] = [
     {
@@ -103,6 +104,9 @@ export class WavePattern implements Pattern {
   render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void {
     const { width, height } = size;
     const { speed, amplitude, frequency, layers } = this.config;
+    
+    // Track current time for mouse handlers and metrics
+    this.currentTime = time;
 
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
@@ -177,7 +181,7 @@ export class WavePattern implements Pattern {
     this.ripples.push({
       x: pos.x,
       y: pos.y,
-      time: Date.now(),
+      time: this.currentTime,
       radius: 20
     });
     
@@ -192,7 +196,7 @@ export class WavePattern implements Pattern {
     this.ripples.push({
       x: pos.x,
       y: pos.y,
-      time: Date.now(),
+      time: this.currentTime,
       radius: 35
     });
   }
@@ -203,9 +207,9 @@ export class WavePattern implements Pattern {
 
   getMetrics(): Record<string, number> {
     // Calculate average ripple age
-    const currentTime = Date.now();
+    // Calculate average ripple age
     const avgRippleAge = this.ripples.length > 0
-      ? this.ripples.reduce((sum, r) => sum + (currentTime - r.time), 0) / this.ripples.length
+      ? this.ripples.reduce((sum, r) => sum + (this.currentTime - r.time), 0) / this.ripples.length
       : 0;
     
     return {

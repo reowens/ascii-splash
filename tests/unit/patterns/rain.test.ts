@@ -431,13 +431,18 @@ describe('RainPattern', () => {
       const size = createMockSize(80, 24);
       
       // Render many times to ensure drops hit ground
+      let foundSplash = false;
       for (let i = 0; i < 100; i++) {
-        pattern.render(buffer, i * 100, size);
+        pattern.render(buffer, i * 16, size); // Use 16ms frame time (60fps)
+        const metrics = pattern.getMetrics();
+        if (metrics.splashes > 0) {
+          foundSplash = true;
+          break; // Found a splash, test can pass
+        }
       }
       
-      // Should have created some splashes
-      const metrics = pattern.getMetrics();
-      expect(metrics.splashes).toBeGreaterThan(0);
+      // Should have created some splashes during the animation
+      expect(foundSplash).toBe(true);
     });
 
     it('uses theme colors based on drop speed', () => {

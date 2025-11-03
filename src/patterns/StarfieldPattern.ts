@@ -27,6 +27,7 @@ export class StarfieldPattern implements Pattern {
   private stars: Star[] = [];
   private starChars = ['.', '·', '*', '✦', '✧', '★'];
   private explosions: Array<{ x: number; y: number; time: number; particles: Array<{ dx: number; dy: number }> }> = [];
+  private currentTime: number = 0;
 
   private static readonly PRESETS: StarfieldPreset[] = [
     {
@@ -116,6 +117,8 @@ export class StarfieldPattern implements Pattern {
   render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void {
     const { width, height } = size;
     const { speed, mouseRepelRadius } = this.config;
+    // Track current time for explosions
+    this.currentTime = time;
 
     this.initStars(size);
 
@@ -189,7 +192,7 @@ export class StarfieldPattern implements Pattern {
     }
 
     // Render explosions
-    const currentTime = Date.now();
+    const currentTime = this.currentTime;
     for (const explosion of this.explosions) {
       const age = currentTime - explosion.time;
       const maxAge = 1000;
@@ -237,7 +240,7 @@ export class StarfieldPattern implements Pattern {
     this.explosions.push({
       x: pos.x,
       y: pos.y,
-      time: Date.now(),
+      time: this.currentTime || Date.now(), // Use currentTime if available, otherwise Date.now()
       particles
     });
   }
