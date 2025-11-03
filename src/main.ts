@@ -363,8 +363,7 @@ function main() {
     commandExecutor.updateState(currentPatternIndex, currentThemeIndex);
   });
   
-  // Command result message state
-  let commandResultMessage: string | null = null;
+  // Command result message state (tracked for cleanup timing)
   let commandResultTimeout: NodeJS.Timeout | null = null;
   
   // Pattern buffer state (for enhanced 'p' key functionality)
@@ -615,10 +614,7 @@ function main() {
     commandResultTimeout = setTimeout(() => {
       term.moveTo(1, bottomLine);
       term.eraseLine();
-      commandResultMessage = null;
     }, 2500);
-    
-    commandResultMessage = message;
   }
   
   function activatePatternBuffer() {
@@ -716,7 +712,7 @@ function main() {
   }
   
   // Handle input
-  term.on('key', (name: string, matches: any, data: any) => {
+  term.on('key', (name: string, _matches: any, data: any) => {
     // Check if command buffer is active
     if (commandBuffer.isActive()) {
       // Command mode is active - route to command buffer
