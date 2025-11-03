@@ -10,6 +10,7 @@ Welcome to the **ascii-splash** documentation. Choose your path based on your ro
 | **[ARCHITECTURE.md](ARCHITECTURE.md)** | 👨‍💻 Developers | Technical architecture, system design, contribution guidelines |
 | **[PROJECT_STATUS.md](PROJECT_STATUS.md)** | 📊 Everyone | Current status, statistics, quick reference |
 | **[TESTING_PLAN.md](TESTING_PLAN.md)** | 🧪 Testers | Test strategy, coverage, test suite organization |
+| **[issues/README.md](issues/README.md)** | 🐛 Maintainers | Issue tracking, bug reports, testing checklists |
 
 ---
 
@@ -21,6 +22,7 @@ Welcome to the **ascii-splash** documentation. Choose your path based on your ro
 | **Understand the project** | [PROJECT_STATUS.md](PROJECT_STATUS.md) → [ARCHITECTURE.md](ARCHITECTURE.md) |
 | **Add a new pattern** | [ARCHITECTURE.md](ARCHITECTURE.md#contribution-points) → [../src/patterns/](../src/patterns/) |
 | **Write tests** | [TESTING_PLAN.md](TESTING_PLAN.md) → [../tests/unit/](../tests/unit/) |
+| **Report/track issues** | [issues/README.md](issues/README.md) → [issues/active/](issues/active/) |
 
 ---
 
