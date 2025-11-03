@@ -239,11 +239,16 @@ Neighbor counts are recalculated multiple times. Could cache during generation u
 ## Implementation Priority Matrix
 
 ### Phase 1: Critical Fixes (Week 1)
-- [ ] Fix `Date.now()` time handling (1-2 hours)
+- [x] Fix `Date.now()` time handling (1-2 hours) ✅ **COMPLETE**
+  - Fixed 7 patterns: Wave, Starfield, Rain, DNA, Lightning, Plasma, Quicksilver
+  - Added `currentTime` instance variable for consistent time tracking
+  - Updated mouse handlers with fallback for pre-render calls
+  - Fixed rain test timing issues
+  - Commit: 88e037d
 - [ ] Audit and fix reset() methods (1 hour)
 - [ ] Standardize metrics reporting (2 hours)
 
-**Total**: ~4-5 hours
+**Total**: ~4-5 hours | **Progress**: 1/3 complete (40%)
 
 ### Phase 2: Performance (Week 1-2)
 - [ ] Spiral sqrt optimization (15 min)
@@ -288,7 +293,7 @@ Neighbor counts are recalculated multiple times. Could cache during generation u
 ## Success Metrics
 
 ### Performance
-- [ ] No pattern uses `Date.now()` directly
+- [x] No pattern uses `Date.now()` directly ✅ **COMPLETE**
 - [ ] All patterns < 5ms render time at 80x24
 - [ ] CPU usage remains < 5% idle
 
@@ -356,7 +361,9 @@ Neighbor counts are recalculated multiple times. Could cache during generation u
 ## Next Steps
 
 1. ✅ Complete pattern analysis
-2. ⏭️ Start Phase 1: Critical Fixes
+2. ⏳ **IN PROGRESS** Phase 1: Critical Fixes (40% complete)
+   - ✅ Date.now() fixes complete
+   - ⏭️ Next: Audit reset() methods
 3. Create GitHub issues for Phase 4+ items
 4. Update CHANGELOG.md as we complete phases
 
