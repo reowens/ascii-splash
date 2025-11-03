@@ -176,6 +176,42 @@ describe('Pattern Presets', () => {
         expect(preset?.config.amplitude).toBeGreaterThanOrEqual(10);
       });
     });
+
+    describe('Rendering', () => {
+      it('should fill buffer with visible content', () => {
+        const buffer = createMockBuffer(80, 24);
+        const size = createMockSize(80, 24);
+        
+        pattern.render(buffer, 1000, size);
+        
+        let filledCells = 0;
+        for (let y = 0; y < size.height; y++) {
+          for (let x = 0; x < size.width; x++) {
+            if (buffer[y][x].char !== ' ') {
+              filledCells++;
+            }
+          }
+        }
+        
+        expect(filledCells).toBeGreaterThan(0);
+      });
+
+      it('renders without errors', () => {
+        const buffer = createMockBuffer(80, 24);
+        const size = createMockSize(80, 24);
+        
+        expect(() => {
+          pattern.render(buffer, 1000, size);
+        }).not.toThrow();
+      });
+
+      it('handles mouse click events', () => {
+        const mousePos = { x: 10, y: 10 };
+        expect(() => {
+          pattern.onMouseClick(mousePos);
+        }).not.toThrow();
+      });
+    });
   });
 
   describe('StarfieldPattern Presets', () => {
@@ -288,6 +324,42 @@ describe('Pattern Presets', () => {
       it('Asteroid Field has many stars', () => {
         const preset = StarfieldPattern.getPreset(3);
         expect(preset?.config.starCount).toBeGreaterThanOrEqual(100);
+      });
+    });
+
+    describe('Rendering', () => {
+      it('should fill buffer with visible content', () => {
+        const buffer = createMockBuffer(80, 24);
+        const size = createMockSize(80, 24);
+        
+        pattern.render(buffer, 1000, size);
+        
+        let filledCells = 0;
+        for (let y = 0; y < size.height; y++) {
+          for (let x = 0; x < size.width; x++) {
+            if (buffer[y][x].char !== ' ') {
+              filledCells++;
+            }
+          }
+        }
+        
+        expect(filledCells).toBeGreaterThan(0);
+      });
+
+      it('renders without errors', () => {
+        const buffer = createMockBuffer(80, 24);
+        const size = createMockSize(80, 24);
+        
+        expect(() => {
+          pattern.render(buffer, 1000, size);
+        }).not.toThrow();
+      });
+
+      it('handles mouse click events', () => {
+        const mousePos = { x: 10, y: 10 };
+        expect(() => {
+          pattern.onMouseClick(mousePos);
+        }).not.toThrow();
       });
     });
   });

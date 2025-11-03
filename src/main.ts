@@ -113,9 +113,27 @@ function parseCliArguments(): CliOptions {
   };
 }
 
+/**
+ * Check if running in a TTY environment
+ * Exits with error if not interactive
+ */
+function checkTTY(): void {
+  if (!process.stdout.isTTY) {
+    console.error('Error: ascii-splash requires an interactive terminal (TTY)');
+    console.error('It cannot be run via pipe, redirect, or non-interactive environments.');
+    console.error('');
+    console.error('Usage: splash [options]');
+    console.error('Try: splash --help');
+    process.exit(1);
+  }
+}
+
 function main() {
-  // Parse CLI arguments
+  // Parse CLI arguments (allows --help/--version to work without TTY)
   const cliOptions = parseCliArguments();
+  
+  // Check TTY after parsing arguments (so --help works)
+  checkTTY();
   
   // Load configuration (CLI > config file > defaults)
   const configLoader = new ConfigLoader();
@@ -273,10 +291,33 @@ function main() {
   
   patterns = createPatternsFromConfig(config, currentTheme);
   
+  // Pattern names mapping (internal names)
+  const patternNames = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma', 'tunnel', 'lightning', 'fireworks', 'maze', 'life', 'dna', 'lavalamp', 'smoke', 'snow'];
+  
+  // Pattern display names for user-facing messages
+  const patternDisplayNames: Record<string, string> = {
+    'waves': 'Waves',
+    'starfield': 'Starfield',
+    'matrix': 'Matrix',
+    'rain': 'Rain',
+    'quicksilver': 'Quicksilver',
+    'particles': 'Particles',
+    'spiral': 'Spiral',
+    'plasma': 'Plasma',
+    'tunnel': 'Tunnel',
+    'lightning': 'Lightning',
+    'fireworks': 'Fireworks',
+    'maze': 'Maze',
+    'life': 'Life',
+    'dna': 'DNA',
+    'lavalamp': 'Lava Lamp',
+    'smoke': 'Smoke',
+    'snow': 'Snow'
+  };
+  
   // Determine starting pattern from config
   let currentPatternIndex = 0;
   if (config.defaultPattern) {
-    const patternNames = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma', 'tunnel', 'lightning', 'fireworks', 'maze', 'life', 'dna', 'lavalamp', 'smoke', 'snow'];
     const index = patternNames.indexOf(config.defaultPattern);
     if (index >= 0) {
       currentPatternIndex = index;
@@ -319,6 +360,12 @@ function main() {
   let commandResultMessage: string | null = null;
   let commandResultTimeout: NodeJS.Timeout | null = null;
   
+  // Pattern buffer state (for enhanced 'p' key functionality)
+  let patternBuffer = '';
+  let patternBufferActive = false;
+  let patternBufferTimeout: NodeJS.Timeout | null = null;
+  const patternBufferTimeoutMs = 5000; // 5 seconds
+  
   function switchPattern(index: number) {
     if (index >= 0 && index < patterns.length) {
       currentPatternIndex = index;
@@ -355,9 +402,10 @@ function main() {
   }
 
   function showPatternName(name: string) {
+    const displayName = patternDisplayNames[name] || name;
     term.moveTo(1, 1);
     term.eraseLine();
-    term.bold.cyan(`Pattern: ${name}`);
+    term.bold.cyan(`Pattern: ${displayName}`);
     
     setTimeout(() => {
       term.moveTo(1, 1);
@@ -373,7 +421,8 @@ function main() {
         '─────────────────',
         '0        Command mode (advanced)',
         '1-9      Switch patterns (1-9)',
-        'n/p      Next/Previous pattern (all 16)',
+        'n        Next pattern',
+        'p        Pattern mode (p12, p3.5, pwaves)',
         'SPACE    Pause/Resume',
         '+/-      Speed up/down',
         '[/]      Quality presets (low/high)',
@@ -504,6 +553,25 @@ function main() {
     }
   }
 
+  function renderPatternOverlay() {
+    const size = renderer.getSize();
+    const bottomLine = size.height;
+    
+    term.moveTo(1, bottomLine);
+    term.eraseLine();
+    
+    if (patternBufferActive) {
+      // Draw pattern prompt with cursor (yellow to distinguish from command mode)
+      term.bgBlack();
+      term.bold.yellow('PATTERN: ');
+      term.green(patternBuffer);
+      term.inverse('_'); // Cursor
+      
+      term.defaultColor();
+      term.bgDefaultColor();
+    }
+  }
+
   function showCommandResult(message: string, success: boolean) {
     const size = renderer.getSize();
     const bottomLine = size.height;
@@ -537,6 +605,105 @@ function main() {
     }, 2500);
     
     commandResultMessage = message;
+  }
+  
+  function activatePatternBuffer() {
+    patternBuffer = '';
+    patternBufferActive = true;
+    
+    // Clear any existing timeout
+    if (patternBufferTimeout) {
+      clearTimeout(patternBufferTimeout);
+    }
+    
+    // Set timeout to auto-cancel
+    patternBufferTimeout = setTimeout(() => {
+      patternBufferActive = false;
+      patternBuffer = '';
+      renderPatternOverlay();
+    }, patternBufferTimeoutMs);
+    
+    renderPatternOverlay();
+  }
+  
+  function cancelPatternBuffer() {
+    patternBufferActive = false;
+    patternBuffer = '';
+    if (patternBufferTimeout) {
+      clearTimeout(patternBufferTimeout);
+      patternBufferTimeout = null;
+    }
+    renderPatternOverlay();
+  }
+  
+  function executePatternBuffer() {
+    const input = patternBuffer.trim();
+    patternBufferActive = false;
+    if (patternBufferTimeout) {
+      clearTimeout(patternBufferTimeout);
+      patternBufferTimeout = null;
+    }
+    renderPatternOverlay();
+    
+    if (!input) {
+      // Empty input = previous pattern
+      const nextIndex = currentPatternIndex - 1;
+      switchPattern(nextIndex < 0 ? patterns.length - 1 : nextIndex);
+      return;
+    }
+    
+    // Check for pattern.preset format (e.g., "3.5" or "12.2")
+    if (input.includes('.')) {
+      const parts = input.split('.');
+      if (parts.length === 2) {
+        const patternNum = parseInt(parts[0], 10);
+        const presetNum = parseInt(parts[1], 10);
+        
+        if (!isNaN(patternNum) && !isNaN(presetNum) && patternNum >= 1 && patternNum <= patterns.length) {
+          const patternIndex = patternNum - 1;
+          switchPattern(patternIndex);
+          
+          // Apply preset
+          const pattern = patterns[patternIndex];
+          if (pattern.applyPreset && presetNum >= 1 && presetNum <= 6) {
+            if (pattern.applyPreset(presetNum)) {
+              const displayName = patternDisplayNames[pattern.name] || pattern.name;
+              showMessage(`${displayName} - Preset ${presetNum}`);
+            } else {
+              showMessage(`Invalid preset: ${presetNum}`);
+            }
+          } else {
+            showMessage(`Invalid preset: ${presetNum}`);
+          }
+          return;
+        }
+      }
+    }
+    
+    // Check if input is a number (pattern index)
+    const patternNum = parseInt(input, 10);
+    if (!isNaN(patternNum) && patternNum >= 1 && patternNum <= patterns.length) {
+      switchPattern(patternNum - 1);
+      return;
+    }
+    
+    // Check if input is a pattern name
+    const lowerInput = input.toLowerCase();
+    const patternIndex = patternNames.indexOf(lowerInput);
+    if (patternIndex >= 0) {
+      switchPattern(patternIndex);
+      return;
+    }
+    
+    // Partial name match
+    const partialMatch = patternNames.findIndex(name => name.startsWith(lowerInput));
+    if (partialMatch >= 0) {
+      switchPattern(partialMatch);
+      return;
+    }
+    
+    // Invalid input
+    showCommandResult(`Unknown pattern: ${input}`, false);
   }
   
   // Handle input
@@ -585,6 +752,38 @@ function main() {
       return; // Don't process other keys in command mode
     }
     
+    // Check if pattern buffer is active
+    if (patternBufferActive) {
+      // Pattern mode is active
+      if (name === 'ESCAPE') {
+        cancelPatternBuffer();
+      } else if (name === 'ENTER') {
+        executePatternBuffer();
+      } else if (name === 'BACKSPACE') {
+        patternBuffer = patternBuffer.slice(0, -1);
+        renderPatternOverlay();
+      } else if (data.isCharacter) {
+        // Accept numbers, letters, and dots
+        const char = String.fromCharCode(data.codepoint);
+        if (/[0-9a-zA-Z.]/.test(char)) {
+          patternBuffer += char;
+          renderPatternOverlay();
+          
+          // Reset timeout on input
+          if (patternBufferTimeout) {
+            clearTimeout(patternBufferTimeout);
+          }
+          patternBufferTimeout = setTimeout(() => {
+            patternBufferActive = false;
+            patternBuffer = '';
+            renderPatternOverlay();
+          }, patternBufferTimeoutMs);
+        }
+      }
+      
+      return; // Don't process other keys in pattern mode
+    }
+    
     // Normal mode - existing keyboard shortcuts
     
     // Quit commands
@@ -624,8 +823,8 @@ function main() {
     else if (name === 'n') {
       switchPattern((currentPatternIndex + 1) % patterns.length);
     } else if (name === 'p') {
-      const nextIndex = currentPatternIndex - 1;
-      switchPattern(nextIndex < 0 ? patterns.length - 1 : nextIndex);
+      // Activate pattern buffer mode
+      activatePatternBuffer();
     }
     // Speed controls
     else if (name === '+' || name === '=') {
@@ -717,7 +916,42 @@ function main() {
     term.moveTo(1, 2);
     term.eraseLine();
   }, 3000);
+  
+  return cleanup;
 }
 
+// Set up global signal handlers for graceful cleanup
+let cleanupHandler: (() => void) | null = null;
+
+process.on('SIGINT', () => {
+  if (cleanupHandler) {
+    cleanupHandler();
+  }
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  if (cleanupHandler) {
+    cleanupHandler();
+  }
+  process.exit(0);
+});
+
+process.on('uncaughtException', (err) => {
+  if (cleanupHandler) {
+    cleanupHandler();
+  }
+  console.error('Uncaught exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+  if (cleanupHandler) {
+    cleanupHandler();
+  }
+  console.error('Unhandled rejection:', reason);
+  process.exit(1);
+});
+
 // Run the app
-main();
+cleanupHandler = main();

@@ -15,6 +15,7 @@ export class TerminalRenderer {
     this.buffer = new Buffer(this.size);
     
     // Setup terminal
+    term.fullscreen(true);
     term.clear();
     term.hideCursor();
     
@@ -77,8 +78,9 @@ export class TerminalRenderer {
 
   cleanup(): void {
     term.clear();
+    term.fullscreen(false);
     term.hideCursor(false);
     term.grabInput(false);
-    term.processExit(0);
+    // Let caller handle process exit, not renderer
   }
 }

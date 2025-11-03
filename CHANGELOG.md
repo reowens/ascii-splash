@@ -7,7 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+## [0.1.0] - 2025-11-02
+
+### 🎉 Initial Release
+
+The first public release of ascii-splash - a terminal ASCII animation app with visual flow for your IDE workspace.
+
+### Added (Phase 6 - UI/UX Improvements)
+- **Enhanced Pattern Selection**: New interactive pattern mode activated by pressing `p`
+  - Type pattern number: `p12` → Pattern 12
+  - Type pattern name: `pwaves` → Waves pattern
+  - Type pattern.preset combo: `p3.5` → Pattern 3, Preset 5
+  - Press `p` then Enter (empty) → Previous pattern (original behavior)
+  - 5-second timeout with visual feedback (yellow "PATTERN:" overlay)
+  - ESC to cancel, partial name matching supported
+  - Replaces old `p` = previous pattern (now requires empty input + Enter)
+  - Updated help overlay and documentation
+
+### Added (Phase 6 - Release Preparation)
 - **DNA Helix Pattern**: Double helix rotation with base pairs (A-T, G-C, T-A, C-G)
   - 6 presets: Slow Helix, Fast Spin, Unwinding, Replication, Mutation, Rainbow
   - Mouse move creates twist effect, click spawns mutations
@@ -44,16 +61,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `drawing.ts`: Line drawing, symmetry helpers
   - `metaballs.ts`: Metaball field calculations for blob rendering
 
+### Fixed (Release Preparation - November 2, 2025)
+- **TTY Guard**: Added `checkTTY()` function to prevent execution in non-interactive environments
+  - Gracefully handles pipes, redirects, and cron jobs with helpful error message
+  - Allows `--help` and `--version` to work without TTY
+- **Signal Handlers**: Added global handlers for SIGINT, SIGTERM, uncaughtException, unhandledRejection
+  - Ensures terminal cleanup always runs before exit
+  - Prevents terminal from being left in raw mode on crash
+- **Terminal Cleanup**: Removed forced `processExit()` call from TerminalRenderer
+  - Renderer now only restores terminal state
+  - Makes embedding and testing safer
+- **Help Text**: Corrected pattern count from "all 16" to "all 17"
+- **Windows Config Path**: Fixed README documentation to show `.splashrc.json` instead of `config.json`
+- **Package Description**: Updated to reflect current feature set (17 patterns, 102 presets, 5 themes)
+- **Dependencies**: Removed unused `chalk` dependency
+
 ### Changed
 - Pattern count increased from 13 to 17
 - Total presets increased from 78 to 102
 - Test suite expanded to 803 total tests
-
-## [1.0.0] - 2025-10-30
-
-### 🎉 Initial Release
-
-The first stable release of ascii-splash - a terminal ASCII animation app with visual flow for your IDE workspace.
+- Main function now returns cleanup handler for better control flow
 
 ### ✨ Features
 
@@ -157,14 +184,14 @@ The first stable release of ascii-splash - a terminal ASCII animation app with v
 - **Global install**: `npm install -g ascii-splash`
 - **Run with npx**: `npx ascii-splash`
 - **Binary name**: `splash`
-- **Package size**: 79.7 kB (96 files)
+- **Package size**: 124.2 kB (137 files)
 
 ### 🧪 Testing
 
-- **653 tests**, all passing ✅
-- **83.01% code coverage**
-- 12 test suites covering:
-  - All 13 patterns with preset validation (including Life and Maze)
+- **817 tests**, all passing ✅
+- **82.34% code coverage**
+- 16 test suites covering:
+  - All 17 patterns with preset validation and buffer fill tests
   - Configuration system (defaults, loader, themes)
   - Engine components (animation, performance, command system)
   - Renderer (buffer, terminal)
@@ -201,7 +228,6 @@ The first stable release of ascii-splash - a terminal ASCII animation app with v
 - **Runtime**: Node.js 16+
 - **Key Dependencies**:
   - `terminal-kit`: Terminal control and mouse input
-  - `chalk`: Color output
   - `commander`: CLI argument parsing
   - `conf`: Cross-platform config file management
 - **Architecture**: 3-layer design (Renderer, Engine, Pattern)
@@ -225,4 +251,4 @@ See [docs/PLAN.md](docs/PLAN.md) for planned features and improvements.
 - Performance optimizations
 - Extended terminal emulator support
 
-[1.0.0]: https://github.com/reowens/ascii-splash/releases/tag/v1.0.0
+[0.1.0]: https://github.com/reowens/ascii-splash/releases/tag/v0.1.0

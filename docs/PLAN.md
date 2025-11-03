@@ -284,16 +284,16 @@ splash/
 - [x] All patterns work with all 5 themes
 - [x] Build successful with no TypeScript errors
 - [x] Documentation updates (README.md, CLAUDE.md, examples/.splashrc.example)
-- [x] Comprehensive test suite: 653 tests with 83.01% coverage
+- [x] Comprehensive test suite: 817 tests with 82.34% coverage
 
 **Result**: 13 total patterns with 78 presets (6 per pattern)!
 
 ### Testing Achievements 🧪
 
-**Test Coverage**: 83.01% (exceeded 80% target)
+**Test Coverage**: 82.34% (exceeded 80% target)
 - **Test Suites**: 10 suites, all passing ✅
-- **Total Tests**: 653 tests, all passing ✅
-- **Execution Time**: ~7.4 seconds
+- **Total Tests**: 817 tests, all passing ✅
+- **Execution Time**: ~35 seconds
 
 **Component Coverage**:
 - CommandParser: 100%
@@ -359,7 +359,7 @@ splash/
 #### 6.2 Stage 2: Additional Patterns 🎨 IN PROGRESS
 **Goal**: Expand pattern library before v1.0.0 release
 
-**Current Status**: 17 patterns → **Target**: 22 patterns (adding 5 more)
+**Current Status**: 17 patterns complete for v0.1.0 → **Future Goal**: 22+ patterns
 
 **Patterns Implemented** (6 complete):
 
@@ -461,29 +461,45 @@ splash/
 - [ ] Build and verify all patterns work
 - [ ] Test all 22 patterns with all 5 themes (110 combinations)
 
-**Result**: 22 patterns × 6 presets each = **132 total presets!**
-**Current Status**: 16 patterns × 6 presets = **96 total presets** ✅
+**Future Goal**: 22 patterns × 6 presets each = **132 total presets**
+**Current Status (v0.1.0)**: 17 patterns × 6 presets = **102 total presets** ✅
 
-#### 6.3 Stage 3: npm Publication 🚀 TODO
-**Goal**: Publish to npm registry (after Stage 2 complete)
+#### 6.3 Stage 3: v0.1.0 Release ✅ COMPLETE
+**Goal**: Prepare initial release package
 
-- [ ] Verify npm login credentials
-- [ ] Final build and test pass
-- [ ] Run `npm publish`
+- [x] Set version to 0.1.0 (appropriate for initial release)
+- [x] Update package.json with correct metadata
+- [x] Update CHANGELOG.md with v0.1.0 release notes
+- [x] Fix buffer fill verification tests (MatrixPattern, RainPattern)
+- [x] Verify all 817 tests passing (100%)
+- [x] Final coverage: 82.34% (exceeds 80% target)
+- [x] Documentation updates for release
+- [x] Package ready for `npm publish`
+
+**Next Steps for Publication:**
+- [ ] Run `npm publish` to publish v0.1.0
 - [ ] Verify package on npmjs.com
 - [ ] Test global installation: `npm install -g ascii-splash`
 - [ ] Test npx execution: `npx ascii-splash`
-- [ ] Create GitHub release with tag v1.0.0
+- [ ] Create GitHub release with tag v0.1.0
+- [ ] Push to GitHub with `git push origin main --tags`
 
-#### 6.4 Stage 4: Polish & Promotion ✨ TODO
-**Goal**: Enhance discoverability and user experience
+#### 6.4 Stage 4: Future Enhancements (Post-v0.1.0) 🔮
+**Goal**: Improve discoverability and expand features
 
 **Documentation**:
-- [x] Create CHANGELOG.md with v1.0.0 release notes
+- [x] Create CHANGELOG.md with v0.1.0 release notes
 - [ ] Add demo GIFs/videos to README
 - [ ] Create usage examples gallery
 - [ ] Add screenshots of patterns and themes
 - [ ] Document pattern preset showcase
+
+**Additional Patterns** (5 remaining for v0.2.0):
+- [ ] Constellation - Star patterns that connect and fade
+- [ ] Ripple Grid - Grid of intersecting wave ripples
+- [ ] Waveform - Audio visualizer style frequency bars
+- [ ] Mandelbrot Zoom - Fractal zoom animation
+- [ ] Kaleidoscope - Mirrored geometric patterns
 
 **Testing**:
 - [ ] Test on multiple terminal emulators

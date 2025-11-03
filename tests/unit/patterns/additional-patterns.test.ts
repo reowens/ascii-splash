@@ -146,6 +146,31 @@ describe('Additional Pattern Tests', () => {
     });
 
     describe('Rendering', () => {
+      it('should fill buffer with visible content', () => {
+        const buffer = createMockBuffer(80, 24);
+        const size = createMockSize(80, 24);
+        
+        // Matrix columns start at negative Y positions (off-screen)
+        // Need multiple renders to allow columns to fall into view
+        // Columns move at speed * 0.3 per frame (line 141 in MatrixPattern.ts)
+        // With default speed=1.0, columns move 0.3 units per render
+        // Column length is 5-20 chars, so need ~20-30 renders to see content
+        for (let i = 0; i < 40; i++) {
+          pattern.render(buffer, i * 100, size);
+        }
+        
+        let filledCells = 0;
+        for (let y = 0; y < size.height; y++) {
+          for (let x = 0; x < size.width; x++) {
+            if (buffer[y][x].char !== ' ') {
+              filledCells++;
+            }
+          }
+        }
+        
+        expect(filledCells).toBeGreaterThan(0);
+      });
+
       it('renders without errors', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
@@ -262,6 +287,31 @@ describe('Additional Pattern Tests', () => {
     });
 
     describe('Rendering', () => {
+      it('should fill buffer with visible content', () => {
+        const buffer = createMockBuffer(80, 24);
+        const size = createMockSize(80, 24);
+        
+        // Rain drops start at negative Y positions (y: Math.random() * -10)
+        // Need multiple renders to allow drops to fall into view
+        // Drops move at speed * 0.5 per frame (line 127 in RainPattern.ts)
+        // With default speed=1.0, drops move 0.5 units per render
+        // Starting at y=-10, need ~20-25 renders to reach y=0
+        for (let i = 0; i < 30; i++) {
+          pattern.render(buffer, i * 100, size);
+        }
+        
+        let filledCells = 0;
+        for (let y = 0; y < size.height; y++) {
+          for (let x = 0; x < size.width; x++) {
+            if (buffer[y][x].char !== ' ') {
+              filledCells++;
+            }
+          }
+        }
+        
+        expect(filledCells).toBeGreaterThan(0);
+      });
+
       it('renders without errors', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
@@ -376,6 +426,24 @@ describe('Additional Pattern Tests', () => {
     });
 
     describe('Rendering', () => {
+      it('should fill buffer with visible content', () => {
+        const buffer = createMockBuffer(80, 24);
+        const size = createMockSize(80, 24);
+        
+        pattern.render(buffer, 1000, size);
+        
+        let filledCells = 0;
+        for (let y = 0; y < size.height; y++) {
+          for (let x = 0; x < size.width; x++) {
+            if (buffer[y][x].char !== ' ') {
+              filledCells++;
+            }
+          }
+        }
+        
+        expect(filledCells).toBeGreaterThan(0);
+      });
+
       it('renders without errors', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
@@ -490,6 +558,24 @@ describe('Additional Pattern Tests', () => {
     });
 
     describe('Rendering', () => {
+      it('should fill buffer with visible content', () => {
+        const buffer = createMockBuffer(80, 24);
+        const size = createMockSize(80, 24);
+        
+        pattern.render(buffer, 1000, size);
+        
+        let filledCells = 0;
+        for (let y = 0; y < size.height; y++) {
+          for (let x = 0; x < size.width; x++) {
+            if (buffer[y][x].char !== ' ') {
+              filledCells++;
+            }
+          }
+        }
+        
+        expect(filledCells).toBeGreaterThan(0);
+      });
+
       it('renders without errors', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
@@ -725,6 +811,24 @@ describe('Additional Pattern Tests', () => {
     });
 
     describe('Rendering', () => {
+      it('should fill buffer with visible content', () => {
+        const buffer = createMockBuffer(80, 24);
+        const size = createMockSize(80, 24);
+        
+        pattern.render(buffer, 1000, size);
+        
+        let filledCells = 0;
+        for (let y = 0; y < size.height; y++) {
+          for (let x = 0; x < size.width; x++) {
+            if (buffer[y][x].char !== ' ') {
+              filledCells++;
+            }
+          }
+        }
+        
+        expect(filledCells).toBeGreaterThan(0);
+      });
+
       it('renders without errors', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
@@ -854,6 +958,24 @@ describe('Additional Pattern Tests', () => {
     });
 
     describe('Rendering', () => {
+      it('should fill buffer with visible content', () => {
+        const buffer = createMockBuffer(80, 24);
+        const size = createMockSize(80, 24);
+        
+        pattern.render(buffer, 1000, size);
+        
+        let filledCells = 0;
+        for (let y = 0; y < size.height; y++) {
+          for (let x = 0; x < size.width; x++) {
+            if (buffer[y][x].char !== ' ') {
+              filledCells++;
+            }
+          }
+        }
+        
+        expect(filledCells).toBeGreaterThan(0);
+      });
+
       it('renders without errors', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
@@ -968,6 +1090,27 @@ describe('Additional Pattern Tests', () => {
     });
 
     describe('Rendering', () => {
+      it('should fill buffer with visible content', () => {
+        const buffer = createMockBuffer(80, 24);
+        const size = createMockSize(80, 24);
+        
+        // Lightning is time-based, trigger a strike with mouse click
+        const mousePos = { x: 40, y: 12 };
+        pattern.onMouseClick(mousePos);
+        pattern.render(buffer, 100, size);
+        
+        let filledCells = 0;
+        for (let y = 0; y < size.height; y++) {
+          for (let x = 0; x < size.width; x++) {
+            if (buffer[y][x].char !== ' ') {
+              filledCells++;
+            }
+          }
+        }
+        
+        expect(filledCells).toBeGreaterThan(0);
+      });
+
       it('renders without errors', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
@@ -1082,6 +1225,27 @@ describe('Additional Pattern Tests', () => {
     });
 
     describe('Rendering', () => {
+      it('should fill buffer with visible content', () => {
+        const buffer = createMockBuffer(80, 24);
+        const size = createMockSize(80, 24);
+        
+        // Fireworks launches over time, trigger one with click
+        const mousePos = { x: 40, y: 20 };
+        pattern.onMouseClick(mousePos);
+        pattern.render(buffer, 100, size);
+        
+        let filledCells = 0;
+        for (let y = 0; y < size.height; y++) {
+          for (let x = 0; x < size.width; x++) {
+            if (buffer[y][x].char !== ' ') {
+              filledCells++;
+            }
+          }
+        }
+        
+        expect(filledCells).toBeGreaterThan(0);
+      });
+
       it('renders without errors', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);

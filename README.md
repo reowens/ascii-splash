@@ -132,7 +132,7 @@ ascii-splash supports persistent configuration via a JSON file. The config file 
 
 The config file is stored at:
 - **Linux/macOS**: `~/.config/ascii-splash/.splashrc.json`
-- **Windows**: `%APPDATA%\ascii-splash\config.json`
+- **Windows**: `%APPDATA%\ascii-splash\.splashrc.json`
 
 ### Priority Order
 
@@ -213,7 +213,13 @@ Each pattern has its own configuration options. See [examples/.splashrc.example]
 ### ⌨️ Keyboard
 - **0**: Command mode (advanced multi-key commands - presets, favorites, search, shuffle)
 - **1-9**: Switch to pattern 1-9
-- **n/p**: Next/Previous pattern (cycles through all 17 patterns)
+- **n**: Next pattern (cycles through all 17 patterns)
+- **p**: Pattern mode - Type pattern number, name, or pattern.preset combo:
+  - `p` → `12` → Enter: Switch to pattern 12
+  - `p` → `3.5` → Enter: Switch to pattern 3, preset 5
+  - `p` → `waves` → Enter: Switch to waves pattern
+  - `p` → Enter (empty): Previous pattern
+  - 5-second timeout or ESC to cancel
 - **Space**: Pause/Resume
 - **+/-**: Adjust FPS (10-60)
 - **[/]**: Cycle quality presets (LOW/MEDIUM/HIGH)

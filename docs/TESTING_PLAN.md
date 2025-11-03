@@ -4,11 +4,11 @@
 
 This document outlines the comprehensive testing strategy for ascii-splash, a terminal ASCII animation application with 17 patterns, 102 presets, 5 themes, and an advanced command system.
 
-**Current Status**: ✅ **803 tests passing** across 10 test suites (801 passing, 2 flaky)
-**Current Coverage**: 83.01% overall (core components at 96-100%)
+**Current Status**: ✅ **817 tests passing** across 10 test suites (100%)
+**Current Coverage**: 82.34% overall (core components at 96-100%)
 **Target Coverage**: 80%+ for core logic ✅ **ACHIEVED**
 **Testing Framework**: Jest 29.7.0 (✅ Installed and configured)
-**Document Version**: 1.6 (Updated with Snow pattern complete)
+**Document Version**: 1.7 (v0.1.0 Release)
 
 ---
 
@@ -700,7 +700,7 @@ tests/
 └── snapshots/                           (Not implemented - optional)
 ```
 
-**Total: 10 test files, 803 tests**
+**Total: 10 test files, 817 tests**
 
 ---
 
@@ -851,7 +851,7 @@ npm test -- --testNamePattern="Preset Commands"
 - **AnimationEngine**: 90% ✅ **ACHIEVED (98.14%)**
 - **CommandExecutor**: 90% ✅ **ACHIEVED (96.63%)**
 - **Pattern Presets**: 80% ✅ **ACHIEVED (173 tests passing, 53%-94% coverage range)**
-- **Overall Project**: 80%+ ✅ **ACHIEVED (83.01%)**
+- **Overall Project**: 80%+ ✅ **ACHIEVED (82.34%)**
 
 ---
 
@@ -910,9 +910,9 @@ npm run build && npm start
 
 ---
 
-**Document Version**: 1.6  
-**Last Updated**: 2025-10-31  
-**Status**: ✅ All milestones complete, 803 tests passing, 83.01% coverage achieved, 17 patterns complete
+**Document Version**: 1.7  
+**Last Updated**: 2025-11-02  
+**Status**: ✅ v0.1.0 Release - All milestones complete, 817 tests passing (100%), 82.34% coverage achieved, 17 patterns complete
 
 ---
 
@@ -975,8 +975,8 @@ npm run build && npm start
 
 ✅ **ALL TESTING PRIORITIES COMPLETE**
 
-- **Total Tests**: 803 tests (up from 755, +6.4%)
-- **Overall Coverage**: 83.01% ✅ **TARGET ACHIEVED**
+- **Total Tests**: 817 tests (up from 755, +8.2%)
+- **Overall Coverage**: 82.34% ✅ **TARGET ACHIEVED**
 - **Components at 95%+**: 8/9 core components
 - **Patterns Tested**: 17/17 patterns (323 tests)
 - **Test Suites**: 10/10 passing
@@ -1001,7 +1001,7 @@ npm run build && npm start
   - PlasmaPattern, TunnelPattern, LightningPattern, FireworksPattern
 - ✅ New patterns: Life, Maze, DNA, LavaLamp, Smoke, Snow (150 tests) **COMPLETE**
 - **Total Pattern Tests**: 323 tests
-- **Coverage**: 83.01% overall
+- **Coverage**: 82.34% overall
 
 **Priority 2: Engine Components** ✅ **COMPLETE (3/3)**
 - ✅ CommandBuffer tests (56 tests, 100% coverage) **COMPLETE**

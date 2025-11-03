@@ -52,11 +52,11 @@ export const defaultConfig: ConfigSchema = {
       spawnRate: 2,
     },
     spiral: {
-      spiralCount: 3,
-      rotationSpeed: 0.5,
-      armLength: 8,
-      density: 15,
-      expandSpeed: 0.3,
+      spiralCount: 5,
+      rotationSpeed: 0.8,
+      armLength: 6,
+      density: 30,
+      expandSpeed: 0.4,
     },
     plasma: {
       frequency: 0.1,
@@ -65,11 +65,11 @@ export const defaultConfig: ConfigSchema = {
     },
     tunnel: {
       shape: 'circle',
-      ringCount: 12,
-      ringSpacing: 0.5,
+      ringCount: 20,
+      ringSpacing: 1.0,
       speed: 1.0,
-      rotationSpeed: 0.2,
-      radius: 15,
+      rotationSpeed: 0.5,
+      radius: 0.6,
     },
     lightning: {
       boltDensity: 0.5,
