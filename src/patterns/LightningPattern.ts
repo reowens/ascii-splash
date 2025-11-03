@@ -1,5 +1,6 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types';
 import { bresenhamLine } from '../utils/drawing';
+import { validateCount, validateProbability, validateAngle, validateInterval, clamp } from '../utils/validation';
 
 interface LightningConfig {
   boltDensity: number;
@@ -81,7 +82,7 @@ export class LightningPattern implements Pattern {
 
   constructor(theme: Theme, config?: Partial<LightningConfig>) {
     this.theme = theme;
-    this.config = {
+    const merged = {
       boltDensity: 10,
       branchProbability: 0.25,
       branchAngle: Math.PI / 4,
@@ -90,6 +91,17 @@ export class LightningPattern implements Pattern {
       maxBranches: 5,
       thickness: 1,
       ...config
+    };
+    
+    // Validate numeric config values
+    this.config = {
+      boltDensity: validateCount(merged.boltDensity, 50),
+      branchProbability: validateProbability(merged.branchProbability),
+      branchAngle: validateAngle(merged.branchAngle),
+      fadeTime: clamp(merged.fadeTime, 5, 100),
+      strikeInterval: validateInterval(merged.strikeInterval, 100, 10000),
+      maxBranches: validateCount(merged.maxBranches, 20),
+      thickness: validateCount(merged.thickness, 10)
     };
   }
 

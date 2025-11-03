@@ -1,4 +1,5 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types';
+import { validateDensity, validateSpeed } from '../utils/validation';
 
 interface Column {
   x: number;
@@ -74,11 +75,18 @@ export class MatrixPattern implements Pattern {
 
   constructor(theme: Theme, config?: Partial<MatrixConfig>) {
     this.theme = theme;
-    this.config = {
+    const merged = {
       density: 0.3,
       speed: 1.0,
-      charset: 'katakana',
+      charset: 'katakana' as const,
       ...config
+    };
+    
+    // Validate numeric config values
+    this.config = {
+      density: validateDensity(merged.density),
+      speed: validateSpeed(merged.speed, 0.1, 5),
+      charset: merged.charset
     };
   }
 

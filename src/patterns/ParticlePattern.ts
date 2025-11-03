@@ -1,4 +1,5 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types';
+import { validateCount, validateSpeed, clamp, ensureNonNegative } from '../utils/validation';
 
 interface Particle {
   x: number;
@@ -74,13 +75,22 @@ export class ParticlePattern implements Pattern {
   
   constructor(theme: Theme, config?: Partial<ParticleConfig>) {
     this.theme = theme;
-    this.config = {
+    const merged = {
       particleCount: 100,
       speed: 1.0,
       gravity: 0.02,
       mouseForce: 0.5,
       spawnRate: 2,
       ...config
+    };
+    
+    // Validate numeric config values
+    this.config = {
+      particleCount: validateCount(merged.particleCount, 500),
+      speed: validateSpeed(merged.speed, 0.1, 5),
+      gravity: clamp(merged.gravity, -0.5, 0.5),
+      mouseForce: clamp(merged.mouseForce, 0, 2),
+      spawnRate: ensureNonNegative(merged.spawnRate, 1)
     };
   }
 
