@@ -242,57 +242,57 @@ describe('SnowPattern', () => {
   });
 
   describe('presets', () => {
-    it('should have getPresets method', () => {
-      expect(pattern.getPresets).toBeDefined();
-      expect(typeof pattern.getPresets).toBe('function');
+    it('should have getPresets static method', () => {
+      expect(SnowPattern.getPresets).toBeDefined();
+      expect(typeof SnowPattern.getPresets).toBe('function');
     });
 
     it('should return 6 presets', () => {
-      const presets = pattern.getPresets();
+      const presets = SnowPattern.getPresets();
       expect(presets).toBeDefined();
-      expect(presets?.length).toBe(6);
-    });
-
-    it('should have preset with id 0', () => {
-      const presets = pattern.getPresets();
-      const preset0 = presets?.find(p => p.id === 0);
-      expect(preset0).toBeDefined();
-      expect(preset0?.name).toBe('Light Flurries');
+      expect(presets.length).toBe(6);
     });
 
     it('should have preset with id 1', () => {
-      const presets = pattern.getPresets();
-      const preset1 = presets?.find(p => p.id === 1);
+      const presets = SnowPattern.getPresets();
+      const preset1 = presets.find(p => p.id === 1);
       expect(preset1).toBeDefined();
-      expect(preset1?.name).toBe('Blizzard');
+      expect(preset1?.name).toBe('Light Flurries');
     });
 
     it('should have preset with id 2', () => {
-      const presets = pattern.getPresets();
-      const preset2 = presets?.find(p => p.id === 2);
+      const presets = SnowPattern.getPresets();
+      const preset2 = presets.find(p => p.id === 2);
       expect(preset2).toBeDefined();
-      expect(preset2?.name).toBe('Cherry Blossoms');
+      expect(preset2?.name).toBe('Blizzard');
     });
 
     it('should have preset with id 3', () => {
-      const presets = pattern.getPresets();
-      const preset3 = presets?.find(p => p.id === 3);
+      const presets = SnowPattern.getPresets();
+      const preset3 = presets.find(p => p.id === 3);
       expect(preset3).toBeDefined();
-      expect(preset3?.name).toBe('Autumn Leaves');
+      expect(preset3?.name).toBe('Cherry Blossoms');
     });
 
     it('should have preset with id 4', () => {
-      const presets = pattern.getPresets();
-      const preset4 = presets?.find(p => p.id === 4);
+      const presets = SnowPattern.getPresets();
+      const preset4 = presets.find(p => p.id === 4);
       expect(preset4).toBeDefined();
-      expect(preset4?.name).toBe('Confetti');
+      expect(preset4?.name).toBe('Autumn Leaves');
     });
 
     it('should have preset with id 5', () => {
-      const presets = pattern.getPresets();
-      const preset5 = presets?.find(p => p.id === 5);
+      const presets = SnowPattern.getPresets();
+      const preset5 = presets.find(p => p.id === 5);
       expect(preset5).toBeDefined();
-      expect(preset5?.name).toBe('Ash');
+      expect(preset5?.name).toBe('Confetti');
+    });
+
+    it('should have preset with id 6', () => {
+      const presets = SnowPattern.getPresets();
+      const preset6 = presets.find(p => p.id === 6);
+      expect(preset6).toBeDefined();
+      expect(preset6?.name).toBe('Ash');
     });
 
     it('should have applyPreset method', () => {
@@ -300,15 +300,7 @@ describe('SnowPattern', () => {
       expect(typeof pattern.applyPreset).toBe('function');
     });
 
-    it('should apply preset 0 (Light Flurries)', () => {
-      const result = pattern.applyPreset(0);
-      expect(result).toBe(true);
-      
-      pattern.render(buffer, 1000, size);
-      expect(buffer).toBeDefined();
-    });
-
-    it('should apply preset 1 (Blizzard)', () => {
+    it('should apply preset 1 (Light Flurries)', () => {
       const result = pattern.applyPreset(1);
       expect(result).toBe(true);
       
@@ -316,8 +308,16 @@ describe('SnowPattern', () => {
       expect(buffer).toBeDefined();
     });
 
-    it('should apply preset 2 (Cherry Blossoms)', () => {
+    it('should apply preset 2 (Blizzard)', () => {
       const result = pattern.applyPreset(2);
+      expect(result).toBe(true);
+      
+      pattern.render(buffer, 1000, size);
+      expect(buffer).toBeDefined();
+    });
+
+    it('should apply preset 3 (Cherry Blossoms)', () => {
+      const result = pattern.applyPreset(3);
       expect(result).toBe(true);
       
       pattern.render(buffer, 1000, size);
@@ -338,8 +338,8 @@ describe('SnowPattern', () => {
       expect(foundCherryChar).toBe(true);
     });
 
-    it('should apply preset 3 (Autumn Leaves)', () => {
-      const result = pattern.applyPreset(3);
+    it('should apply preset 4 (Autumn Leaves)', () => {
+      const result = pattern.applyPreset(4);
       expect(result).toBe(true);
       
       pattern.render(buffer, 1000, size);
@@ -360,16 +360,16 @@ describe('SnowPattern', () => {
       expect(foundLeafChar).toBe(true);
     });
 
-    it('should apply preset 4 (Confetti)', () => {
-      const result = pattern.applyPreset(4);
+    it('should apply preset 5 (Confetti)', () => {
+      const result = pattern.applyPreset(5);
       expect(result).toBe(true);
       
       pattern.render(buffer, 1000, size);
       expect(buffer).toBeDefined();
     });
 
-    it('should apply preset 5 (Ash)', () => {
-      const result = pattern.applyPreset(5);
+    it('should apply preset 6 (Ash)', () => {
+      const result = pattern.applyPreset(6);
       expect(result).toBe(true);
       
       pattern.render(buffer, 1000, size);

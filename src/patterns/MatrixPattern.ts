@@ -1,4 +1,5 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types';
+import { validateDensity, validateSpeed } from '../utils/validation';
 
 interface Column {
   x: number;
@@ -74,11 +75,18 @@ export class MatrixPattern implements Pattern {
 
   constructor(theme: Theme, config?: Partial<MatrixConfig>) {
     this.theme = theme;
-    this.config = {
+    const merged = {
       density: 0.3,
       speed: 1.0,
-      charset: 'katakana',
+      charset: 'katakana' as const,
       ...config
+    };
+    
+    // Validate numeric config values
+    this.config = {
+      density: validateDensity(merged.density),
+      speed: validateSpeed(merged.speed, 0.1, 5),
+      charset: merged.charset
     };
   }
 
@@ -158,9 +166,10 @@ export class MatrixPattern implements Pattern {
           for (const distortion of this.distortions) {
             const dx = col.x - distortion.x;
             const dy = y - distortion.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
+            const distSquared = dx * dx + dy * dy;
+            const radiusSquared = distortion.radius * distortion.radius;
             
-            if (dist < distortion.radius) {
+            if (distSquared < radiusSquared) {
               isDistorted = true;
               char = this.getRandomChar();
               break;
@@ -221,9 +230,22 @@ export class MatrixPattern implements Pattern {
   }
 
   getMetrics(): Record<string, number> {
+    // Calculate total characters across all columns
+    const totalChars = this.columns.reduce((sum, col) => sum + col.length, 0);
+    
+    // Calculate average speed across all columns
+    const avgSpeed = this.columns.length > 0
+      ? this.columns.reduce((sum, col) => sum + col.speed, 0) / this.columns.length
+      : 0;
+    
     return {
       columns: this.columns.length,
-      density: this.config.density
+      totalChars,
+      avgSpeed: Math.round(avgSpeed * 100) / 100,
+      distortions: this.distortions.length,
+      density: this.config.density,
+      speed: this.config.speed,
+      charset: this.config.charset === 'katakana' ? 1 : this.config.charset === 'numbers' ? 2 : 3
     };
   }
 

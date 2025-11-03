@@ -202,9 +202,19 @@ export class WavePattern implements Pattern {
   }
 
   getMetrics(): Record<string, number> {
+    // Calculate average ripple age
+    const currentTime = Date.now();
+    const avgRippleAge = this.ripples.length > 0
+      ? this.ripples.reduce((sum, r) => sum + (currentTime - r.time), 0) / this.ripples.length
+      : 0;
+    
     return {
       activeRipples: this.ripples.length,
-      waveLayers: this.config.layers
+      avgRippleAge: Math.round(avgRippleAge),
+      waveLayers: this.config.layers,
+      speed: this.config.speed,
+      amplitude: this.config.amplitude,
+      frequency: this.config.frequency
     };
   }
 }

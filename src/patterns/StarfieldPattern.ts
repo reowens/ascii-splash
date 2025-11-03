@@ -248,9 +248,29 @@ export class StarfieldPattern implements Pattern {
   }
 
   getMetrics(): Record<string, number> {
+    // Calculate depth statistics
+    const avgDepth = this.stars.length > 0
+      ? this.stars.reduce((sum, star) => sum + star.z, 0) / this.stars.length
+      : 0;
+    const minDepth = this.stars.length > 0
+      ? Math.min(...this.stars.map(star => star.z))
+      : 0;
+    const maxDepth = this.stars.length > 0
+      ? Math.max(...this.stars.map(star => star.z))
+      : 0;
+    
+    // Count total explosion particles
+    const explosionParticles = this.explosions.reduce((sum, exp) => sum + exp.particles.length, 0);
+    
     return {
       stars: this.stars.length,
-      explosions: this.explosions.length
+      explosions: this.explosions.length,
+      explosionParticles,
+      avgDepth: Math.round(avgDepth * 100) / 100,
+      minDepth: Math.round(minDepth * 100) / 100,
+      maxDepth: Math.round(maxDepth * 100) / 100,
+      speed: this.config.speed,
+      repelRadius: this.config.mouseRepelRadius
     };
   }
 }

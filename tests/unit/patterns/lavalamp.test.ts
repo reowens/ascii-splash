@@ -224,7 +224,7 @@ describe('LavaLampPattern', () => {
 
   describe('presets', () => {
     it('should have 6 presets', () => {
-      const presets = pattern.getPresets?.();
+      const presets = LavaLampPattern.getPresets();
       expect(presets).toHaveLength(6);
     });
 

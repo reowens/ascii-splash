@@ -1,4 +1,5 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types';
+import { bresenhamLine } from '../utils/drawing';
 
 interface TunnelConfig {
   shape: 'circle' | 'square' | 'hexagon' | 'star';
@@ -47,6 +48,7 @@ export class TunnelPattern implements Pattern {
   private particles: StreamParticle[] = [];
   private speedLines: SpeedLine[] = [];
   private time: number = 0;
+  private lastTime: number = 0;
   private vanishingOffset: Point = { x: 0, y: 0 };
   private boostActive: boolean = false;
   private boostEndTime: number = 0;
@@ -216,6 +218,7 @@ export class TunnelPattern implements Pattern {
     this.initializeParticles();
     this.initializeSpeedLines();
     this.time = 0;
+    this.lastTime = 0;
     this.vanishingOffset = { x: 0, y: 0 };
     this.boostActive = false;
     this.boostEndTime = 0;
@@ -267,33 +270,12 @@ export class TunnelPattern implements Pattern {
     intensity: number,
     size: Size
   ): void {
-    const dx = Math.abs(x2 - x1);
-    const dy = Math.abs(y2 - y1);
-    const sx = x1 < x2 ? 1 : -1;
-    const sy = y1 < y2 ? 1 : -1;
-    let err = dx - dy;
+    const points = bresenhamLine(x1, y1, x2, y2);
+    const color = this.theme.getColor(intensity);
 
-    let x = x1;
-    let y = y1;
-
-    while (true) {
-      if (x >= 0 && x < size.width && y >= 0 && y < size.height) {
-        buffer[y][x] = {
-          char,
-          color: this.theme.getColor(intensity)
-        };
-      }
-
-      if (x === x2 && y === y2) break;
-
-      const e2 = 2 * err;
-      if (e2 > -dy) {
-        err -= dy;
-        x += sx;
-      }
-      if (e2 < dx) {
-        err += dx;
-        y += sy;
+    for (const point of points) {
+      if (point.x >= 0 && point.x < size.width && point.y >= 0 && point.y < size.height) {
+        buffer[point.y][point.x] = { char, color };
       }
     }
   }
@@ -311,13 +293,32 @@ export class TunnelPattern implements Pattern {
 
     const speedMultiplier = this.boostActive ? 3.0 : 1.0;
     const effectiveSpeed = this.config.speed * speedMultiplier;
-    const deltaTime = 0.016;
+    const deltaTime = this.lastTime === 0 ? 16 : time - this.lastTime;
+    this.lastTime = time;
 
     // Update turbulence
-    this.turbulenceOffset += deltaTime * 2;
+    this.turbulenceOffset += (deltaTime / 1000) * 2;
 
-    // Draw speed lines (background layer)
+    // Render tunnel layers
+    this.renderSpeedLines(buffer, size, time, effectiveSpeed, centerX, centerY);
+    this.updateAndRenderRings(buffer, size, effectiveSpeed, deltaTime, centerX, centerY, width, height);
+    this.updateAndRenderParticles(buffer, size, effectiveSpeed, deltaTime, centerX, centerY, width, height);
+    this.renderCenterMarker(buffer, size, time, centerX, centerY, width, height);
+  }
+
+  private renderSpeedLines(
+    buffer: Cell[][],
+    size: Size,
+    time: number,
+    effectiveSpeed: number,
+    centerX: number,
+    centerY: number
+  ): void {
+    const { width, height } = size;
     const speedLineIntensity = Math.min(0.3, effectiveSpeed / 10);
+    const maxDim = Math.min(width, height) / 2;
+    const lineChar = effectiveSpeed > 3 ? '=' : '-';
+
     for (const line of this.speedLines) {
       const animOffset = (time / 1000) * effectiveSpeed;
       const linePhase = (line.offset + animOffset) % 1;
@@ -325,36 +326,48 @@ export class TunnelPattern implements Pattern {
       const startDist = linePhase * 0.5;
       const endDist = startDist + line.length;
       
-      const maxDim = Math.min(width, height) / 2;
       const x1 = centerX + Math.cos(line.angle) * startDist * maxDim;
       const y1 = centerY + Math.sin(line.angle) * startDist * maxDim;
       const x2 = centerX + Math.cos(line.angle) * endDist * maxDim;
       const y2 = centerY + Math.sin(line.angle) * endDist * maxDim;
       
       const intensity = speedLineIntensity * (1 - linePhase);
-      const lineChar = effectiveSpeed > 3 ? '=' : '-';
-      
       this.drawLine(buffer, Math.floor(x1), Math.floor(y1), Math.floor(x2), Math.floor(y2), lineChar, intensity, size);
     }
+  }
 
-    // Update and draw rings
+  private updateAndRenderRings(
+    buffer: Cell[][],
+    size: Size,
+    effectiveSpeed: number,
+    deltaTime: number,
+    centerX: number,
+    centerY: number,
+    width: number,
+    height: number
+  ): void {
+    const deltaSeconds = deltaTime / 1000;
+    
+    // Update ring positions
     for (const ring of this.rings) {
-      ring.z += effectiveSpeed * deltaTime * 0.5;
-      ring.rotation += this.config.rotationSpeed * deltaTime;
+      ring.z += effectiveSpeed * deltaSeconds * 0.5;
+      ring.rotation += this.config.rotationSpeed * deltaSeconds;
 
       if (ring.z > 1) {
         ring.z = 0;
       }
     }
 
+    // Render rings back-to-front
     const sortedRings = [...this.rings].sort((a, b) => a.z - b.z);
     const sides = this.config.shape === 'square' ? 4 : this.config.shape === 'hexagon' ? 6 : 0;
+    const baseRadius = Math.min(width, height) * this.config.radius;
+    const chars = ['.', '·', '∘', '○', '◎', '◉', '●', '█'];
 
     for (const ring of sortedRings) {
       if (ring.z < 0.01) continue;
 
       const scale = ring.z;
-      const baseRadius = Math.min(width, height) * this.config.radius;
       let scaledRadius = baseRadius * scale;
       
       // Apply turbulence
@@ -365,12 +378,10 @@ export class TunnelPattern implements Pattern {
 
       const intensity = Math.max(0.2, ring.z * this.config.glowIntensity);
       const points = this.getShapePoints(sides, scaledRadius, ring.rotation);
-
-      // Choose character based on depth and speed
-      const chars = ['.', '·', '∘', '○', '◎', '◉', '●', '█'];
       const charIndex = Math.min(chars.length - 1, Math.floor(ring.z * chars.length));
       const char = chars[charIndex];
 
+      // Draw ring segments
       for (let i = 0; i < points.length; i++) {
         const p1 = points[i];
         const p2 = points[(i + 1) % points.length];
@@ -383,22 +394,30 @@ export class TunnelPattern implements Pattern {
         this.drawLine(buffer, x1, y1, x2, y2, char, intensity, size);
       }
     }
+  }
 
-    // Update and draw particles
+  private updateAndRenderParticles(
+    buffer: Cell[][],
+    size: Size,
+    effectiveSpeed: number,
+    deltaTime: number,
+    centerX: number,
+    centerY: number,
+    width: number,
+    height: number
+  ): void {
+    const deltaSeconds = deltaTime / 1000;
+    const baseRadius = Math.min(width, height) * this.config.radius;
+
     for (const particle of this.particles) {
-      particle.z += effectiveSpeed * deltaTime * particle.speed;
+      // Update particle position
+      particle.z += effectiveSpeed * deltaSeconds * particle.speed;
 
       if (particle.z > 1) {
         particle.z = 0;
         particle.x = (Math.random() - 0.5) * 2;
         particle.y = (Math.random() - 0.5) * 2;
       }
-
-      const scale = particle.z;
-      const baseRadius = Math.min(width, height) * this.config.radius;
-      
-      const screenX = centerX + particle.x * baseRadius * scale;
-      const screenY = centerY + particle.y * baseRadius * scale;
 
       // Draw particle trail
       const trailSteps = Math.floor(particle.trailLength);
@@ -424,20 +443,31 @@ export class TunnelPattern implements Pattern {
         }
       }
     }
+  }
 
-    // Draw boost effect at center
+  private renderCenterMarker(
+    buffer: Cell[][],
+    size: Size,
+    time: number,
+    centerX: number,
+    centerY: number,
+    width: number,
+    height: number
+  ): void {
     if (this.boostActive) {
-      const boostProgress = 1 - ((this.boostEndTime - time) / 2000);
       const pulseSize = Math.floor(3 + Math.sin(time / 50) * 2);
       
       for (let dx = -pulseSize; dx <= pulseSize; dx++) {
         for (let dy = -pulseSize; dy <= pulseSize; dy++) {
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist <= pulseSize) {
+          const distSquared = dx * dx + dy * dy;
+          const pulseSizeSquared = pulseSize * pulseSize;
+          
+          if (distSquared <= pulseSizeSquared) {
             const x = Math.floor(centerX + dx);
             const y = Math.floor(centerY + dy);
             
             if (x >= 0 && x < width && y >= 0 && y < height) {
+              const dist = Math.sqrt(distSquared);
               const intensity = (1 - dist / pulseSize) * 0.8;
               buffer[y][x] = {
                 char: dist < pulseSize / 2 ? '◉' : '○',

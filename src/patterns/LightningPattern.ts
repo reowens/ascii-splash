@@ -1,4 +1,6 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types';
+import { bresenhamLine } from '../utils/drawing';
+import { validateCount, validateProbability, validateAngle, validateInterval, clamp } from '../utils/validation';
 
 interface LightningConfig {
   boltDensity: number;
@@ -80,7 +82,7 @@ export class LightningPattern implements Pattern {
 
   constructor(theme: Theme, config?: Partial<LightningConfig>) {
     this.theme = theme;
-    this.config = {
+    const merged = {
       boltDensity: 10,
       branchProbability: 0.25,
       branchAngle: Math.PI / 4,
@@ -89,6 +91,17 @@ export class LightningPattern implements Pattern {
       maxBranches: 5,
       thickness: 1,
       ...config
+    };
+    
+    // Validate numeric config values
+    this.config = {
+      boltDensity: validateCount(merged.boltDensity, 50),
+      branchProbability: validateProbability(merged.branchProbability),
+      branchAngle: validateAngle(merged.branchAngle),
+      fadeTime: clamp(merged.fadeTime, 5, 100),
+      strikeInterval: validateInterval(merged.strikeInterval, 100, 10000),
+      maxBranches: validateCount(merged.maxBranches, 20),
+      thickness: validateCount(merged.thickness, 10)
     };
   }
 
@@ -186,43 +199,27 @@ export class LightningPattern implements Pattern {
     intensity: number,
     size: Size
   ): void {
-    // Bresenham's line algorithm
-    const dx = Math.abs(x2 - x1);
-    const dy = Math.abs(y2 - y1);
-    const sx = x1 < x2 ? 1 : -1;
-    const sy = y1 < y2 ? 1 : -1;
-    let err = dx - dy;
+    const points = bresenhamLine(x1, y1, x2, y2);
+    const color = this.theme.getColor(intensity);
+    const thickness = this.config.thickness;
 
-    let x = x1;
-    let y = y1;
+    // Apply each point with thickness
+    for (const point of points) {
+      // Early rejection if point is far out of bounds
+      if (point.x + thickness < 0 || point.x - thickness >= size.width ||
+          point.y + thickness < 0 || point.y - thickness >= size.height) {
+        continue;
+      }
 
-    while (true) {
-      if (x >= 0 && x < size.width && y >= 0 && y < size.height) {
-        // Apply thickness
-        for (let tx = -this.config.thickness + 1; tx < this.config.thickness; tx++) {
-          for (let ty = -this.config.thickness + 1; ty < this.config.thickness; ty++) {
-            const nx = x + tx;
-            const ny = y + ty;
-            if (nx >= 0 && nx < size.width && ny >= 0 && ny < size.height) {
-              buffer[ny][nx] = {
-                char,
-                color: this.theme.getColor(intensity)
-              };
-            }
+      // Apply thickness
+      for (let tx = -thickness + 1; tx < thickness; tx++) {
+        for (let ty = -thickness + 1; ty < thickness; ty++) {
+          const nx = point.x + tx;
+          const ny = point.y + ty;
+          if (nx >= 0 && nx < size.width && ny >= 0 && ny < size.height) {
+            buffer[ny][nx] = { char, color };
           }
         }
-      }
-
-      if (x === x2 && y === y2) break;
-
-      const e2 = 2 * err;
-      if (e2 > -dy) {
-        err -= dy;
-        x += sx;
-      }
-      if (e2 < dx) {
-        err += dx;
-        y += sy;
       }
     }
   }

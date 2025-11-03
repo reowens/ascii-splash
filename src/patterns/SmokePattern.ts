@@ -53,37 +53,37 @@ export class SmokePattern implements Pattern {
 
   private static readonly PRESETS: SmokePreset[] = [
     {
-      id: 0,
+      id: 1,
       name: 'Gentle Wisp',
       description: 'Light, slow-rising smoke',
       config: { plumeCount: 2, particleCount: 40, riseSpeed: 0.3, dissipationRate: 0.02, turbulence: 0.5, spread: 0.3, windStrength: 0.1, mouseBlowForce: 2.0 }
     },
     {
-      id: 1,
+      id: 2,
       name: 'Campfire',
       description: 'Classic campfire smoke',
       config: { plumeCount: 3, particleCount: 60, riseSpeed: 0.5, dissipationRate: 0.03, turbulence: 0.8, spread: 0.5, windStrength: 0.2, mouseBlowForce: 2.5 }
     },
     {
-      id: 2,
+      id: 3,
       name: 'Industrial',
       description: 'Heavy, dense smoke columns',
       config: { plumeCount: 5, particleCount: 80, riseSpeed: 0.4, dissipationRate: 0.015, turbulence: 0.3, spread: 0.2, windStrength: 0.3, mouseBlowForce: 3.0 }
     },
     {
-      id: 3,
+      id: 4,
       name: 'Incense',
       description: 'Thin, delicate smoke trail',
       config: { plumeCount: 1, particleCount: 30, riseSpeed: 0.25, dissipationRate: 0.04, turbulence: 1.2, spread: 0.4, windStrength: 0.15, mouseBlowForce: 1.5 }
     },
     {
-      id: 4,
+      id: 5,
       name: 'Fog',
       description: 'Low-lying, spreading fog',
       config: { plumeCount: 4, particleCount: 100, riseSpeed: 0.1, dissipationRate: 0.01, turbulence: 0.4, spread: 1.2, windStrength: 0.05, mouseBlowForce: 1.0 }
     },
     {
-      id: 5,
+      id: 6,
       name: 'Steam',
       description: 'Fast-rising, quickly dissipating',
       config: { plumeCount: 6, particleCount: 50, riseSpeed: 1.5, dissipationRate: 0.08, turbulence: 1.5, spread: 0.6, windStrength: 0.4, mouseBlowForce: 4.0 }
@@ -139,10 +139,12 @@ export class SmokePattern implements Pattern {
 
   reset(): void {
     this.particles = [];
+    this.plumes = [];
     this.mousePos = undefined;
     this.noiseOffset = 0;
     this.windOffset = 0;
     this.lastTime = 0;
+    this.noise = new PerlinNoise(Math.random() * 10000);
   }
 
   render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void {
@@ -295,10 +297,6 @@ export class SmokePattern implements Pattern {
     }
   }
 
-  getPresets(): SmokePreset[] {
-    return SmokePattern.PRESETS;
-  }
-
   applyPreset(presetId: number): boolean {
     const preset = SmokePattern.PRESETS.find(p => p.id === presetId);
     if (!preset) return false;
@@ -307,6 +305,14 @@ export class SmokePattern implements Pattern {
     this.reset();
     this.initializePlumes(80, 24); // Reset with default size
     return true;
+  }
+
+  static getPresets(): SmokePreset[] {
+    return [...SmokePattern.PRESETS];
+  }
+
+  static getPreset(id: number): SmokePreset | undefined {
+    return SmokePattern.PRESETS.find(p => p.id === id);
   }
 
   getMetrics(): Record<string, number> {

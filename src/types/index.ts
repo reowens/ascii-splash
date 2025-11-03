@@ -28,7 +28,27 @@ export interface Cell {
 
 export interface Pattern {
   name: string;
+  
+  /**
+   * Renders the pattern to the buffer.
+   * 
+   * @param buffer - 2D array of cells to render into
+   * @param time - Absolute timestamp in milliseconds (from Date.now())
+   * @param size - Current terminal dimensions
+   * @param mousePos - Optional mouse position (0-based coordinates)
+   * 
+   * **Time Parameter Convention:**
+   * - `time` is an absolute timestamp (milliseconds since epoch)
+   * - For frame-rate independent animation, patterns should:
+   *   1. Track `lastTime` as a private field
+   *   2. Calculate `deltaTime = time - lastTime` (in milliseconds)
+   *   3. Convert to seconds: `deltaSeconds = deltaTime / 1000`
+   *   4. Update `lastTime = time` after calculation
+   * - For periodic functions (sin/cos), using absolute `time` is acceptable
+   * - Patterns must reset `lastTime = 0` in their `reset()` method
+   */
   render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void;
+  
   onMouseMove?(pos: Point): void;
   onMouseClick?(pos: Point): void;
   reset(): void;
