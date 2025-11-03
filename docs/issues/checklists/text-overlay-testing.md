@@ -90,7 +90,7 @@ For each overlay type, verify:
 
 - **OS**: TBD
 - **Terminal**: TBD
-- **Node Version**: 16+
+- **Node Version**: 20+
 - **Build**: TBD
 
 ---

@@ -14,7 +14,7 @@ This document provides an overview of the automated CI/CD workflows for ascii-sp
 
 #### `test` (Matrix Build)
 - **Purpose**: Run tests across multiple Node.js versions
-- **Matrix**: Node.js 16.x, 18.x, 20.x, 22.x
+- **Matrix**: Node.js 20.x, 22.x
 - **Steps**:
   1. Checkout code
   2. Setup Node.js with cache

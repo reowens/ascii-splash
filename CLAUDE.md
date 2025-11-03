@@ -19,7 +19,7 @@
 - **5 color themes** (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **40+ commands** via multi-key command system
 - **Performance**: <5% CPU, ~40-50MB RAM
-- **Target**: Node.js 16+
+- **Target**: Node.js 20+
 
 **Tech Stack**:
 - TypeScript/Node.js (ES2020, CommonJS)

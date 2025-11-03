@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **GitHub Actions CI/CD Pipeline**: Complete automated testing and release infrastructure
   - **CI Workflow**: Runs on push/PR to main/develop branches
-    - Tests on Node.js 16, 18, 20, 22 for compatibility
+    - Tests on Node.js 20, 22 for compatibility
     - TypeScript compilation checks
     - Build verification and package validation
     - Coverage upload to Codecov
@@ -304,7 +304,7 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
 ### 🛠️ Technical Details
 
 - **Language**: TypeScript, compiled to ES2020 CommonJS
-- **Runtime**: Node.js 16+
+- **Runtime**: Node.js 20+
 - **Key Dependencies**:
   - `terminal-kit`: Terminal control and mouse input
   - `commander`: CLI argument parsing

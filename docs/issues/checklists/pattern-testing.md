@@ -55,7 +55,7 @@ For each pattern, verify:
 
 - **OS**: macOS (Apple M1)
 - **Terminal**: iTerm2 / Terminal.app
-- **Node Version**: 16+
+- **Node Version**: 20+
 - **Build**: Local development (`npm run build`)
 
 ---
