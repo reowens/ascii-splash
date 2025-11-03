@@ -5,12 +5,16 @@ interface Star {
   y: number;
   z: number; // Depth (distance from viewer)
   speed: number;
+  twinklePhase: number; // Random phase offset for twinkling
+  twinkleSpeed: number; // Speed of twinkling oscillation
 }
 
 interface StarConfig {
   starCount: number;
   speed: number;
   mouseRepelRadius: number;
+  twinkleEnabled: boolean;
+  twinkleIntensity: number; // 0-1: how much brightness varies
 }
 
 interface StarfieldPreset {
@@ -34,37 +38,49 @@ export class StarfieldPattern implements Pattern {
       id: 1,
       name: 'Deep Space',
       description: 'Sparse, slow-moving stars',
-      config: { starCount: 50, speed: 0.5, mouseRepelRadius: 8 }
+      config: { starCount: 50, speed: 0.5, mouseRepelRadius: 8, twinkleEnabled: false, twinkleIntensity: 0 }
     },
     {
       id: 2,
       name: 'Warp Speed',
       description: 'Hyperspace jump effect',
-      config: { starCount: 200, speed: 3.0, mouseRepelRadius: 3 }
+      config: { starCount: 200, speed: 3.0, mouseRepelRadius: 3, twinkleEnabled: false, twinkleIntensity: 0 }
     },
     {
       id: 3,
       name: 'Asteroid Field',
       description: 'Dense, medium-speed navigation',
-      config: { starCount: 150, speed: 1.5, mouseRepelRadius: 10 }
+      config: { starCount: 150, speed: 1.5, mouseRepelRadius: 10, twinkleEnabled: false, twinkleIntensity: 0 }
     },
     {
       id: 4,
       name: 'Milky Way',
       description: 'Balanced cosmic view',
-      config: { starCount: 120, speed: 0.8, mouseRepelRadius: 6 }
+      config: { starCount: 120, speed: 0.8, mouseRepelRadius: 6, twinkleEnabled: false, twinkleIntensity: 0 }
     },
     {
       id: 5,
       name: 'Nebula Drift',
       description: 'Slow, dense starfield',
-      config: { starCount: 180, speed: 0.4, mouseRepelRadius: 12 }
+      config: { starCount: 180, speed: 0.4, mouseRepelRadius: 12, twinkleEnabled: false, twinkleIntensity: 0 }
     },
     {
       id: 6,
       name: 'Photon Torpedo',
       description: 'Fast, sparse streaks',
-      config: { starCount: 80, speed: 2.5, mouseRepelRadius: 4 }
+      config: { starCount: 80, speed: 2.5, mouseRepelRadius: 4, twinkleEnabled: false, twinkleIntensity: 0 }
+    },
+    {
+      id: 7,
+      name: 'Twinkling Night',
+      description: 'Gentle twinkling stars',
+      config: { starCount: 120, speed: 0.6, mouseRepelRadius: 6, twinkleEnabled: true, twinkleIntensity: 0.4 }
+    },
+    {
+      id: 8,
+      name: 'Pulsing Cosmos',
+      description: 'Dramatic pulsating stars',
+      config: { starCount: 100, speed: 0.7, mouseRepelRadius: 5, twinkleEnabled: true, twinkleIntensity: 0.8 }
     }
   ];
 
@@ -74,6 +90,8 @@ export class StarfieldPattern implements Pattern {
       starCount: 100,
       speed: 1.0,
       mouseRepelRadius: 5,
+      twinkleEnabled: false,
+      twinkleIntensity: 0,
       ...config
     };
   }
@@ -110,7 +128,9 @@ export class StarfieldPattern implements Pattern {
       x: Math.random() * size.width - size.width / 2,
       y: Math.random() * size.height - size.height / 2,
       z: Math.random() * 10 + 1,
-      speed: Math.random() * 0.5 + 0.5
+      speed: Math.random() * 0.5 + 0.5,
+      twinklePhase: Math.random() * Math.PI * 2,
+      twinkleSpeed: Math.random() * 0.002 + 0.001 // 0.001-0.003
     };
   }
 
@@ -182,6 +202,15 @@ export class StarfieldPattern implements Pattern {
         } else if (depth > 0.15) {
           charIndex = 1;
           colorIntensity = 0.25;
+        }
+
+        // Apply twinkling effect if enabled
+        if (this.config.twinkleEnabled && this.config.twinkleIntensity > 0) {
+          const twinkle = Math.sin(time * star.twinkleSpeed + star.twinklePhase);
+          const twinkleModifier = 1.0 - (twinkle * this.config.twinkleIntensity * 0.5);
+          colorIntensity *= twinkleModifier;
+          // Clamp to valid range
+          colorIntensity = Math.max(0, Math.min(1, colorIntensity));
         }
 
         buffer[screenY][screenX] = {
