@@ -241,6 +241,7 @@ export class RainPattern implements Pattern {
   reset(): void {
     this.drops = [];
     this.splashes = [];
+    this.currentTime = 0;
   }
 
   getMetrics(): Record<string, number> {

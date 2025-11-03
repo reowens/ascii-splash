@@ -110,6 +110,7 @@ export class LightningPattern implements Pattern {
     this.bolts = [];
     this.lastStrike = 0;
     this.chargeParticles = [];
+    this.currentTime = 0;
   }
 
   private generateBolt(

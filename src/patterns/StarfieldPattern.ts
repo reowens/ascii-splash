@@ -248,6 +248,7 @@ export class StarfieldPattern implements Pattern {
   reset(): void {
     this.stars = [];
     this.explosions = [];
+    this.currentTime = 0;
   }
 
   getMetrics(): Record<string, number> {

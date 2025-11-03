@@ -203,6 +203,7 @@ export class WavePattern implements Pattern {
 
   reset(): void {
     this.ripples = [];
+    this.currentTime = 0;
   }
 
   getMetrics(): Record<string, number> {

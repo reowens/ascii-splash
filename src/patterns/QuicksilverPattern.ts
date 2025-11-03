@@ -268,6 +268,7 @@ export class QuicksilverPattern implements Pattern {
     this.droplets = [];
     this.ripples = [];
     this.noiseOffset = 0;
+    this.currentTime = 0;
   }
 
   getMetrics(): Record<string, number> {

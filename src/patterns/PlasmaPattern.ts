@@ -74,6 +74,7 @@ export class PlasmaPattern implements Pattern {
   reset(): void {
     this.mouseInfluence = null;
     this.clickWaves = [];
+    this.currentTime = 0;
   }
 
   render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void {

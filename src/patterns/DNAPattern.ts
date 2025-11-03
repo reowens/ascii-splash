@@ -250,6 +250,7 @@ export class DNAPattern implements Pattern {
     this.basePairs = [];
     this.mutationCenters = [];
     this.twistOffset = 0;
+    this.currentTime = 0;
   }
 
   getMetrics(): Record<string, number> {
