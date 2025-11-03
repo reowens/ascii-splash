@@ -337,6 +337,7 @@ function main() {
   // Overlay message state
   let overlayMessage: string | null = null;
   let overlayMessageTimeout: NodeJS.Timeout | null = null;
+  let overlayActive: boolean = false; // Track if overlay is currently displayed
   
   // Determine initial FPS from config
   const initialFps = ConfigLoader.getFpsFromConfig(config);
@@ -607,16 +608,21 @@ function main() {
   }
 
   function renderMessageOverlay() {
+    const size = renderer.getSize();
+    const bottomRow = size.height - 1; // Use bottom row instead of top (0-based)
+    
     if (overlayMessage) {
       // Use the new overlay API to render persistent overlays
       const theme = currentTheme;
       const color = theme.getColor(0.8); // Bright color for visibility
 
-      // Set overlay text using the new composite-on-flush system
-      renderer.setOverlayText(0, 0, overlayMessage, color);
-    } else {
-      // Clear overlay when message is null
-      renderer.clearOverlayRow(0);
+      // Set overlay text at BOTTOM of screen to avoid interfering with patterns
+      renderer.setOverlayText(0, bottomRow, overlayMessage, color);
+      overlayActive = true;
+    } else if (overlayActive) {
+      // Only clear overlay if it was previously active (prevents unnecessary redraws)
+      renderer.clearOverlayRow(bottomRow);
+      overlayActive = false;
     }
   }
 
@@ -777,12 +783,13 @@ function main() {
       } else if (name === 'RIGHT') {
         commandBuffer.moveCursorRight();
       } else if (data.isCharacter) {
-        // Regular character input - but allow single-digit keys to pass through
+        // Regular character input - but allow direct shortcuts to pass through
         const char = String.fromCharCode(data.codepoint);
-        if (/^[1-9]$/.test(char)) {
-          // Single digit - cancel command mode and let normal handling proceed
+        // Allow single digits (1-9) AND pattern navigation keys (n, b) to exit command mode
+        if (/^[1-9nNbB]$/.test(char)) {
+          // Single digit or pattern nav - cancel command mode and let normal handling proceed
           commandBuffer.cancel();
-          // Don't return - let normal key handling process the digit
+          // Don't return - let normal key handling process the key
         } else {
           commandBuffer.addChar(char);
           return; // Stay in command mode
