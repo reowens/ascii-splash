@@ -356,6 +356,7 @@ export class SnowPattern implements Pattern {
     this.lastTime = 0;
     this.noiseOffset = 0;
     this.windOffset = 0;
+    this.noise = new PerlinNoise();
     this.initializeParticles();
   }
 

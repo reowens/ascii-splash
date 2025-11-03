@@ -139,10 +139,12 @@ export class SmokePattern implements Pattern {
 
   reset(): void {
     this.particles = [];
+    this.plumes = [];
     this.mousePos = undefined;
     this.noiseOffset = 0;
     this.windOffset = 0;
     this.lastTime = 0;
+    this.noise = new PerlinNoise(Math.random() * 10000);
   }
 
   render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void {

@@ -96,6 +96,7 @@ export class ParticlePattern implements Pattern {
 
   reset(): void {
     this.particles = [];
+    this.attractMode = false;
   }
 
   private spawnParticle(size: Size): Particle {
