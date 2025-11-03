@@ -1,11 +1,18 @@
 # README Review & Update Summary
 
+> **⚠️ HISTORICAL DOCUMENT - 13-Pattern Era**  
+> This review documented Life and Maze pattern additions during Phase 5.  
+> **Current State**: v0.1.0 published with **17 patterns** (added DNA, LavaLamp, Smoke, Snow).  
+> See [../PROJECT_STATUS.md](../PROJECT_STATUS.md) for current project status.
+
 **Date**: October 30, 2025
-**Status**: ✅ Complete
+**Status**: ✅ Complete (13-pattern era)
 
 ## Overview
 
 Comprehensive review and update of the ascii-splash README to reflect the current project state, including the newly added LifePattern and MazePattern features.
+
+**Note**: This review represents the 13-pattern state. Project has since expanded to 17 patterns with v0.1.0 release.
 
 ---
 
