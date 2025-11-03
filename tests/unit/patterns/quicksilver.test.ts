@@ -467,28 +467,33 @@ describe('QuicksilverPattern', () => {
     });
 
     it('should reset noise offset', () => {
-      // Render to advance noise offset
-      pattern.render(buffer, 0, size);
-      pattern.render(buffer, 1000, size);
+      // Render multiple times to advance noise offset significantly
+      // Default speed is ~1.0, so noiseOffset increases by 0.01 per render
+      // Render 20 times to advance noiseOffset by ~0.2
+      for (let i = 0; i < 20; i++) {
+        pattern.render(buffer, i * 100, size);
+      }
       
       const buffer1 = createMockBuffer(size.width, size.height);
       pattern.render(buffer1, 0, size);
-      const snapshot1 = buffer1[10][40].char;
       
       // Reset and render again
       pattern.reset();
       const buffer2 = createMockBuffer(size.width, size.height);
       pattern.render(buffer2, 0, size);
-      const snapshot2 = buffer2[10][40].char;
       
       // After reset, pattern should look different (noise offset reset)
-      // Check multiple cells to be more reliable
+      // Use grid-based sampling instead of random to ensure deterministic results
+      // Check cells in a grid pattern across the buffer
       let differenceCount = 0;
-      for (let i = 0; i < 20; i++) {
-        const y = Math.floor(Math.random() * size.height);
-        const x = Math.floor(Math.random() * size.width);
-        if (buffer1[y][x].char !== buffer2[y][x].char) {
-          differenceCount++;
+      const gridSize = 4; // 4x4 grid = 16 cells
+      for (let gy = 0; gy < gridSize; gy++) {
+        for (let gx = 0; gx < gridSize; gx++) {
+          const y = Math.floor((gy + 0.5) * size.height / gridSize);
+          const x = Math.floor((gx + 0.5) * size.width / gridSize);
+          if (buffer1[y][x].char !== buffer2[y][x].char) {
+            differenceCount++;
+          }
         }
       }
       expect(differenceCount).toBeGreaterThan(0);
