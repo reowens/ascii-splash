@@ -20,7 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Snow**: Particle size pulsing during fall creating breathing/shimmer effect
   - **DNA**: Base pair pulsing/breathing animation on connecting lines and base labels
   - **Smoke**: Enhanced height-based temperature gradient with cooling effect as particles rise
-  - **Fireworks**: Rainbow color variation within bursts blending HSV rainbow with theme colors
+  - **Fireworks**: Multi-stage recursive explosions with sparkle particles and shaped bursts
+    - 3-level depth explosions (primary → secondary → tertiary bursts)
+    - Sparkle particles (bright white/yellow, fast, short-lived)
+    - 5 burst shapes: circle, ring, heart, star, random
+    - Rainbow color variation within bursts blending HSV rainbow with theme colors
+    - Performance: All presets under 500 particles, <1000 writes/frame
   - **LavaLamp**: Temperature-based color variation modulating blob intensity
   - **Particle**: Particle trails with fading opacity showing motion history
   - **Life**: Cell age-based coloring where older cells glow brighter (ages 0-20)
