@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2025-11-04
+
+### Added
+- **Visual Demonstrations**: Added animated GIF previews to README showcasing 7 key patterns
+  - Hero patterns: Starfield, Matrix, Fireworks, Lightning
+  - Additional patterns: Plasma, Waves, DNA
+  - Total media size: 4.8MB (optimized with gifsicle)
+  - Enhanced first-impression experience for potential users
+- **Recording Scripts**: Automated pattern recording workflow
+  - `scripts/record-patterns.sh`: Records pattern demonstrations with asciinema
+  - `scripts/convert-gifs.sh`: Converts recordings to GIF format with agg
+  - `scripts/optimize-gifs.sh`: Optimizes GIFs with gifsicle (32% size reduction)
+  - All scripts support batch processing and progress reporting
+
+### Changed
+- **README**: Added "Visual Preview" section with embedded pattern demonstrations
+  - 2x2 hero pattern grid with descriptions
+  - 1x3 additional patterns showcase
+  - Improved visual appeal and user engagement
+- **Documentation**: Added `docs/VISUAL_ENHANCEMENT_PLAN.md` with complete recording process
+
+### Technical
+- Recording settings: 80x24 terminal, 30 FPS cap, 10 seconds duration
+- Optimization: lossy=80, colors=256, optimize=3
+- Tools: asciinema 3.0.1, agg 1.7.0, gifsicle 1.96
+
 ## [0.1.3] - 2025-11-03
 
 ### Changed

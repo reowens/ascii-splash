@@ -184,6 +184,12 @@ pnpm-lock.yaml
 !jest.config.js
 !package.json
 
+# Keep media assets (demo GIFs)
+!media/**/*
+
+# Ignore recording workspace (intermediate files)
+recordings/
+
 # Ignore user test files
 tests/scratch/
 tests/tmp/

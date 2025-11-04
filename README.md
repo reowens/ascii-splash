@@ -26,6 +26,63 @@ Transform your terminal into a mesmerizing visual experience with **17 interacti
 
 ---
 
+## 🎬 Visual Preview
+
+### Hero Patterns
+
+<table>
+<tr>
+<td width="50%" align="center">
+<h4>⭐ Starfield</h4>
+<img src="media/demos/starfield.gif" alt="Starfield pattern demo" />
+<p><em>Dynamic parallax starfield with depth and motion</em></p>
+</td>
+<td width="50%" align="center">
+<h4>🟢 Matrix</h4>
+<img src="media/demos/matrix.gif" alt="Matrix pattern demo" />
+<p><em>Classic falling code effect with variable speeds</em></p>
+</td>
+</tr>
+<tr>
+<td width="50%" align="center">
+<h4>🎆 Fireworks</h4>
+<img src="media/demos/fireworks.gif" alt="Fireworks pattern demo" />
+<p><em>Realistic particle explosions with gravity and trails</em></p>
+</td>
+<td width="50%" align="center">
+<h4>⚡ Lightning</h4>
+<img src="media/demos/lightning.gif" alt="Lightning pattern demo" />
+<p><em>Procedural branching lightning with fade effects</em></p>
+</td>
+</tr>
+</table>
+
+### Additional Patterns
+
+<table>
+<tr>
+<td width="33%" align="center">
+<h4>🌈 Plasma</h4>
+<img src="media/demos/plasma.gif" alt="Plasma pattern demo" />
+<p><em>Hypnotic color waves</em></p>
+</td>
+<td width="33%" align="center">
+<h4>🌊 Waves</h4>
+<img src="media/demos/waves.gif" alt="Waves pattern demo" />
+<p><em>Flowing sine waves</em></p>
+</td>
+<td width="33%" align="center">
+<h4>🧬 DNA</h4>
+<img src="media/demos/dna.gif" alt="DNA pattern demo" />
+<p><em>Rotating double helix</em></p>
+</td>
+</tr>
+</table>
+
+**See all 17 patterns in action!** Try them yourself with `ascii-splash` - press `1-9`, then `n` to cycle through all patterns.
+
+---
+
 ## 🚀 Quick Start
 
 ```bash
