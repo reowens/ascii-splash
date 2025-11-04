@@ -645,11 +645,7 @@ render(buffer: Cell[][], time: number, size: Size, mousePos?: Point) {
 
 ### Measured Performance
 
-**Apple M1 (Measured)**:
-- MEDIUM (30 FPS): 2-4% CPU
-- HIGH (60 FPS): 4-6% CPU
-- LOW (15 FPS): 1-2% CPU
-- Memory: ~40-50 MB
+> 📊 **For current benchmarks and detailed metrics**, see [PROJECT_STATUS.md#performance-metrics](PROJECT_STATUS.md#performance-metrics)
 
 ---
 

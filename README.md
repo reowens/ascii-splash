@@ -124,20 +124,13 @@ splash -h
 
 ## 📝 Configuration File
 
-ascii-splash supports persistent configuration via a JSON file. The config file is automatically loaded at startup.
-
-### Config File Location
-
-The config file is stored at:
+ascii-splash supports persistent configuration via a JSON file at:
 - **Linux/macOS**: `~/.config/ascii-splash/.splashrc.json`
 - **Windows**: `%APPDATA%\ascii-splash\.splashrc.json`
 
-### Priority Order
+Settings merge with priority: **CLI args** > **Config file** > **Defaults**
 
-Settings are merged with the following priority (highest to lowest):
-1. **CLI arguments** (e.g., `--pattern waves --fps 60`)
-2. **Config file** (`~/.config/ascii-splash/.splashrc.json`)
-3. **Defaults** (built-in fallback values)
+> 💡 **For technical details** (ConfigLoader, schema, implementation), see [docs/ARCHITECTURE.md#configuration-system](docs/ARCHITECTURE.md#configuration-system)
 
 ### Example Configuration
 
@@ -263,6 +256,8 @@ Press `t` to cycle through 5 beautiful color themes:
 - Works with everything
 
 Each theme uses color interpolation to provide smooth gradients. All patterns automatically adapt to the selected theme!
+
+> 💡 **For technical details** (theme interface, color interpolation algorithm), see [docs/ARCHITECTURE.md#theme-system](docs/ARCHITECTURE.md#theme-system)
 
 ## 🎨 Patterns
 
@@ -468,17 +463,12 @@ Press `d` to toggle the debug overlay showing:
 
 ## 🚄 Performance Characteristics
 
-**Measured on Apple M1:**
-- MEDIUM mode: 30 FPS stable, 2-4% CPU
-- HIGH mode: 60 FPS stable, 4-6% CPU
-- LOW mode: 15 FPS stable, 1-2% CPU
-- Memory: ~40-50MB RSS
+Optimized for low resource usage:
+- **CPU**: 2-6% (depending on FPS preset)
+- **Memory**: ~40-50MB
+- **Target**: 30 FPS stable (adjustable 15-60)
 
-**Optimizations:**
-- Double-buffering with dirty cell tracking
-- Pattern-specific optimizations (early rejection tests)
-- Mouse event throttling (~60 FPS)
-- Efficient terminal writes (only changed cells)
+> 📊 **For detailed metrics and benchmarks**, see [docs/PROJECT_STATUS.md#performance-metrics](docs/PROJECT_STATUS.md#performance-metrics)
 
 ## 🏗️ Architecture
 

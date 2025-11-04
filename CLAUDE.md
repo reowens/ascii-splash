@@ -179,7 +179,7 @@ interface Pattern {
 **Quick Overview**:
 - **Config file**: `~/.config/ascii-splash/.splashrc.json`
 - **Priority**: CLI args > Config file > Defaults
-- **Patterns**: 16 patterns, each with custom config options
+- **Patterns**: 17 patterns, each with custom config options
 - **Themes**: 5 themes (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **Favorites**: Save/load pattern+preset+theme combinations
 
