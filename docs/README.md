@@ -1,5 +1,9 @@
 # Documentation Index
 
+> **📦 Version v0.1.3 - Published and Stable** ✅
+> 
+> The project is live on npm with all 17 patterns, 102 presets, and full theme support. See [PROJECT_STATUS.md](PROJECT_STATUS.md) for the latest release information.
+
 Welcome to the **ascii-splash** documentation. Choose your path based on your role:
 
 ## Primary Documentation
@@ -10,7 +14,6 @@ Welcome to the **ascii-splash** documentation. Choose your path based on your ro
 | **[ARCHITECTURE.md](ARCHITECTURE.md)** | 👨‍💻 Developers | Technical architecture, system design, contribution guidelines |
 | **[PROJECT_STATUS.md](PROJECT_STATUS.md)** | 📊 Everyone | Current status, statistics, quick reference |
 | **[TESTING_PLAN.md](TESTING_PLAN.md)** | 🧪 Testers | Test strategy, coverage, test suite organization |
-| **[LIGHTNING_ENHANCEMENT.md](LIGHTNING_ENHANCEMENT.md)** | ⚡ Contributors | Lightning pattern enhancement (Phase 1 complete) |
 | **[issues/README.md](issues/README.md)** | 🐛 Maintainers | Issue tracking, bug reports, testing checklists |
 
 ---
@@ -24,7 +27,6 @@ Welcome to the **ascii-splash** documentation. Choose your path based on your ro
 | **Add a new pattern** | [ARCHITECTURE.md](ARCHITECTURE.md#contribution-points) → [../src/patterns/](../src/patterns/) |
 | **Write tests** | [TESTING_PLAN.md](TESTING_PLAN.md) → [../tests/unit/](../tests/unit/) |
 | **Report/track issues** | [issues/README.md](issues/README.md) → [issues/active/](issues/active/) |
-| **Contribute to Lightning** | [LIGHTNING_ENHANCEMENT.md](LIGHTNING_ENHANCEMENT.md) |
 
 ---
 
@@ -38,14 +40,12 @@ Keep at project root for easy access:
 - **AGENTS.md** - Symlink to CLAUDE.md
 - **WARP.md** - Symlink to CLAUDE.md
 
-### Docs Directory (7 files - Active Reference)
+### Docs Directory (5 files - Active Reference)
 Developer and contributor documentation:
 - **ARCHITECTURE.md** - System design and technical details
 - **PROJECT_STATUS.md** - Project status and metrics
 - **TESTING_PLAN.md** - Test strategy and coverage
-- **LIGHTNING_ENHANCEMENT.md** - Lightning pattern enhancement work
-- **QUICK_RELEASE.md** - Release process quick reference
-- **RELEASE_PROCESS.md** - Detailed release procedures
+- **RELEASE_PROCESS.md** - Release procedures (includes Quick Start)
 - **README.md** - This index file
 
 ### Issues Directory
@@ -79,13 +79,12 @@ Previous iterations and completed work:
 
 - **New to the project?** Start with [PROJECT_STATUS.md](PROJECT_STATUS.md)
 - **Need to contribute?** Read [ARCHITECTURE.md](ARCHITECTURE.md)
-- **Want to understand Lightning?** See [LIGHTNING_ENHANCEMENT.md](LIGHTNING_ENHANCEMENT.md)
-- **Looking for old docs?** Check [archive/](archive/)
+- **Looking for old docs?** Check [archive/](archive/) (includes Lightning enhancement docs)
 - **Using the app?** See [../README.md](../README.md)
 
 ---
 
 **For current project statistics**, see [PROJECT_STATUS.md](PROJECT_STATUS.md)  
-**Last Updated:** November 3, 2025  
-**Organization Status:** ✅ Consolidated & Cleaned
+**Last Updated:** November 4, 2025  
+**Organization Status:** ✅ Phase 1 Consolidation Complete
 

@@ -2,7 +2,50 @@
 
 This document describes how to create and publish a new release of ascii-splash.
 
-## Prerequisites
+## Quick Start
+
+Create a new release in 4 simple steps:
+
+```bash
+# 1. Update version
+npm version patch  # or: minor, major
+
+# 2. Update CHANGELOG.md
+# Add section: ## [X.Y.Z] - YYYY-MM-DD
+
+# 3. Commit and push
+git add package.json CHANGELOG.md
+git commit -m "chore: bump version to X.Y.Z"
+git push origin main
+
+# 4. Create and push tag
+git tag -a vX.Y.Z -m "Release version X.Y.Z"
+git push origin vX.Y.Z
+
+# Done! GitHub Actions will automatically:
+# - Run tests
+# - Publish to npm
+# - Create GitHub Release
+```
+
+**Verify the release:**
+```bash
+npm view ascii-splash version
+npm install -g ascii-splash@latest
+splash --version
+```
+
+**Prerequisites (one-time setup):**
+1. Add `NPM_TOKEN` to GitHub Secrets (Repository Settings → Secrets → Actions)
+2. Verify GitHub Actions enabled (Repository Settings → Actions → General)
+
+See the detailed sections below for more information, troubleshooting, and best practices.
+
+---
+
+## Detailed Release Workflow
+
+### Prerequisites
 
 ### One-Time Setup
 
