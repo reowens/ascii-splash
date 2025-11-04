@@ -381,39 +381,49 @@ describe('SmokePattern', () => {
 
   describe('physics simulation', () => {
     it('should make smoke rise over time', () => {
+      // Render multiple frames to ensure particles spawn and move
       pattern.render(buffer, 0, size);
+      pattern.render(buffer, 100, size);
+      pattern.render(buffer, 200, size);
       
-      // Get initial positions of particles
-      const initialPositions: Point[] = [];
+      // Get snapshot of positions after initial frames
+      const initialPositionSet = new Set<string>();
       for (let y = 0; y < size.height; y++) {
         for (let x = 0; x < size.width; x++) {
           if (buffer[y][x].char !== ' ') {
-            initialPositions.push({ x, y });
+            initialPositionSet.add(`${x},${y}`);
           }
         }
       }
       
-      // Advance time significantly
+      // Ensure we have some particles to track
+      expect(initialPositionSet.size).toBeGreaterThan(0);
+      
+      // Advance time significantly and render multiple frames
       pattern.render(buffer, 5000, size);
+      pattern.render(buffer, 5100, size);
+      pattern.render(buffer, 5200, size);
       
-      // Check that particles have moved (risen or dissipated)
-      const finalPositions: Point[] = [];
+      // Get final positions
+      const finalPositionSet = new Set<string>();
       for (let y = 0; y < size.height; y++) {
         for (let x = 0; x < size.width; x++) {
           if (buffer[y][x].char !== ' ') {
-            finalPositions.push({ x, y });
+            finalPositionSet.add(`${x},${y}`);
           }
         }
       }
       
-      // Positions should be different
-      const positionsChanged = 
-        initialPositions.length !== finalPositions.length ||
-        initialPositions.some((p1, i) => 
-          !finalPositions[i] || p1.x !== finalPositions[i].x || p1.y !== finalPositions[i].y
-        );
+      // Ensure we still have particles
+      expect(finalPositionSet.size).toBeGreaterThan(0);
       
-      expect(positionsChanged).toBe(true);
+      // Check that positions changed - compare sets
+      // At least some positions should be different (particles moved/spawned/dissipated)
+      const setsAreIdentical = 
+        initialPositionSet.size === finalPositionSet.size &&
+        Array.from(initialPositionSet).every(pos => finalPositionSet.has(pos));
+      
+      expect(setsAreIdentical).toBe(false);
     });
 
     it('should dissipate particles over time', () => {

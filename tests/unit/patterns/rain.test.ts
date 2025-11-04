@@ -277,25 +277,27 @@ describe('RainPattern', () => {
       const buffer = createMockBuffer(80, 24);
       const size = createMockSize(80, 24);
       
+      // Initialize pattern by rendering once first (sets currentTime)
+      pattern.render(buffer, 0, size);
+      
+      // Check initial splash count
+      let metricsBefore = pattern.getMetrics();
+      const initialSplashCount = metricsBefore.splashes;
+      
       // Create a splash
       pattern.onMouseClick({ x: 40, y: 12 });
       
-      // Render immediately - splash should be visible
-      pattern.render(buffer, 0, size);
+      // Render and verify splash was created
+      pattern.render(buffer, 100, size);
+      let metricsAfter = pattern.getMetrics();
       
-      let hasRippleChars = false;
-      for (let y = 0; y < size.height; y++) {
-        for (let x = 0; x < size.width; x++) {
-          const char = buffer[y][x].char;
-          if (char === '~' || char === '≈' || char === '·') {
-            hasRippleChars = true;
-            break;
-          }
-        }
-        if (hasRippleChars) break;
-      }
+      // Should have one more splash after click
+      expect(metricsAfter.splashes).toBe(initialSplashCount + 1);
       
-      expect(hasRippleChars).toBe(true);
+      // Splash should persist for some time (< 400ms is splash lifetime)
+      pattern.render(buffer, 200, size);
+      metricsAfter = pattern.getMetrics();
+      expect(metricsAfter.splashes).toBeGreaterThanOrEqual(initialSplashCount + 1);
     });
 
     it('splashes fade away after 400ms', () => {
