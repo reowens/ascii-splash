@@ -19,10 +19,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Enhanced user experience with predictable preset cycling (`.` and `,` keys)
   - Command system now consistent across all patterns (`c01-c06`)
 
+### Fixed
+- **FireworksPattern**: Race condition where particle count could exceed hard caps during concurrent explosions
+  - Now recalculates total particle count immediately before spawning secondary bursts (400 cap)
+  - Now recalculates total particle count immediately before spawning sparkles (450 cap)
+  - Prevents performance degradation from excessive particles
+  - Added comprehensive unit tests for concurrent spawn scenarios
+
 ### Tests
 - Updated all pattern tests to reflect new 6-preset structure
-- All 1503 tests passing with zero regressions
-- Test suites updated: wave.test.ts, starfield.test.ts, plasma.test.ts, additional-patterns.test.ts, presets.test.ts
+- All 1505 tests passing with zero regressions (1503 existing + 2 new Fireworks race condition tests)
+- Test suites updated: wave.test.ts, starfield.test.ts, plasma.test.ts, additional-patterns.test.ts, presets.test.ts, fireworks.test.ts
 
 ### Added
 - **Visual Enhancements**: Comprehensive improvements to all 17 patterns with new visual effects
