@@ -126,6 +126,8 @@ splash/
 └── jest.config.js
 ```
 
+**Note**: Session reports and audit documents are in `docs/archive/` for historical reference.
+
 **Key Navigation**:
 - 👤 **User documentation**: [README.md](README.md)
 - 👨‍💻 **Technical details**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)

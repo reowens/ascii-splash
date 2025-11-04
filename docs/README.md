@@ -55,12 +55,13 @@ Organized issue tracking and testing:
 - **completed/** - Resolved issues for reference
 - **checklists/** - Testing and verification checklists
 
-### Archive Directory (16 files - Historical Reference)
+### Archive Directory (19 files - Historical Reference)
 Previous iterations and completed work:
 - Lightning refactor documents (V1, V2 planning)
 - Pattern enhancement plans
 - Terminal crash analysis and fixes
 - Previous refactoring plans
+- Session notes and audit reports (Nov 2025)
 - See [archive/README.md](archive/README.md) for full index
 
 ---
