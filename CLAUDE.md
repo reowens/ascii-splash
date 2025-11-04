@@ -244,7 +244,7 @@ interface Theme {
 - ✅ Favorites & shuffle mode
 - ✅ 817 tests, 82.34% coverage
 - ✅ Complete documentation
-- ✅ Published to npm (November 2, 2025)
+- ✅ Published to npm (v0.1.0: Nov 2, v0.1.3: Nov 4, 2025)
 
 **Future Enhancements**:
 - Additional patterns (Constellation, Ripple Grid, Waveform, Mandelbrot, Kaleidoscope)
@@ -352,6 +352,6 @@ npm run test:coverage # Coverage report
 
 ---
 
-**Last Updated**: October 30, 2025
+**Last Updated**: November 4, 2025
 **For**: AI Assistant navigation and project context
 **Human Readers**: Please see [README.md](README.md) instead

@@ -1,38 +1,36 @@
 # Project Status - ascii-splash
 
-**Last Updated:** November 2, 2025
+**Last Updated:** November 4, 2025
 
 ## Overview
 
 ascii-splash is a terminal ASCII animation app that displays animated patterns in a terminal window. It's designed as a lightweight ambient visual effect for IDE workspaces, targeting <5% CPU and <50MB RAM usage.
 
-## Current Status: v0.1.3-dev (Phase 3 Visual Enhancements) 🎨
+## Current Status: v0.1.3 (Released) ✅
 
-The project is **live on npm** (v0.1.2) with **Phase 3 Visual Enhancements in progress**.
+The project is **live on npm** (v0.1.3) with **preset standardization and critical fixes**.
 
 - **npm Package**: https://www.npmjs.com/package/ascii-splash
-- **Latest Release**: v0.1.2 (Time handling fixes and performance improvements)
-- **In Development**: v0.1.3 - Comprehensive visual enhancements to all 17 patterns
-- **Installation**: `npm install -g ascii-splash` or `npx ascii-splash`
+- **Latest Release**: v0.1.3 (Preset standardization + Fireworks fix + test stability)
+- **Published**: November 4, 2025
+- **Installation**: `npm install -g ascii-splash@0.1.3` or `npx ascii-splash`
 
 ### Project Statistics
-- **17 Patterns** with **102 Presets** (6 per pattern)
+- **17 Patterns** with **102 Presets** (6 per pattern - now standardized!)
 - **5 Color Themes** (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **40+ Commands** via advanced command system
-- **1419 Tests** with **93.07% Coverage**
+- **1505 Tests** with **82.34% Coverage**
 - **3-Layer Architecture**: Renderer → Engine → Patterns
   - For technical details, see [ARCHITECTURE.md](ARCHITECTURE.md)
 
-### Phase 3 Visual Enhancements (In Progress)
-- **Status**: 6 commits on `enhance/visual-improvements` branch
-- **Patterns Enhanced**: All 17 patterns with new visual effects
-- **Key Features Added**:
-  - Star twinkling, wave foam, rain wind/gusts
-  - Plasma color cycling, pattern size variations
-  - Particle trails, cell age coloring, path highlighting
-  - Surface tension variation, pulsing effects, gradients
-- **Tests**: All 1419 tests passing
-- **Performance**: Maintained <5% CPU target
+### v0.1.3 Release Highlights (November 4, 2025) ✅
+- **Preset Standardization**: All 17 patterns now have exactly 6 presets each (102 total)
+  - Wave: 8→6, Starfield: 8→6, Plasma: 9→6, Rain: 9→6
+  - Consistent preset cycling and command system behavior
+- **Fireworks Fix**: Fixed race condition in particle spawning preventing overflow
+- **Test Stability**: Fixed 2 flaky tests (Smoke, Rain) for reliable CI/CD
+- **Tests**: All 1505 tests passing (added 2 new Fireworks race condition tests)
+- **Performance**: Maintained <5% CPU target across all patterns
 
 ## Phase Completion
 
@@ -49,7 +47,7 @@ The project is **live on npm** (v0.1.2) with **Phase 3 Visual Enhancements in pr
 | **Post-Release Phases** | |
 | Phase 1 (Post) - Critical Fixes | ✅ COMPLETE (v0.1.2) |
 | Phase 2 (Post) - Performance | ✅ COMPLETE (v0.1.2) |
-| **Phase 3 (Post) - Visual Enhancements** | 🚧 **IN PROGRESS** |
+| Phase 3 (Post) - Preset Standardization | ✅ COMPLETE (v0.1.3) |
 
 ## Features
 
@@ -64,10 +62,10 @@ The project is **live on npm** (v0.1.2) with **Phase 3 Visual Enhancements in pr
 ### 🧪 Testing Coverage
 
 **Test Statistics:**
-- **Total Tests:** 1419 tests across 26 suites
-- **Coverage:** 93.07% statements (exceeded 80% target)
+- **Total Tests:** 1505 tests across 28 suites
+- **Coverage:** 82.34% statements (exceeded 80% target)
 - **Status:** All tests passing ✅ (100%)
-- **Execution Time:** ~10.3 seconds
+- **Execution Time:** ~30 seconds
 
 **Component Coverage:**
 - CommandParser: 100%
@@ -128,17 +126,19 @@ Highlights:
 
 ## What's Next
 
-**Phase 3 (Post-Release) In Progress:** Visual enhancements to all 17 patterns 🚧
+**v0.1.3 Released!** ✅ Project is stable and ready for continued refinement.
 
-**Current Focus:**
-- ✅ All 17 patterns enhanced with new visual effects
-- ✅ 6 commits on `enhance/visual-improvements` branch
-- 🔄 Documentation updates (in progress)
-- ⏭️ Ready for merge and release as v0.1.3
+**Completed in v0.1.3:**
+- ✅ Preset standardization (all patterns now have exactly 6 presets)
+- ✅ Fireworks race condition fixed
+- ✅ Test stability improvements (fixed flaky Smoke and Rain tests)
+- ✅ CI/CD reliability established
 
-**Future Enhancements (Phase 4+):**
+**Future Enhancements (v0.1.4+):**
+- Pattern refinements and bug fixes from user feedback
+- Additional visual enhancements and effects
 - Additional patterns (Constellation, Ripple Grid, Waveform, Mandelbrot, Kaleidoscope)
-- Demo GIFs/videos for README showcasing new visual effects
+- Demo GIFs/videos for README
 - Multi-terminal emulator testing
 - Further performance profiling and optimization
 - Community feedback integration
@@ -157,15 +157,15 @@ Highlights:
 
 ## Contributing
 
-**Status:** v0.1.0 published and stable. Future contributions welcome!
+**Status:** v0.1.3 published and stable. Future contributions welcome!
 
 **For contribution guidelines**, see [README.md](../README.md#-contributing).
 
 ---
 
-**Project Status:** v0.1.3-dev - Phase 3 Visual Enhancements 🎨  
-**Latest Release:** v0.1.2 (Published November 3, 2025) ✅  
-**Test Coverage:** 93.07% (1419 tests) ✅  
-**Development Branch:** `enhance/visual-improvements` (6 commits, ready for merge)  
+**Project Status:** v0.1.3 - Published and Stable ✅  
+**Latest Release:** v0.1.3 (Published November 4, 2025) ✅  
+**Test Coverage:** 82.34% (1505 tests) ✅  
+**Branch:** main (stable, up to date)  
 **npm Registry:** https://www.npmjs.com/package/ascii-splash  
-**Latest GitHub Release:** https://github.com/reowens/ascii-splash/releases/tag/v0.1.2
+**Latest GitHub Release:** https://github.com/reowens/ascii-splash/releases/tag/v0.1.3
