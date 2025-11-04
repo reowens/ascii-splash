@@ -4,11 +4,16 @@
 
 This document outlines the comprehensive testing strategy for ascii-splash, a terminal ASCII animation application with 17 patterns, 102 presets, 5 themes, and an advanced command system.
 
-**Current Status**: ✅ **817 tests passing** across 10 test suites (100%)
-**Current Coverage**: 82.34% overall (core components at 96-100%)
-**Target Coverage**: 80%+ for core logic ✅ **ACHIEVED**
-**Testing Framework**: Jest 29.7.0 (✅ Installed and configured)
+**Current Status**: ✅ **817 tests passing** across 10 test suites (100%)  
+**Current Coverage**: 82.34% overall (core components at 96-100%)  
+**Target Coverage**: 80%+ for core logic ✅ **ACHIEVED**  
+**Testing Framework**: Jest 29.7.0 (✅ Installed and configured)  
 **Document Version**: 1.7 (v0.1.0 Release)
+
+**Quick Links**:
+- 📊 [Current project status](PROJECT_STATUS.md)
+- 🏗️ [Technical architecture](ARCHITECTURE.md)
+- 👤 [User guide](../README.md)
 
 ---
 
@@ -918,8 +923,8 @@ npm run build && npm start
 ---
 
 **Document Version**: 1.7  
-**Last Updated**: 2025-11-02  
-**Status**: ✅ v0.1.0 Release - All milestones complete, 817 tests passing (100%), 82.34% coverage achieved, 17 patterns complete
+**Last Updated**: 2025-11-04  
+**Status**: ✅ v0.1.3 Release - All milestones complete, 1505 tests passing (100%), 82.34% coverage achieved, 17 patterns complete
 
 ---
 

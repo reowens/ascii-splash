@@ -6,6 +6,11 @@
 
 ascii-splash is a terminal ASCII animation app that displays animated patterns in a terminal window. It's designed as a lightweight ambient visual effect for IDE workspaces, targeting <5% CPU and <50MB RAM usage.
 
+**Quick Links**:
+- 👤 [User guide & installation](../README.md)
+- 🏗️ [Technical architecture](ARCHITECTURE.md)
+- 🧪 [Testing details](TESTING_PLAN.md)
+
 ## Current Status: v0.1.3 (Released) ✅
 
 The project is **live on npm** (v0.1.3) with **preset standardization and critical fixes**.

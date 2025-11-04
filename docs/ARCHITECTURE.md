@@ -2,6 +2,12 @@
 
 **For Developers**: Complete technical architecture and implementation details.
 
+**Quick Links**:
+- 📊 [Current metrics & status](PROJECT_STATUS.md)
+- 🧪 [Testing strategy](TESTING_PLAN.md)
+- 👤 [User guide](../README.md)
+- 📦 [Release process](RELEASE_PROCESS.md)
+
 ---
 
 ## Core System (3-Layer Design)
@@ -725,5 +731,5 @@ interface YourPatternConfig {
 
 ---
 
-**Last Updated**: October 30, 2025
+**Last Updated**: November 4, 2025
 **For**: Developer contributions and deep technical understanding
