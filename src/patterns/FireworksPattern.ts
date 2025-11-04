@@ -307,7 +307,8 @@ export class FireworksPattern implements Pattern {
         // Update and render explosion particles
         let anyAlive = false;
 
-        // Count total particles across all fireworks for safety cap
+        // Count total particles across all fireworks for initial reference
+        // NOTE: This is recalculated before each spawn operation to prevent race conditions
         const totalParticles = this.fireworks.reduce((sum, f) => sum + f.particles.length, 0);
         
         for (let j = fw.particles.length - 1; j >= 0; j--) {
@@ -318,27 +319,31 @@ export class FireworksPattern implements Pattern {
             p.burstTimer -= 16; // Approximate frame time (16ms at 60fps)
             
             // Time to explode! Create secondary burst (with buffer before hard cap)
-            if (p.burstTimer <= 0 && totalParticles < 400) {
-              p.burstTimer = -1; // Mark as exploded
-              p.canExplode = false;
-              
-              // Create temporary firework object for secondary burst
-              const secondaryFirework: Firework = {
-                x: p.x,
-                y: p.y,
-                vx: 0,
-                vy: 0,
-                state: 'exploded',
-                particles: [],
-                burstColor: fw.burstColor,
-                targetHeight: 0
-              };
-              
-              // Spawn secondary burst at next depth level
-              this.explode(secondaryFirework, p.depth + 1);
-              
-              // Add secondary particles to current firework
-              fw.particles.push(...secondaryFirework.particles);
+            if (p.burstTimer <= 0) {
+              // Recalculate total particles immediately before spawning to prevent race conditions
+              const currentTotal = this.fireworks.reduce((sum, f) => sum + f.particles.length, 0);
+              if (currentTotal < 400) {
+                p.burstTimer = -1; // Mark as exploded
+                p.canExplode = false;
+                
+                // Create temporary firework object for secondary burst
+                const secondaryFirework: Firework = {
+                  x: p.x,
+                  y: p.y,
+                  vx: 0,
+                  vy: 0,
+                  state: 'exploded',
+                  particles: [],
+                  burstColor: fw.burstColor,
+                  targetHeight: 0
+                };
+                
+                // Spawn secondary burst at next depth level
+                this.explode(secondaryFirework, p.depth + 1);
+                
+                // Add secondary particles to current firework
+                fw.particles.push(...secondaryFirework.particles);
+              }
             }
           }
 
@@ -352,25 +357,29 @@ export class FireworksPattern implements Pattern {
           p.vy *= 0.99;
 
           // Spawn sparkle particles (only from normal particles with sufficient life)
-          if (p.type === 'normal' && p.life > 0.5 && Math.random() < this.config.sparkleChance && totalParticles < 450) {
-            const sparkleCount = Math.floor(Math.random() * 3) + 1;  // 1-3 sparkles
-            for (let s = 0; s < sparkleCount; s++) {
-              const sparkleAngle = Math.random() * Math.PI * 2;
-              const sparkleSpeed = 3 + Math.random() * 4;  // 3-7 units/frame (faster than parent)
-              
-              fw.particles.push({
-                x: p.x,
-                y: p.y,
-                vx: Math.cos(sparkleAngle) * sparkleSpeed,
-                vy: Math.sin(sparkleAngle) * sparkleSpeed,
-                life: 0.15 + Math.random() * 0.15,  // Very short life (0.15-0.3)
-                trail: [],  // No trails for sparkles
-                hue: 0,  // Not used (sparkles are white/yellow)
-                depth: p.depth + 1,  // One level deeper
-                canExplode: false,  // Sparkles never explode
-                burstTimer: -1,
-                type: 'sparkle'
-              });
+          if (p.type === 'normal' && p.life > 0.5 && Math.random() < this.config.sparkleChance) {
+            // Recalculate total particles immediately before spawning sparkles to prevent race conditions
+            const currentTotal = this.fireworks.reduce((sum, f) => sum + f.particles.length, 0);
+            if (currentTotal < 450) {
+              const sparkleCount = Math.floor(Math.random() * 3) + 1;  // 1-3 sparkles
+              for (let s = 0; s < sparkleCount; s++) {
+                const sparkleAngle = Math.random() * Math.PI * 2;
+                const sparkleSpeed = 3 + Math.random() * 4;  // 3-7 units/frame (faster than parent)
+                
+                fw.particles.push({
+                  x: p.x,
+                  y: p.y,
+                  vx: Math.cos(sparkleAngle) * sparkleSpeed,
+                  vy: Math.sin(sparkleAngle) * sparkleSpeed,
+                  life: 0.15 + Math.random() * 0.15,  // Very short life (0.15-0.3)
+                  trail: [],  // No trails for sparkles
+                  hue: 0,  // Not used (sparkles are white/yellow)
+                  depth: p.depth + 1,  // One level deeper
+                  canExplode: false,  // Sparkles never explode
+                  burstTimer: -1,
+                  type: 'sparkle'
+                });
+              }
             }
           }
 

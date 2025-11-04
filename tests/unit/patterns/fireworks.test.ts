@@ -1133,4 +1133,110 @@ describe('FireworksPattern', () => {
        expect(metrics.totalParticles).toBe(0);
      });
    });
+
+   describe('Race Condition Prevention', () => {
+     it('should respect hard cap during concurrent secondary burst spawns', () => {
+       // Create a scenario with multiple fireworks near the secondary burst cap
+       pattern.reset();
+       
+       // Create multiple fireworks with particles ready to burst
+       for (let i = 0; i < 5; i++) {
+         const fw: any = {
+           x: 40 + i * 10,
+           y: 10,
+           vx: 0,
+           vy: 0,
+           state: 'exploded',
+           particles: [],
+           burstColor: theme.colors[0],
+           targetHeight: 0,
+         };
+         
+         // Add 60 particles per firework (300 total)
+         for (let j = 0; j < 60; j++) {
+           fw.particles.push({
+             x: fw.x,
+             y: fw.y,
+             vx: Math.random() * 4 - 2,
+             vy: Math.random() * 4 - 2,
+             life: 1.0,
+             trail: [],
+             hue: 0,
+             depth: 0,
+             canExplode: true,
+             burstTimer: 50,  // Ready to burst soon
+             type: 'normal' as const,
+           });
+         }
+         
+         pattern['fireworks'].push(fw);
+       }
+       
+       // Advance time to trigger concurrent bursts
+       const time = 1000;
+       for (let frame = 0; frame < 10; frame++) {
+         pattern.render(buffer, time + frame * 16, size);
+         
+         // Count total particles across all fireworks
+         const totalParticles = pattern['fireworks'].reduce(
+           (sum: number, fw: any) => sum + fw.particles.length,
+           0
+         );
+         
+         // Assert hard cap is never exceeded
+         expect(totalParticles).toBeLessThanOrEqual(500);
+       }
+     });
+
+     it('should recalculate particle count before sparkle spawns', () => {
+       // Create fireworks with particles near sparkle spawn threshold
+       pattern.reset();
+       
+       // Create multiple fireworks with 80 particles each (400 total)
+       for (let i = 0; i < 5; i++) {
+         const fw: any = {
+           x: 40 + i * 10,
+           y: 10,
+           vx: 0,
+           vy: 0,
+           state: 'exploded',
+           particles: [],
+           burstColor: theme.colors[0],
+           targetHeight: 0,
+         };
+         
+         for (let j = 0; j < 80; j++) {
+           fw.particles.push({
+             x: fw.x,
+             y: fw.y,
+             vx: Math.random() * 4 - 2,
+             vy: Math.random() * 4 - 2,
+             life: 0.8,  // Above sparkle threshold (0.5)
+             trail: [],
+             hue: 0,
+             depth: 0,
+             canExplode: false,
+             burstTimer: -1,
+             type: 'normal' as const,
+           });
+         }
+         
+         pattern['fireworks'].push(fw);
+       }
+       
+       // Render multiple frames where sparkles would spawn
+       const time = 1000;
+       for (let frame = 0; frame < 20; frame++) {
+         pattern.render(buffer, time + frame * 16, size);
+         
+         const totalParticles = pattern['fireworks'].reduce(
+           (sum: number, fw: any) => sum + fw.particles.length,
+           0
+         );
+         
+         // Assert sparkle cap is respected
+         expect(totalParticles).toBeLessThanOrEqual(500);
+       }
+     });
+   });
  });
