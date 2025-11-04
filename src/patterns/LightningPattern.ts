@@ -9,6 +9,7 @@ interface LightningConfig {
   mainPathJaggedness: number; // 5-15 pixels
   branchSpread: number; // 5-15 pixels
   thickness: number; // 1-3 pixels
+  maxBranchDepth: number; // 1-3 (1=single level, 2-3=recursive)
 }
 
 interface LightningPreset {
@@ -24,6 +25,7 @@ interface LightningPoint {
   intensity: number; // 0-1 for brightness/fade
   thickness: number; // How thick this point should render
   isBranch: boolean; // Is this part of a branch?
+  depth: number; // 0=main bolt, 1=branch, 2=sub-branch, etc.
 }
 
 interface LightningBolt {
@@ -46,37 +48,37 @@ export class LightningPattern implements Pattern {
       id: 1,
       name: 'Cloud Strike',
       description: 'Natural cloud-to-ground lightning',
-      config: { branchProbability: 0.25, fadeTime: 25, strikeInterval: 2000, mainPathJaggedness: 8, branchSpread: 10, thickness: 3 }
+      config: { branchProbability: 0.25, fadeTime: 25, strikeInterval: 2000, mainPathJaggedness: 8, branchSpread: 10, thickness: 3, maxBranchDepth: 2 }
     },
     {
       id: 2,
       name: 'Tesla Coil',
       description: 'Erratic, highly branched arcs',
-      config: { branchProbability: 0.45, fadeTime: 20, strikeInterval: 800, mainPathJaggedness: 12, branchSpread: 15, thickness: 2 }
+      config: { branchProbability: 0.45, fadeTime: 20, strikeInterval: 800, mainPathJaggedness: 12, branchSpread: 15, thickness: 2, maxBranchDepth: 3 }
     },
     {
       id: 3,
       name: 'Ball Lightning',
       description: 'Spherical discharge, radial bolts',
-      config: { branchProbability: 0.35, fadeTime: 30, strikeInterval: 1500, mainPathJaggedness: 6, branchSpread: 12, thickness: 2 }
+      config: { branchProbability: 0.35, fadeTime: 30, strikeInterval: 1500, mainPathJaggedness: 6, branchSpread: 12, thickness: 2, maxBranchDepth: 2 }
     },
     {
       id: 4,
       name: 'Fork Lightning',
       description: 'Multiple distinct branches',
-      config: { branchProbability: 0.4, fadeTime: 28, strikeInterval: 2500, mainPathJaggedness: 10, branchSpread: 12, thickness: 3 }
+      config: { branchProbability: 0.4, fadeTime: 28, strikeInterval: 2500, mainPathJaggedness: 10, branchSpread: 12, thickness: 3, maxBranchDepth: 3 }
     },
     {
       id: 5,
       name: 'Chain Lightning',
       description: 'Continuous arcs, minimal fade',
-      config: { branchProbability: 0.15, fadeTime: 15, strikeInterval: 600, mainPathJaggedness: 5, branchSpread: 8, thickness: 2 }
+      config: { branchProbability: 0.15, fadeTime: 15, strikeInterval: 600, mainPathJaggedness: 5, branchSpread: 8, thickness: 2, maxBranchDepth: 1 }
     },
     {
       id: 6,
       name: 'Spider Lightning',
       description: 'Horizontal spread, many thin branches',
-      config: { branchProbability: 0.5, fadeTime: 35, strikeInterval: 3000, mainPathJaggedness: 10, branchSpread: 15, thickness: 1 }
+      config: { branchProbability: 0.5, fadeTime: 35, strikeInterval: 3000, mainPathJaggedness: 10, branchSpread: 15, thickness: 1, maxBranchDepth: 2 }
     }
   ];
 
@@ -88,6 +90,7 @@ export class LightningPattern implements Pattern {
       strikeInterval: 2000,
       mainPathJaggedness: 8,
       branchSpread: 10,
+      maxBranchDepth: 2,
       ...config
     };
     
@@ -98,7 +101,8 @@ export class LightningPattern implements Pattern {
       strikeInterval: validateInterval(merged.strikeInterval, 100, 10000),
       mainPathJaggedness: clamp(merged.mainPathJaggedness, 3, 20),
       branchSpread: clamp(merged.branchSpread, 5, 20),
-      thickness: clamp(merged.thickness ?? 2, 1, 3)
+      thickness: clamp(merged.thickness ?? 2, 1, 3),
+      maxBranchDepth: clamp(merged.maxBranchDepth, 1, 3)
     };
   }
 
@@ -107,6 +111,97 @@ export class LightningPattern implements Pattern {
     this.lastStrike = 0;
     this.chargeParticles = [];
     this.currentTime = 0;
+  }
+
+  /**
+   * Recursively create branches from a starting point
+   * @param start Branch start point
+   * @param parentDirection Parent bolt direction for perpendicular branching
+   * @param depth Current branch depth (0 = main bolt, 1+ = sub-branches)
+   * @param points Array to accumulate points (by reference)
+   */
+  private createBranchRecursive(
+    start: Point,
+    parentDirection: { dx: number; dy: number; length: number },
+    depth: number,
+    points: LightningPoint[]
+  ): void {
+    // Stop if we've reached max depth or hit point limit
+    if (depth > this.config.maxBranchDepth || points.length > 500) {
+      return;
+    }
+
+    const { dx, dy, length } = parentDirection;
+    const perpX = -dy / length;
+    const perpY = dx / length;
+
+    // Progressive scaling based on depth
+    const lengthScale = Math.pow(0.65, depth); // Each level is 65% of parent
+    const intensityBase = 1.0 - depth * 0.15; // Dimmer at deeper levels
+    const thicknessForDepth = Math.max(1, this.config.thickness - depth);
+    const branchProbForDepth = this.config.branchProbability * Math.pow(0.7, depth);
+    const spreadForDepth = this.config.branchSpread * Math.pow(0.7, depth);
+
+    // Create branch path (shorter at deeper levels)
+    const branchLength = Math.floor((3 + Math.random() * 4) * lengthScale);
+    if (branchLength < 2) return; // Too short to be meaningful
+
+    const branchWaypoints: Point[] = [start];
+    const side = Math.random() < 0.5 ? 1 : -1;
+
+    for (let j = 1; j <= branchLength; j++) {
+      const branchT = j / branchLength;
+      const spread = spreadForDepth * branchT;
+      const jag = (Math.random() - 0.5) * 5 * lengthScale;
+
+      branchWaypoints.push({
+        x: start.x + perpX * side * spread + (dx / length) * jag,
+        y: start.y + perpY * side * spread + (dy / length) * jag
+      });
+    }
+
+    // Connect branch waypoints with Bresenham lines
+    for (let j = 0; j < branchWaypoints.length - 1; j++) {
+      const bStart = branchWaypoints[j];
+      const bEnd = branchWaypoints[j + 1];
+
+      const branchLinePoints = bresenhamLine(
+        Math.floor(bStart.x), Math.floor(bStart.y),
+        Math.floor(bEnd.x), Math.floor(bEnd.y)
+      );
+
+      // Branch intensity fades along its length
+      const segmentT = j / (branchWaypoints.length - 1);
+      const branchIntensity = intensityBase - segmentT * 0.3;
+
+      for (const pt of branchLinePoints) {
+        points.push({
+          x: pt.x,
+          y: pt.y,
+          intensity: Math.max(0.3, branchIntensity),
+          thickness: thicknessForDepth,
+          isBranch: depth > 0,
+          depth: depth
+        });
+      }
+
+      // Recursively spawn sub-branches at waypoints (skip first and last)
+      if (j > 0 && j < branchWaypoints.length - 2 && Math.random() < branchProbForDepth) {
+        // Calculate sub-branch direction (roughly perpendicular to current branch)
+        const subDx = bEnd.x - bStart.x;
+        const subDy = bEnd.y - bStart.y;
+        const subLength = Math.sqrt(subDx * subDx + subDy * subDy);
+        
+        if (subLength > 0.1) {
+          this.createBranchRecursive(
+            branchWaypoints[j],
+            { dx: subDx, dy: subDy, length: subLength },
+            depth + 1,
+            points
+          );
+        }
+      }
+    }
   }
 
   private createBolt(start: Point, end: Point): LightningBolt {
@@ -120,7 +215,7 @@ export class LightningPattern implements Pattern {
     if (length < 1) {
       // Degenerate case: start and end are the same
       return {
-        points: [{ x: start.x, y: start.y, intensity: 1.0, thickness: this.config.thickness, isBranch: false }],
+        points: [{ x: start.x, y: start.y, intensity: 1.0, thickness: this.config.thickness, isBranch: false, depth: 0 }],
         age: 0,
         maxAge: this.config.fadeTime
       };
@@ -165,62 +260,25 @@ export class LightningPattern implements Pattern {
           y: pt.y,
           intensity: 1.0,
           thickness: this.config.thickness,
-          isBranch: false
+          isBranch: false,
+          depth: 0
         });
       }
       
-      // Spawn branches at some waypoints
+      // Spawn branches recursively at some waypoints
       if (i > 0 && i < waypoints.length - 2 && Math.random() < this.config.branchProbability) {
-        const branchStart = waypoints[i];
-        
-        // Create a short branch (3-6 waypoints)
-        const branchLength = 3 + Math.floor(Math.random() * 4);
-        const branchWaypoints: Point[] = [branchStart];
-        
-        // Branch spreads perpendicular to main path
-        const side = Math.random() < 0.5 ? 1 : -1;
-        
-        for (let j = 1; j <= branchLength; j++) {
-          const branchT = j / branchLength;
-          const spread = this.config.branchSpread * branchT;
-          const jag = (Math.random() - 0.5) * 5;
-          
-          branchWaypoints.push({
-            x: branchStart.x + perpX * side * spread + (dx / length) * jag,
-            y: branchStart.y + perpY * side * spread + (dy / length) * jag
-          });
-        }
-        
-        // Connect branch waypoints with Bresenham lines
-        for (let j = 0; j < branchWaypoints.length - 1; j++) {
-          const bStart = branchWaypoints[j];
-          const bEnd = branchWaypoints[j + 1];
-          
-          const branchLinePoints = bresenhamLine(
-            Math.floor(bStart.x), Math.floor(bStart.y),
-            Math.floor(bEnd.x), Math.floor(bEnd.y)
-          );
-          
-          // Branch intensity fades along its length
-          const segmentT = j / (branchWaypoints.length - 1);
-          const branchIntensity = 0.8 - segmentT * 0.3;
-          
-          for (const pt of branchLinePoints) {
-            points.push({
-              x: pt.x,
-              y: pt.y,
-              intensity: branchIntensity,
-              thickness: Math.max(1, this.config.thickness - 1),
-              isBranch: true
-            });
-          }
-        }
+        this.createBranchRecursive(
+          waypoints[i],
+          { dx, dy, length },
+          1, // Start at depth 1 (branches of main bolt)
+          points
+        );
       }
     }
     
-    // Cap total points at 200 to maintain performance
-    if (points.length > 200) {
-      points.length = 200;
+    // Cap total points at 500 to maintain performance (Phase 2 allows more complexity)
+    if (points.length > 500) {
+      points.length = 500;
     }
     
     return {
