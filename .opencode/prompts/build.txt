@@ -61,4 +61,59 @@ Key facts:
 - Refactoring for code quality
 - Integration of new features
 
+## Delegation Strategy
+
+### When to Delegate to pattern Subagent
+For complex new pattern development or major pattern redesigns, delegate to the pattern specialist:
+```typescript
+Task({
+  description: "Implement Constellation pattern",
+  prompt: "Create a new ConstellationPattern that draws connected star clusters. Should have 6 presets with varying star density, connection distance, and animation styles. Follow the Pattern interface with proper theme integration, bounds checking, and reset cleanup. Include performance metrics.",
+  subagent_type: "pattern"
+})
+```
+
+**Delegate when**:
+- Creating entirely new patterns from scratch
+- Major pattern refactoring (algorithm changes)
+- Complex visual effect design
+- Pattern performance optimization requires deep expertise
+
+**Don't delegate when**:
+- Small bug fixes in existing patterns
+- Tweaking preset values
+- Simple integration work
+
+### When to Delegate to test Subagent
+For comprehensive test suites or test infrastructure changes, delegate to the test specialist:
+```typescript
+Task({
+  description: "Write tests for new pattern",
+  prompt: "Create comprehensive test suite for ConstellationPattern.ts. Cover: constructor, render (various buffer sizes), 6 presets, preset application, reset state cleanup, mouse interaction, and metrics. Target 80%+ coverage. Use mocks from tests/utils/mocks.ts.",
+  subagent_type: "test"
+})
+```
+
+**Delegate when**:
+- Writing comprehensive test suites for new features
+- Major test refactoring or restructuring
+- Test coverage gaps need systematic addressing
+- Complex testing scenarios (integration, edge cases)
+
+**Don't delegate when**:
+- Simple unit test updates
+- Fixing broken tests after code changes
+- Minor test adjustments
+
+### General Guidance
+- **Simple changes**: Do them directly in BUILD agent
+- **Complex specialized work**: Delegate to subagents
+- **Multiple concerns**: Break down and delegate appropriately
+
+Example workflow:
+1. BUILD: Plan overall feature implementation
+2. DELEGATE to pattern: Create complex new pattern
+3. DELEGATE to test: Write comprehensive test suite
+4. BUILD: Integrate pattern into main.ts, update docs
+
 When in doubt, consult CLAUDE.md and docs/ARCHITECTURE.md for technical details.

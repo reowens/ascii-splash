@@ -7,29 +7,39 @@
       "prompt": "{file:./.opencode/prompts/build.txt}",
       "description": "General development and bug fixes"
     },
-    "pattern": {
+    "plan": {
       "mode": "primary",
+      "model": "github-copilot/claude-sonnet-4.5",
+      "prompt": "{file:./.opencode/prompts/plan.txt}",
+      "description": "Strategic planning and architecture",
+      "tools": {
+        "write": false,
+        "edit": false
+      }
+    },
+    "audit": {
+      "mode": "primary",
+      "model": "github-copilot/claude-haiku-4.5",
+      "prompt": "{file:./.opencode/prompts/audit.txt}",
+      "description": "Documentation and release management"
+    },
+    "pattern": {
+      "mode": "subagent",
       "model": "github-copilot/claude-sonnet-4.5",
       "prompt": "{file:./.opencode/prompts/pattern.txt}",
-      "description": "ASCII animation pattern development"
+      "description": "Pattern development specialist (subagent)"
     },
     "test": {
-      "mode": "primary",
+      "mode": "subagent",
       "model": "github-copilot/claude-haiku-4.5",
       "prompt": "{file:./.opencode/prompts/test.txt}",
-      "description": "Test writing and maintenance"
+      "description": "Test writing specialist (subagent)"
     },
-    "docs": {
-      "mode": "primary",
-      "model": "github-copilot/claude-haiku-4.5",
-      "prompt": "{file:./.opencode/prompts/docs.txt}",
-      "description": "Documentation updates"
-    },
-    "production": {
-      "mode": "primary",
+    "code-audit": {
+      "mode": "subagent",
       "model": "github-copilot/claude-sonnet-4.5",
-      "prompt": "{file:./.opencode/prompts/production.txt}",
-      "description": "Release management (read-only)",
+      "prompt": "{file:./.opencode/prompts/code-audit.txt}",
+      "description": "Deep code quality analysis (subagent)",
       "tools": {
         "write": false,
         "edit": false,
