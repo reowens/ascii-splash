@@ -1079,9 +1079,10 @@ describe('Additional Pattern Tests', () => {
           expect(preset.name).toBeDefined();
           expect(preset.description).toBeDefined();
           expect(preset.config).toBeDefined();
-          expect(preset.config.boltDensity).toBeDefined();
           expect(preset.config.branchProbability).toBeDefined();
           expect(preset.config.strikeInterval).toBeDefined();
+          expect(preset.config.mainPathJaggedness).toBeDefined();
+          expect(preset.config.branchSpread).toBeDefined();
         });
       });
     });
@@ -1141,9 +1142,9 @@ describe('Additional Pattern Tests', () => {
         expect(preset?.config.branchProbability).toBeGreaterThanOrEqual(0.5);
       });
 
-      it('Chain Lightning has thick bolts', () => {
+      it('Chain Lightning has minimal fade time', () => {
         const preset = LightningPattern.getPreset(5);
-        expect(preset?.config.thickness).toBeGreaterThanOrEqual(3);
+        expect(preset?.config.fadeTime).toBeLessThan(20);
       });
     });
 

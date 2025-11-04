@@ -79,13 +79,11 @@ export const defaultConfig: ConfigSchema = {
       radius: 0.75,
     },
     lightning: {
-      boltDensity: 0.5,
       branchProbability: 0.3,
-      branchAngle: 30,
       fadeTime: 300,
       strikeInterval: 1500,
-      maxBranches: 3,
-      thickness: 1,
+      mainPathJaggedness: 8,
+      branchSpread: 10,
     },
     fireworks: {
       burstSize: 80,

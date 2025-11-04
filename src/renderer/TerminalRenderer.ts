@@ -8,6 +8,7 @@ export class TerminalRenderer {
   private buffer: Buffer;
   private size: Size;
   private mouseEnabled: boolean;
+  private readonly MAX_CHANGES_PER_FRAME = 500; // Limit to prevent terminal overload
 
   constructor(mouseEnabled: boolean = true) {
     this.mouseEnabled = mouseEnabled;
@@ -60,22 +61,43 @@ export class TerminalRenderer {
   render(): number {
     const changes = this.buffer.getChanges();
     
-    // Only render changed cells for performance
+    // CRITICAL: Batch all writes into a single string to prevent
+    // incomplete ANSI escape sequences from corrupting the terminal.
+    // This is essential for high-frequency rendering (30-60 FPS).
+    
+    if (changes.length === 0) {
+      this.buffer.swap();
+      return 0;
+    }
+    
+    // Build complete output string with all escape sequences
+    // This ensures atomic writes and prevents terminal corruption
+    let outputBuffer = '';
+    
     for (const change of changes) {
-      term.moveTo(change.x + 1, change.y + 1); // terminal-kit uses 1-based indexing
+      // Add cursor position (terminal-kit uses 1-based indexing)
+      outputBuffer += `\x1b[${change.y + 1};${change.x + 1}H`;
       
+      // Add color if present
       if (change.cell.color) {
-        term.colorRgb(
-          change.cell.color.r,
-          change.cell.color.g,
-          change.cell.color.b
-        );
+        const r = Math.max(0, Math.min(255, change.cell.color.r));
+        const g = Math.max(0, Math.min(255, change.cell.color.g));
+        const b = Math.max(0, Math.min(255, change.cell.color.b));
+        outputBuffer += `\x1b[38;2;${r};${g};${b}m`;
       } else {
-        term.defaultColor();
+        outputBuffer += '\x1b[39m'; // Default foreground color
       }
       
-      term(change.cell.char);
+      // Add character (escape special characters if needed)
+      outputBuffer += change.cell.char;
+      
+      // Reset style after each character to prevent style bleed
+      outputBuffer += '\x1b[0m';
     }
+    
+    // Write entire frame as single atomic operation
+    // This prevents incomplete escape sequences from reaching the terminal
+    process.stdout.write(outputBuffer);
     
     // Swap buffers
     this.buffer.swap();

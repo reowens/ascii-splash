@@ -150,13 +150,11 @@ export interface TunnelPatternConfig {
 }
 
 export interface LightningPatternConfig {
-  boltDensity?: number;
   branchProbability?: number;
-  branchAngle?: number;
   fadeTime?: number;
   strikeInterval?: number;
-  maxBranches?: number;
-  thickness?: number;
+  mainPathJaggedness?: number;
+  branchSpread?: number;
 }
 
 export interface FireworkPatternConfig {
