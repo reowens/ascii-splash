@@ -273,9 +273,9 @@ describe('PlasmaPattern', () => {
   });
 
   describe('presets', () => {
-    it('should have 6 presets defined', () => {
+    it('should have 9 presets defined', () => {
       const presets = PlasmaPattern.getPresets();
-      expect(presets).toHaveLength(6);
+      expect(presets).toHaveLength(9);
     });
 
     it('should have unique preset IDs', () => {
@@ -291,11 +291,13 @@ describe('PlasmaPattern', () => {
         expect(preset.name).toBeTruthy();
         expect(preset.description).toBeTruthy();
         expect(preset.id).toBeGreaterThan(0);
-        expect(preset.id).toBeLessThanOrEqual(6);
+        expect(preset.id).toBeLessThanOrEqual(9);
         expect(preset.config).toBeDefined();
         expect(preset.config.frequency).toBeDefined();
         expect(preset.config.speed).toBeDefined();
         expect(preset.config.complexity).toBeDefined();
+        expect(preset.config.colorShift).toBeDefined();
+        expect(preset.config.shiftSpeed).toBeDefined();
       });
     });
 

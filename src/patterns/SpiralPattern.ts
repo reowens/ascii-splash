@@ -44,6 +44,7 @@ export class SpiralPattern implements Pattern {
   private particles: Particle[] = [];
   private clickBursts: ClickBurst[] = [];
   private armRotation: number = 0;
+  private armSpeeds: number[] = []; // Individual rotation speeds per arm
   private lastTime: number = 0;
   
   // Gradient characters from dots to stars
@@ -161,7 +162,13 @@ export class SpiralPattern implements Pattern {
 
   private initializeParticles(): void {
     this.particles = [];
+    this.armSpeeds = [];
     const { particleCount, armCount, direction } = this.config;
+    
+    // Generate unique rotation speeds for each arm (0.8-1.2x variation)
+    for (let i = 0; i < armCount; i++) {
+      this.armSpeeds.push(0.8 + Math.random() * 0.4);
+    }
     
     for (let i = 0; i < particleCount; i++) {
       // Distribute particles across arms
@@ -189,6 +196,7 @@ export class SpiralPattern implements Pattern {
     this.initializeParticles();
     this.clickBursts = [];
     this.armRotation = 0;
+    this.armSpeeds = [];
     this.lastTime = 0;
   }
 
@@ -200,9 +208,10 @@ export class SpiralPattern implements Pattern {
     const b = spiralTightness;
     const radius = Math.min(a * Math.exp(b * angle), maxRadius);
     
-    // Offset angle for this arm + current arm rotation
+    // Offset angle for this arm + current arm rotation with per-arm speed variation
     const armOffset = (Math.PI * 2 * armIndex) / armCount;
-    const finalAngle = angle + armOffset + this.armRotation;
+    const armSpeedMultiplier = this.armSpeeds[armIndex] || 1.0;
+    const finalAngle = angle + armOffset + (this.armRotation * armSpeedMultiplier);
     
     return {
       x: centerX + radius * Math.cos(finalAngle),

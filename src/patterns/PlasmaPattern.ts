@@ -4,6 +4,8 @@ interface PlasmaConfig {
   frequency: number;
   speed: number;
   complexity: number;
+  colorShift: boolean;      // Enable color cycling
+  shiftSpeed: number;       // Speed of color shift (0 to 1)
 }
 
 interface PlasmaPreset {
@@ -27,37 +29,55 @@ export class PlasmaPattern implements Pattern {
       id: 1,
       name: 'Gentle Waves',
       description: 'Slow, smooth plasma flow',
-      config: { frequency: 0.08, speed: 0.6, complexity: 2 }
+      config: { frequency: 0.08, speed: 0.6, complexity: 2, colorShift: false, shiftSpeed: 0 }
     },
     {
       id: 2,
       name: 'Standard Plasma',
       description: 'Balanced plasma effect',
-      config: { frequency: 0.1, speed: 1.0, complexity: 3 }
+      config: { frequency: 0.1, speed: 1.0, complexity: 3, colorShift: false, shiftSpeed: 0 }
     },
     {
       id: 3,
       name: 'Turbulent Energy',
       description: 'Fast, chaotic plasma',
-      config: { frequency: 0.15, speed: 1.8, complexity: 4 }
+      config: { frequency: 0.15, speed: 1.8, complexity: 4, colorShift: false, shiftSpeed: 0 }
     },
     {
       id: 4,
       name: 'Lava Lamp',
       description: 'Large blobs, slow movement',
-      config: { frequency: 0.05, speed: 0.4, complexity: 2 }
+      config: { frequency: 0.05, speed: 0.4, complexity: 2, colorShift: false, shiftSpeed: 0 }
     },
     {
       id: 5,
       name: 'Electric Storm',
       description: 'High frequency, intense patterns',
-      config: { frequency: 0.2, speed: 1.5, complexity: 5 }
+      config: { frequency: 0.2, speed: 1.5, complexity: 5, colorShift: false, shiftSpeed: 0 }
     },
     {
       id: 6,
       name: 'Cosmic Nebula',
       description: 'Minimal complexity, ethereal flow',
-      config: { frequency: 0.06, speed: 0.8, complexity: 1 }
+      config: { frequency: 0.06, speed: 0.8, complexity: 1, colorShift: false, shiftSpeed: 0 }
+    },
+    {
+      id: 7,
+      name: 'Rainbow Flow',
+      description: 'Gentle waves with slow color cycling',
+      config: { frequency: 0.08, speed: 0.6, complexity: 2, colorShift: true, shiftSpeed: 0.0002 }
+    },
+    {
+      id: 8,
+      name: 'Psychedelic Storm',
+      description: 'Fast plasma with rapid color shifts',
+      config: { frequency: 0.15, speed: 1.5, complexity: 4, colorShift: true, shiftSpeed: 0.0008 }
+    },
+    {
+      id: 9,
+      name: 'Aurora Borealis',
+      description: 'Medium waves with mesmerizing color dance',
+      config: { frequency: 0.1, speed: 1.0, complexity: 3, colorShift: true, shiftSpeed: 0.0005 }
     }
   ];
   
@@ -67,6 +87,8 @@ export class PlasmaPattern implements Pattern {
       frequency: 0.1,
       speed: 1.0,
       complexity: 3,
+      colorShift: false,
+      shiftSpeed: 0,
       ...config
     };
   }
@@ -155,7 +177,13 @@ export class PlasmaPattern implements Pattern {
         }
         
         // Normalize value to 0-1 range
-        const intensity = (value / 4 + 1) / 2; // value is in range [-4, 4], normalize to [0, 1]
+        let intensity = (value / 4 + 1) / 2; // value is in range [-4, 4], normalize to [0, 1]
+        
+        // Apply color shift if enabled
+        if (this.config.colorShift) {
+          const colorOffset = (time * this.config.shiftSpeed) % 1.0;
+          intensity = (intensity + colorOffset) % 1.0;
+        }
         
         // Choose character based on intensity
         const charIndex = Math.floor(intensity * (this.plasmaChars.length - 1));

@@ -24,6 +24,7 @@ export class LifePattern implements Pattern {
   private grid: boolean[][] = []; // true = alive, false = dead
   private nextGrid: boolean[][] = [];
   private neighborCounts: number[][] = []; // Cache neighbor counts for rendering
+  private cellAge: number[][] = []; // Track how long cells have been alive
   private lastUpdateTime = 0;
   private generation = 0;
   private gridWidth = 0;
@@ -156,6 +157,7 @@ export class LifePattern implements Pattern {
     this.grid = [];
     this.nextGrid = [];
     this.neighborCounts = [];
+    this.cellAge = [];
     this.population = 0;
   }
 
@@ -171,6 +173,9 @@ export class LifePattern implements Pattern {
       Array(this.gridWidth).fill(false)
     );
     this.neighborCounts = Array(this.gridHeight).fill(null).map(() => 
+      Array(this.gridWidth).fill(0)
+    );
+    this.cellAge = Array(this.gridHeight).fill(null).map(() => 
       Array(this.gridWidth).fill(0)
     );
 
@@ -371,6 +376,15 @@ export class LifePattern implements Pattern {
           // Cell becomes alive if it has exactly 3 neighbors
           this.nextGrid[y][x] = neighbors === 3;
         }
+        
+        // Update cell age
+        if (this.nextGrid[y][x]) {
+          // Cell is/becomes alive - increment age
+          this.cellAge[y][x] = isAlive ? this.cellAge[y][x] + 1 : 0;
+        } else {
+          // Cell dies - reset age
+          this.cellAge[y][x] = 0;
+        }
       }
     }
 
@@ -416,12 +430,13 @@ export class LifePattern implements Pattern {
           const isAlive = this.grid[gy][gx];
           const char = isAlive ? this.config.aliveChar : this.config.deadChar;
           
-          // Color based on cell age/neighbors for visual interest
-          // Use cached neighbor count instead of recalculating
+          // Color based on cell age for visual interest
           let intensity = 0.2;
           if (isAlive) {
-            const neighbors = this.neighborCounts[gy][gx];
-            intensity = 0.5 + (neighbors / 8) * 0.5; // 0.5 to 1.0 based on neighbors
+            const age = this.cellAge[gy][gx];
+            // Older cells are brighter (cap at age 20 for full brightness)
+            const ageIntensity = Math.min(age / 20, 1.0);
+            intensity = 0.4 + ageIntensity * 0.6; // Range from 0.4 to 1.0
           }
 
           buffer[y][x] = {
@@ -444,6 +459,7 @@ export class LifePattern implements Pattern {
 
     if (gx >= 0 && gx < this.gridWidth && gy >= 0 && gy < this.gridHeight) {
       this.grid[gy][gx] = !this.grid[gy][gx];
+      this.cellAge[gy][gx] = 0; // Reset age when toggling
       this.updatePopulation();
     }
   }

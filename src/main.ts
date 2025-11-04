@@ -221,13 +221,11 @@ function main() {
         radius: cfg.patterns?.tunnel?.radius
       }),
       new LightningPattern(theme, {
-        boltDensity: cfg.patterns?.lightning?.boltDensity,
         branchProbability: cfg.patterns?.lightning?.branchProbability,
-        branchAngle: cfg.patterns?.lightning?.branchAngle,
         fadeTime: cfg.patterns?.lightning?.fadeTime,
         strikeInterval: cfg.patterns?.lightning?.strikeInterval,
-        maxBranches: cfg.patterns?.lightning?.maxBranches,
-        thickness: cfg.patterns?.lightning?.thickness
+        mainPathJaggedness: cfg.patterns?.lightning?.mainPathJaggedness,
+        branchSpread: cfg.patterns?.lightning?.branchSpread
       }),
       new FireworksPattern(theme, {
         burstSize: cfg.patterns?.fireworks?.burstSize,
@@ -337,6 +335,7 @@ function main() {
   // Overlay message state
   let overlayMessage: string | null = null;
   let overlayMessageTimeout: NodeJS.Timeout | null = null;
+  let isPatternSwitching = false; // Mutex to prevent overlay corruption during pattern switch
   
   // Determine initial FPS from config
   const initialFps = ConfigLoader.getFpsFromConfig(config);
@@ -381,11 +380,17 @@ function main() {
   
   function switchPattern(index: number) {
     if (index >= 0 && index < patterns.length) {
+      isPatternSwitching = true; // Set flag to prevent overlay rendering during switch
       currentPatternIndex = index;
       currentPresetIndex = 1; // Reset to preset 1 when switching patterns
       engine.setPattern(patterns[currentPatternIndex]);
       commandExecutor.updateState(currentPatternIndex, currentThemeIndex);
       showPatternName(patterns[currentPatternIndex].name);
+      
+      // Clear flag after short delay to allow screen clear to complete
+      setTimeout(() => {
+        isPatternSwitching = false;
+      }, 16); // One frame at 60fps
     }
   }
 
@@ -426,9 +431,12 @@ function main() {
     // Set overlay message
     overlayMessage = `Pattern: ${displayName}`;
     
+    // Message will be rendered by renderBottomOverlay in the next frame
+    
     // Clear after 2 seconds
     overlayMessageTimeout = setTimeout(() => {
       overlayMessage = null;
+      // Will be cleared by renderBottomOverlay in the next frame
     }, 2000);
   }
 
@@ -489,6 +497,9 @@ function main() {
     const stats = engine.getPerformanceMonitor().getStats();
     const size = renderer.getSize();
     const currentPattern = patterns[currentPatternIndex];
+    const bufferSafety = engine.getBufferSafety();
+    const errorsByPattern = bufferSafety.getErrorsByPattern();
+    const totalErrors = Object.values(errorsByPattern).reduce((sum, count) => sum + count, 0);
     
     const lines = [
       `PERFORMANCE DEBUG`,
@@ -506,6 +517,15 @@ function main() {
       `Min/Avg/Max FPS: ${stats.minFps.toFixed(1)} / ${stats.avgFps.toFixed(1)} / ${stats.maxFps.toFixed(1)}`,
       `Total Frames: ${stats.totalFrames}`
     ];
+    
+    // Add buffer safety errors if any
+    if (totalErrors > 0) {
+      lines.push(`────────────────────────────`);
+      lines.push(`⚠️  RENDER ERRORS: ${totalErrors}`);
+      for (const [pattern, count] of Object.entries(errorsByPattern)) {
+        lines.push(`  ${pattern}: ${count} errors`);
+      }
+    }
     
     // Add shuffle info if active
     const shuffleInfo = commandExecutor.getShuffleInfo();
@@ -550,93 +570,96 @@ function main() {
     term.bgDefaultColor();
   }
 
-  function renderCommandOverlay() {
-    const size = renderer.getSize();
-    const bottomLine = size.height;
+  /**
+   * Unified bottom overlay renderer with priority system
+   * Priority order:
+   *   1. Command mode (highest)
+   *   2. Pattern selection mode
+   *   3. Message banner (pattern names, status messages)
+   *   4. None (clear the line)
+   */
+  function renderBottomOverlay() {
+    // Skip overlay rendering during pattern switch to prevent terminal corruption
+    if (isPatternSwitching) return;
     
-    term.moveTo(1, bottomLine);
-    term.eraseLine();
-    
-    if (commandBuffer.isActive()) {
-      const buffer = commandBuffer.getBuffer();
-      const cursorPos = commandBuffer.getCursorPos();
+    try {
+      const size = renderer.getSize();
+      const bottomRow = size.height; // terminal-kit uses 1-based coordinates
       
-      // Draw command prompt with cursor
-      term.bgBlack();
-      term.bold.cyan('COMMAND: ');
-      term.green(buffer.slice(0, cursorPos));
-      term.inverse('_'); // Cursor
-      term.styleReset();
-      term.bgBlack();
-      term.green(buffer.slice(cursorPos));
+      // Priority 1: Command mode
+      if (commandBuffer.isActive()) {
+        const buffer = commandBuffer.getBuffer();
+        const cursorPos = commandBuffer.getCursorPos();
+        
+        term.moveTo(1, bottomRow);
+        term.eraseLine();
+        term.bgBlack();
+        term.bold.cyan('COMMAND: ');
+        term.green(buffer.slice(0, cursorPos));
+        term.inverse('_'); // Cursor
+        term.styleReset();
+        term.bgBlack();
+        term.green(buffer.slice(cursorPos));
+        term.defaultColor();
+        term.bgDefaultColor();
+        term.styleReset(); // Final reset to ensure clean state
+        return;
+      }
       
-      term.defaultColor();
-      term.bgDefaultColor();
-    }
-  }
-
-  function renderPatternOverlay() {
-    const size = renderer.getSize();
-    const bottomLine = size.height;
-    
-    term.moveTo(1, bottomLine);
-    term.eraseLine();
-    
-    if (patternBufferActive) {
-      // Draw pattern prompt with cursor (yellow to distinguish from command mode)
-      term.bgBlack();
-      term.bold.yellow('PATTERN: ');
-      term.green(patternBuffer);
-      term.inverse('_'); // Cursor
+      // Priority 2: Pattern selection mode
+      if (patternBufferActive) {
+        term.moveTo(1, bottomRow);
+        term.eraseLine();
+        term.bgBlack();
+        term.bold.yellow('PATTERN: ');
+        term.green(patternBuffer);
+        term.inverse('_'); // Cursor
+        term.defaultColor();
+        term.bgDefaultColor();
+        term.styleReset(); // Final reset to ensure clean state
+        return;
+      }
       
-      term.defaultColor();
-      term.bgDefaultColor();
-    }
-  }
-
-  function renderMessageOverlay() {
-    if (overlayMessage) {
-      // Use the new overlay API to render persistent overlays
-      const theme = currentTheme;
-      const color = theme.getColor(0.8); // Bright color for visibility
-
-      // Set overlay text using the new composite-on-flush system
-      renderer.setOverlayText(0, 0, overlayMessage, color);
-    } else {
-      // Clear overlay when message is null
-      renderer.clearOverlayRow(0);
+      // Priority 3: Message banner (pattern names, status messages)
+      if (overlayMessage) {
+        const theme = currentTheme;
+        const color = theme.getColor(0.8); // Bright color for visibility
+        
+        term.moveTo(1, bottomRow);
+        term.eraseLine();
+        term.colorRgb(color.r, color.g, color.b, overlayMessage);
+        term.styleReset();        // CRITICAL: Reset style after colorRgb
+        term.defaultColor();      // Reset to default foreground
+        term.bgDefaultColor();    // Reset to default background
+        return;
+      }
+      
+      // No overlay active - clear the line
+      term.moveTo(1, bottomRow);
+      term.eraseLine();
+      term.styleReset(); // Defensive reset even when clearing
+    } catch (err) {
+      // Catch any terminal state errors during rapid operations
+      // Terminal may be in inconsistent state, but don't crash the app
     }
   }
 
   function showCommandResult(message: string, success: boolean) {
-    const size = renderer.getSize();
-    const bottomLine = size.height;
-    
     // Clear any existing timeout
-    if (commandResultTimeout) {
-      clearTimeout(commandResultTimeout);
+    if (overlayMessageTimeout) {
+      clearTimeout(overlayMessageTimeout);
     }
     
-    // Show result message
-    term.moveTo(1, bottomLine);
-    term.eraseLine();
-    term.bgBlack();
+    // Format message with success/failure indicator
+    const formattedMessage = success ? `✓ ${message}` : `✗ ${message}`;
+    overlayMessage = formattedMessage;
     
-    if (success) {
-      term.bold.green('✓ ');
-      term.white(message);
-    } else {
-      term.bold.red('✗ ');
-      term.white(message);
-    }
-    
-    term.defaultColor();
-    term.bgDefaultColor();
+    // Will be rendered by renderBottomOverlay in the next frame
     
     // Auto-clear after 2.5 seconds
-    commandResultTimeout = setTimeout(() => {
-      term.moveTo(1, bottomLine);
-      term.eraseLine();
+    overlayMessageTimeout = setTimeout(() => {
+      overlayMessage = null;
+      // Will be cleared by renderBottomOverlay in the next frame
     }, 2500);
   }
   
@@ -765,12 +788,14 @@ function main() {
       } else if (name === 'RIGHT') {
         commandBuffer.moveCursorRight();
       } else if (data.isCharacter) {
-        // Regular character input - but allow single-digit keys to pass through
+        // Regular character input - but allow direct shortcuts to pass through
         const char = String.fromCharCode(data.codepoint);
-        if (/^[1-9]$/.test(char)) {
-          // Single digit - cancel command mode and let normal handling proceed
+        // Allow pattern navigation keys (n, b) to exit command mode, but NOT digits
+        // (digits need to stay in command mode for multi-digit commands like c14)
+        if (/^[nNbB]$/.test(char)) {
+          // Pattern nav - cancel command mode and let normal handling proceed
           commandBuffer.cancel();
-          // Don't return - let normal key handling process the digit
+          // Don't return - let normal key handling process the key
         } else {
           commandBuffer.addChar(char);
           return; // Stay in command mode
@@ -793,25 +818,17 @@ function main() {
         // Accept numbers, letters, and dots
         const char = String.fromCharCode(data.codepoint);
         if (/[0-9a-zA-Z.]/.test(char)) {
-          // Allow single-digit keys (1-9) to also work as direct pattern switching
-          if (/^[1-9]$/.test(char) && patternBuffer === '') {
-            // Single digit with empty buffer - cancel pattern mode and let normal handling proceed
+          patternBuffer += char;
+          
+          // Reset timeout on input
+          if (patternBufferTimeout) {
+            clearTimeout(patternBufferTimeout);
+          }
+          patternBufferTimeout = setTimeout(() => {
             patternBufferActive = false;
             patternBuffer = '';
-            // Don't return - let normal key handling process the digit
-          } else {
-            patternBuffer += char;
-            
-            // Reset timeout on input
-            if (patternBufferTimeout) {
-              clearTimeout(patternBufferTimeout);
-            }
-            patternBufferTimeout = setTimeout(() => {
-              patternBufferActive = false;
-              patternBuffer = '';
-            }, patternBufferTimeoutMs);
-            return; // Stay in pattern mode
-          }
+          }, patternBufferTimeoutMs);
+          return; // Stay in pattern mode
         }
       }
       
@@ -964,9 +981,12 @@ function main() {
     // Set overlay message
     overlayMessage = msg;
     
+    // Message will be rendered by renderBottomOverlay in the next frame
+    
     // Clear after 1.5 seconds
     overlayMessageTimeout = setTimeout(() => {
       overlayMessage = null;
+      // Will be cleared by renderBottomOverlay in the next frame
     }, 1500);
   }
 
@@ -979,16 +999,11 @@ function main() {
   // Start animation
   engine.start();
   
-  // Set up buffer-based overlays (render before terminal write to prevent garbled text)
-  engine.setBeforeTerminalRenderCallback(() => {
-    renderMessageOverlay();
-  });
-  
   // Set up terminal-based overlays (render after terminal write)
+  // Unified bottom overlay system with priority: command > pattern > message > none
   engine.setAfterRenderCallback(() => {
     renderDebugOverlay();
-    renderCommandOverlay();
-    renderPatternOverlay();
+    renderBottomOverlay();
   });
   
   // Display welcome message briefly using the overlay system

@@ -229,8 +229,26 @@ export class LavaLampPattern implements Pattern {
         
         if (field >= this.config.threshold) {
           const intensity = metaballIntensity(x, y, metaballs, 5.0);
-          const char = this.getCharForIntensity(intensity);
-          const color = this.theme.getColor(clamp(intensity, 0, 1));
+          
+          // Find closest blob to get temperature
+          let closestTemp = 0.5;
+          let minDistSq = Infinity;
+          for (const blob of this.blobs) {
+            const dx = x - blob.x;
+            const dy = y - blob.y;
+            const distSq = dx * dx + dy * dy;
+            if (distSq < minDistSq) {
+              minDistSq = distSq;
+              closestTemp = blob.temp;
+            }
+          }
+          
+          // Modulate intensity by temperature: hot = brighter, cool = dimmer
+          const tempModulation = 0.85 + closestTemp * 0.3; // 0.85-1.15 range
+          const finalIntensity = clamp(intensity * tempModulation, 0, 1);
+          
+          const char = this.getCharForIntensity(finalIntensity);
+          const color = this.theme.getColor(finalIntensity);
           buffer[y][x] = { char, color };
         }
       }

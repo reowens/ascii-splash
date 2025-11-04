@@ -32,6 +32,7 @@ interface Particle {
   accumulated: boolean; // Stuck at bottom?
   accumulationTime: number; // How long stuck
   weight: number;      // Affects fall speed (0.5-2.0)
+  pulsePhase: number;  // Phase for size pulsing (0-2π)
 }
 
 export class SnowPattern implements Pattern {
@@ -126,7 +127,8 @@ export class SnowPattern implements Pattern {
       opacity: 0.6 + Math.random() * 0.4,
       accumulated: false,
       accumulationTime: 0,
-      weight
+      weight,
+      pulsePhase: Math.random() * Math.PI * 2
     };
   }
 
@@ -157,6 +159,7 @@ export class SnowPattern implements Pattern {
         particle.y = -1;
         particle.vx = (Math.random() - 0.5) * this.config.windStrength;
         particle.accumulationTime = 0;
+        particle.pulsePhase = Math.random() * Math.PI * 2;
       }
       return;
     }
@@ -207,6 +210,10 @@ export class SnowPattern implements Pattern {
     if (particle.rotation > 360) particle.rotation -= 360;
     if (particle.rotation < 0) particle.rotation += 360;
 
+    // Size pulsing (breathing effect as particle falls)
+    particle.pulsePhase += deltaTime * 0.002;
+    if (particle.pulsePhase > Math.PI * 2) particle.pulsePhase -= Math.PI * 2;
+
     // Wrap horizontal
     if (particle.x < 0) particle.x += this.size.width;
     if (particle.x >= this.size.width) particle.x -= this.size.width;
@@ -225,6 +232,7 @@ export class SnowPattern implements Pattern {
         particle.y = -1;
         particle.x = Math.random() * this.size.width;
         particle.vx = (Math.random() - 0.5) * this.config.windStrength;
+        particle.pulsePhase = Math.random() * Math.PI * 2;
       }
     }
   }
@@ -246,12 +254,7 @@ export class SnowPattern implements Pattern {
       this.updateParticle(particle, deltaTime);
     }
 
-    // Clear buffer
-    for (let y = 0; y < size.height; y++) {
-      for (let x = 0; x < size.width; x++) {
-        buffer[y][x] = { char: ' ', color: { r: 0, g: 0, b: 0 } };
-      }
-    }
+    // Buffer is already cleared by AnimationEngine - no need to clear here
 
     // Render particles
     for (const particle of this.particles) {
@@ -271,7 +274,9 @@ export class SnowPattern implements Pattern {
   }
 
   private getParticleColor(particle: Particle): { r: number; g: number; b: number } {
-    const intensity = particle.opacity;
+    // Apply pulsing to opacity for size variation effect
+    const pulseFactor = 0.85 + Math.sin(particle.pulsePhase) * 0.15; // 0.7-1.0 range
+    const intensity = particle.opacity * pulseFactor;
     
     switch (this.config.particleType) {
       case 'snow':

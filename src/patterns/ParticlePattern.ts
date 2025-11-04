@@ -9,6 +9,7 @@ interface Particle {
   life: number;
   maxLife: number;
   size: number;
+  trail: Point[]; // Trail of previous positions
 }
 
 interface ParticleConfig {
@@ -107,7 +108,8 @@ export class ParticlePattern implements Pattern {
       vy: (Math.random() - 0.5) * 2 * this.config.speed,
       life: 1.0,
       maxLife: 1.0,
-      size: Math.random() * 3
+      size: Math.random() * 3,
+      trail: []
     };
   }
 
@@ -151,6 +153,12 @@ export class ParticlePattern implements Pattern {
         }
       }
       
+      // Update trail (store previous position before moving)
+      p.trail.push({ x: p.x, y: p.y });
+      if (p.trail.length > 8) {
+        p.trail.shift(); // Keep trail length at max 8 positions
+      }
+      
       // Apply velocity
       p.x += p.vx;
       p.y += p.vy;
@@ -186,6 +194,27 @@ export class ParticlePattern implements Pattern {
       }
     }
 
+    // Render particle trails first (so particles draw on top)
+    for (const p of this.particles) {
+      for (let i = 0; i < p.trail.length; i++) {
+        const trailPos = p.trail[i];
+        const x = Math.floor(trailPos.x);
+        const y = Math.floor(trailPos.y);
+        
+        if (x >= 0 && x < width && y >= 0 && y < height) {
+          // Fade trail based on age (older = dimmer)
+          const age = i / p.trail.length; // 0 = oldest, 1 = newest
+          const trailIntensity = age * p.life * 0.5; // Trail is dimmer than particle
+          const trailChar = '·'; // Small dot for trail
+          
+          buffer[y][x] = {
+            char: trailChar,
+            color: this.theme.getColor(trailIntensity)
+          };
+        }
+      }
+    }
+    
     // Render particles
     for (const p of this.particles) {
       const x = Math.floor(p.x);
@@ -230,7 +259,8 @@ export class ParticlePattern implements Pattern {
         vy: Math.sin(angle) * speed,
         life: 1.0,
         maxLife: 1.0,
-        size: Math.random() * 3
+        size: Math.random() * 3,
+        trail: []
       });
     }
   }

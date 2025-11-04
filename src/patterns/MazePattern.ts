@@ -39,6 +39,7 @@ export class MazePattern implements Pattern {
   private sets: Map<string, number> = new Map();
   private setCounter = 0;
   private wilsonPath: Point[] = [];
+  private solutionPath: Point[] = []; // Path from start to end
   private gridWidth = 0;
   private gridHeight = 0;
 
@@ -167,6 +168,7 @@ export class MazePattern implements Pattern {
     this.sets.clear();
     this.setCounter = 0;
     this.wilsonPath = [];
+    this.solutionPath = [];
   }
 
   private initializeMaze(width: number, height: number): void {
@@ -587,6 +589,63 @@ export class MazePattern implements Pattern {
       this.maze[y2][x2].walls.bottom = false;
     }
   }
+  
+  private findSolutionPath(): void {
+    // BFS to find path from top-left to bottom-right
+    const start = { x: 0, y: 0 };
+    const end = { x: this.gridWidth - 1, y: this.gridHeight - 1 };
+    
+    const queue: Point[] = [start];
+    const visited = new Set<string>();
+    const parent = new Map<string, Point>();
+    visited.add(`${start.x},${start.y}`);
+    
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      
+      if (current.x === end.x && current.y === end.y) {
+        // Reconstruct path
+        this.solutionPath = [];
+        let cell: Point | undefined = end;
+        
+        while (cell) {
+          this.solutionPath.unshift(cell);
+          const key = `${cell.x},${cell.y}`;
+          cell = parent.get(key);
+        }
+        return;
+      }
+      
+      // Check all valid neighbors (no wall between)
+      const cell = this.maze[current.y][current.x];
+      const neighbors: Point[] = [];
+      
+      if (!cell.walls.top && current.y > 0) {
+        neighbors.push({ x: current.x, y: current.y - 1 });
+      }
+      if (!cell.walls.right && current.x < this.gridWidth - 1) {
+        neighbors.push({ x: current.x + 1, y: current.y });
+      }
+      if (!cell.walls.bottom && current.y < this.gridHeight - 1) {
+        neighbors.push({ x: current.x, y: current.y + 1 });
+      }
+      if (!cell.walls.left && current.x > 0) {
+        neighbors.push({ x: current.x - 1, y: current.y });
+      }
+      
+      for (const neighbor of neighbors) {
+        const key = `${neighbor.x},${neighbor.y}`;
+        if (!visited.has(key)) {
+          visited.add(key);
+          parent.set(key, current);
+          queue.push(neighbor);
+        }
+      }
+    }
+    
+    // No path found
+    this.solutionPath = [];
+  }
 
   render(buffer: Cell[][], time: number, size: Size): void {
     // Initialize maze if needed
@@ -632,6 +691,7 @@ export class MazePattern implements Pattern {
         
         if (!continueGeneration) {
           this.generationComplete = true;
+          this.findSolutionPath(); // Find solution when generation completes
         }
       }
       
@@ -700,6 +760,23 @@ export class MazePattern implements Pattern {
                 char: '○',
                 color: this.theme.getColor(0.8)
               };
+            }
+          }
+        }
+        
+        // Highlight solution path (only when generation complete)
+        if (this.generationComplete) {
+          for (const pathCell of this.solutionPath) {
+            if (pathCell.x === x && pathCell.y === y) {
+              const centerX = baseX + Math.floor(this.config.cellSize / 2);
+              const centerY = baseY + Math.floor(this.config.cellSize / 2);
+              
+              if (centerX < size.width && centerY < size.height) {
+                buffer[centerY][centerX] = {
+                  char: '·',
+                  color: this.theme.getColor(0.9) // Bright highlight for solution
+                };
+              }
             }
           }
         }

@@ -134,20 +134,8 @@ describe('StarfieldPattern', () => {
       expect(metrics.stars).toBeGreaterThan(0);
     });
 
-    test('should clear buffer before rendering', () => {
-      // Fill buffer with junk data
-      for (let y = 0; y < size.height; y++) {
-        for (let x = 0; x < size.width; x++) {
-          buffer[y][x] = { char: 'X', color: { r: 255, g: 0, b: 0 } };
-        }
-      }
-      
-      pattern.render(buffer, 1000, size);
-      
-      // Some cells should be cleared (starfield is sparse)
-      const emptyCells = buffer.flat().filter(cell => cell.char === ' ');
-      expect(emptyCells.length).toBeGreaterThan(0);
-    });
+    // Note: Patterns should NOT clear the buffer - that's AnimationEngine's responsibility
+    // This prevents race conditions during terminal resize that can crash the terminal
 
     test('should handle small terminal size', () => {
       const smallSize = { width: 20, height: 10 };
@@ -286,9 +274,9 @@ describe('StarfieldPattern', () => {
   });
 
   describe('Presets', () => {
-    test('should have 6 presets', () => {
+    test('should have 8 presets', () => {
       const presets = StarfieldPattern.getPresets();
-      expect(presets).toHaveLength(6);
+      expect(presets).toHaveLength(8);
     });
 
     test('should get preset by id', () => {
@@ -401,6 +389,50 @@ describe('StarfieldPattern', () => {
         
         const metrics = pattern.getMetrics();
         expect(metrics.stars).toBe(80);
+      });
+    });
+
+    describe('Preset 7: Twinkling Night', () => {
+      test('should apply Twinkling Night preset', () => {
+        const result = pattern.applyPreset(7);
+        expect(result).toBe(true);
+      });
+
+      test('should render with Twinkling Night config', () => {
+        pattern.applyPreset(7);
+        pattern.render(buffer, 1000, size);
+        
+        const metrics = pattern.getMetrics();
+        expect(metrics.stars).toBe(120);
+      });
+
+      test('should enable twinkling effect', () => {
+        pattern.applyPreset(7);
+        const preset = StarfieldPattern.getPreset(7);
+        expect(preset?.config.twinkleEnabled).toBe(true);
+        expect(preset?.config.twinkleIntensity).toBe(0.4);
+      });
+    });
+
+    describe('Preset 8: Pulsing Cosmos', () => {
+      test('should apply Pulsing Cosmos preset', () => {
+        const result = pattern.applyPreset(8);
+        expect(result).toBe(true);
+      });
+
+      test('should render with Pulsing Cosmos config', () => {
+        pattern.applyPreset(8);
+        pattern.render(buffer, 1000, size);
+        
+        const metrics = pattern.getMetrics();
+        expect(metrics.stars).toBe(100);
+      });
+
+      test('should enable dramatic twinkling effect', () => {
+        pattern.applyPreset(8);
+        const preset = StarfieldPattern.getPreset(8);
+        expect(preset?.config.twinkleEnabled).toBe(true);
+        expect(preset?.config.twinkleIntensity).toBe(0.8);
       });
     });
 

@@ -419,7 +419,8 @@ describe('AnimationEngine', () => {
       jest.advanceTimersByTime(35);
 
       expect(mockPattern.renderCalled).toBe(true);
-      expect(mockPattern.lastSize).toEqual(mockSize);
+      // Pattern receives height - 1 (bottom row reserved for banner)
+      expect(mockPattern.lastSize).toEqual({ width: mockSize.width, height: mockSize.height - 1 });
       expect(mockPattern.lastTime).toBeGreaterThan(0);
     });
 
@@ -450,7 +451,8 @@ describe('AnimationEngine', () => {
       engine.start();
       jest.advanceTimersByTime(35);
 
-      expect(mockPattern.lastSize).toEqual(customSize);
+      // Pattern receives height - 1 (bottom row reserved for banner)
+      expect(mockPattern.lastSize).toEqual({ width: customSize.width, height: customSize.height - 1 });
     });
 
     it('records performance metrics each frame', () => {
@@ -652,8 +654,8 @@ describe('AnimationEngine', () => {
       engine.start();
       jest.advanceTimersByTime(35);
 
-      // Should not crash
-      expect(mockPattern.lastSize).toEqual({ width: 0, height: 0 });
+      // Should not crash (height becomes -1 with banner reservation, but pattern should handle it)
+      expect(mockPattern.lastSize).toEqual({ width: 0, height: -1 });
     });
 
     it('handles buffer resize during animation', () => {
@@ -662,13 +664,14 @@ describe('AnimationEngine', () => {
 
       engine.start();
       jest.advanceTimersByTime(35);
-      expect(mockPattern.lastSize).toEqual({ width: 80, height: 24 });
+      // Pattern receives height - 1 (bottom row reserved for banner)
+      expect(mockPattern.lastSize).toEqual({ width: 80, height: 23 });
 
       // Resize
       mockRenderer.getSize.mockReturnValue({ width: 120, height: 40 });
       jest.advanceTimersByTime(35);
 
-      expect(mockPattern.lastSize).toEqual({ width: 120, height: 40 });
+      expect(mockPattern.lastSize).toEqual({ width: 120, height: 39 });
     });
 
     it('handles very high FPS (60+)', () => {

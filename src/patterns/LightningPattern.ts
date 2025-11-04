@@ -1,15 +1,15 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types';
+import { validateProbability, validateInterval, clamp } from '../utils/validation';
 import { bresenhamLine } from '../utils/drawing';
-import { validateCount, validateProbability, validateAngle, validateInterval, clamp } from '../utils/validation';
 
 interface LightningConfig {
-  boltDensity: number;
   branchProbability: number;
-  branchAngle: number;
   fadeTime: number;
   strikeInterval: number;
-  maxBranches: number;
-  thickness: number;
+  mainPathJaggedness: number; // 5-15 pixels
+  branchSpread: number; // 5-15 pixels
+  thickness: number; // 1-3 pixels
+  maxBranchDepth: number; // 1-3 (1=single level, 2-3=recursive)
 }
 
 interface LightningPreset {
@@ -19,16 +19,17 @@ interface LightningPreset {
   config: LightningConfig;
 }
 
-interface Segment {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-  depth: number;
+interface LightningPoint {
+  x: number;
+  y: number;
+  intensity: number; // 0-1 for brightness/fade
+  thickness: number; // How thick this point should render
+  isBranch: boolean; // Is this part of a branch?
+  depth: number; // 0=main bolt, 1=branch, 2=sub-branch, etc.
 }
 
 interface LightningBolt {
-  segments: Segment[];
+  points: LightningPoint[];
   age: number;
   maxAge: number;
 }
@@ -47,62 +48,61 @@ export class LightningPattern implements Pattern {
       id: 1,
       name: 'Cloud Strike',
       description: 'Natural cloud-to-ground lightning',
-      config: { boltDensity: 10, branchProbability: 0.25, branchAngle: Math.PI/4, fadeTime: 25, strikeInterval: 2000, maxBranches: 5, thickness: 1 }
+      config: { branchProbability: 0.25, fadeTime: 25, strikeInterval: 2000, mainPathJaggedness: 8, branchSpread: 10, thickness: 3, maxBranchDepth: 2 }
     },
     {
       id: 2,
       name: 'Tesla Coil',
       description: 'Erratic, highly branched arcs',
-      config: { boltDensity: 15, branchProbability: 0.45, branchAngle: Math.PI/3, fadeTime: 20, strikeInterval: 800, maxBranches: 6, thickness: 2 }
+      config: { branchProbability: 0.45, fadeTime: 20, strikeInterval: 800, mainPathJaggedness: 12, branchSpread: 15, thickness: 2, maxBranchDepth: 3 }
     },
     {
       id: 3,
       name: 'Ball Lightning',
       description: 'Spherical discharge, radial bolts',
-      config: { boltDensity: 8, branchProbability: 0.35, branchAngle: Math.PI/2, fadeTime: 30, strikeInterval: 1500, maxBranches: 4, thickness: 1 }
+      config: { branchProbability: 0.35, fadeTime: 30, strikeInterval: 1500, mainPathJaggedness: 6, branchSpread: 12, thickness: 2, maxBranchDepth: 2 }
     },
     {
       id: 4,
       name: 'Fork Lightning',
       description: 'Multiple distinct branches',
-      config: { boltDensity: 12, branchProbability: 0.4, branchAngle: Math.PI/5, fadeTime: 28, strikeInterval: 2500, maxBranches: 7, thickness: 1 }
+      config: { branchProbability: 0.4, fadeTime: 28, strikeInterval: 2500, mainPathJaggedness: 10, branchSpread: 12, thickness: 3, maxBranchDepth: 3 }
     },
     {
       id: 5,
       name: 'Chain Lightning',
       description: 'Continuous arcs, minimal fade',
-      config: { boltDensity: 6, branchProbability: 0.15, branchAngle: Math.PI/6, fadeTime: 15, strikeInterval: 600, maxBranches: 3, thickness: 3 }
+      config: { branchProbability: 0.15, fadeTime: 15, strikeInterval: 600, mainPathJaggedness: 5, branchSpread: 8, thickness: 2, maxBranchDepth: 1 }
     },
     {
       id: 6,
       name: 'Spider Lightning',
       description: 'Horizontal spread, many thin branches',
-      config: { boltDensity: 14, branchProbability: 0.5, branchAngle: Math.PI/3, fadeTime: 35, strikeInterval: 3000, maxBranches: 6, thickness: 1 }
+      config: { branchProbability: 0.5, fadeTime: 35, strikeInterval: 3000, mainPathJaggedness: 10, branchSpread: 15, thickness: 1, maxBranchDepth: 2 }
     }
   ];
 
   constructor(theme: Theme, config?: Partial<LightningConfig>) {
     this.theme = theme;
     const merged = {
-      boltDensity: 10,
       branchProbability: 0.25,
-      branchAngle: Math.PI / 4,
       fadeTime: 25,
       strikeInterval: 2000,
-      maxBranches: 5,
-      thickness: 1,
+      mainPathJaggedness: 8,
+      branchSpread: 10,
+      maxBranchDepth: 2,
       ...config
     };
     
     // Validate numeric config values
     this.config = {
-      boltDensity: validateCount(merged.boltDensity, 50),
       branchProbability: validateProbability(merged.branchProbability),
-      branchAngle: validateAngle(merged.branchAngle),
       fadeTime: clamp(merged.fadeTime, 5, 100),
       strikeInterval: validateInterval(merged.strikeInterval, 100, 10000),
-      maxBranches: validateCount(merged.maxBranches, 20),
-      thickness: validateCount(merged.thickness, 10)
+      mainPathJaggedness: clamp(merged.mainPathJaggedness, 3, 20),
+      branchSpread: clamp(merged.branchSpread, 5, 20),
+      thickness: clamp(merged.thickness ?? 2, 1, 3),
+      maxBranchDepth: clamp(merged.maxBranchDepth, 1, 3)
     };
   }
 
@@ -113,140 +113,185 @@ export class LightningPattern implements Pattern {
     this.currentTime = 0;
   }
 
-  private generateBolt(
+  /**
+   * Recursively create branches from a starting point
+   * @param start Branch start point
+   * @param parentDirection Parent bolt direction for perpendicular branching
+   * @param depth Current branch depth (0 = main bolt, 1+ = sub-branches)
+   * @param points Array to accumulate points (by reference)
+   */
+  private createBranchRecursive(
     start: Point,
-    end: Point,
+    parentDirection: { dx: number; dy: number; length: number },
     depth: number,
-    maxDepth: number,
-    segments: Segment[]
+    points: LightningPoint[]
   ): void {
-    if (depth > maxDepth || segments.length > 400) {
+    // Stop if we've reached max depth or hit point limit
+    if (depth > this.config.maxBranchDepth || points.length > 500) {
       return;
     }
 
-    // Add main segment
-    segments.push({
-      x1: start.x,
-      y1: start.y,
-      x2: end.x,
-      y2: end.y,
-      depth
-    });
+    const { dx, dy, length } = parentDirection;
+    const perpX = -dy / length;
+    const perpY = dx / length;
 
-    // Calculate segment length
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
-    const length = Math.sqrt(dx * dx + dy * dy);
+    // Progressive scaling based on depth
+    const lengthScale = Math.pow(0.65, depth); // Each level is 65% of parent
+    const intensityBase = 1.0 - depth * 0.15; // Dimmer at deeper levels
+    const thicknessForDepth = Math.max(1, this.config.thickness - depth);
+    const branchProbForDepth = this.config.branchProbability * Math.pow(0.7, depth);
+    const spreadForDepth = this.config.branchSpread * Math.pow(0.7, depth);
 
-    // If segment too short, don't subdivide
-    if (length < 2) {
-      return;
+    // Create branch path (shorter at deeper levels)
+    const branchLength = Math.floor((3 + Math.random() * 4) * lengthScale);
+    if (branchLength < 2) return; // Too short to be meaningful
+
+    const branchWaypoints: Point[] = [start];
+    const side = Math.random() < 0.5 ? 1 : -1;
+
+    for (let j = 1; j <= branchLength; j++) {
+      const branchT = j / branchLength;
+      const spread = spreadForDepth * branchT;
+      const jag = (Math.random() - 0.5) * 5 * lengthScale;
+
+      branchWaypoints.push({
+        x: start.x + perpX * side * spread + (dx / length) * jag,
+        y: start.y + perpY * side * spread + (dy / length) * jag
+      });
     }
 
-    // Number of subdivisions based on density
-    const subdivisions = Math.max(1, Math.floor(length / this.config.boltDensity));
+    // Connect branch waypoints with Bresenham lines
+    for (let j = 0; j < branchWaypoints.length - 1; j++) {
+      const bStart = branchWaypoints[j];
+      const bEnd = branchWaypoints[j + 1];
 
-    for (let i = 1; i < subdivisions; i++) {
-      const t = i / subdivisions;
-      const midX = start.x + dx * t;
-      const midY = start.y + dy * t;
+      const branchLinePoints = bresenhamLine(
+        Math.floor(bStart.x), Math.floor(bStart.y),
+        Math.floor(bEnd.x), Math.floor(bEnd.y)
+      );
 
-      // Add jaggedness perpendicular to segment
-      const perpX = -dy / length;
-      const perpY = dx / length;
-      const offset = (Math.random() - 0.5) * length * 0.3;
+      // Branch intensity fades along its length
+      const segmentT = j / (branchWaypoints.length - 1);
+      const branchIntensity = intensityBase - segmentT * 0.3;
 
-      const jaggedMid = {
-        x: midX + perpX * offset,
-        y: midY + perpY * offset
-      };
-
-      // Random chance to spawn branch
-      if (Math.random() < this.config.branchProbability && depth < maxDepth) {
-        const branchAngle = this.config.branchAngle * (Math.random() < 0.5 ? 1 : -1);
-        const branchLength = length * (0.3 + Math.random() * 0.4);
-        
-        // Calculate branch direction
-        const mainAngle = Math.atan2(dy, dx);
-        const newAngle = mainAngle + branchAngle;
-        
-        const branchEnd = {
-          x: jaggedMid.x + Math.cos(newAngle) * branchLength,
-          y: jaggedMid.y + Math.sin(newAngle) * branchLength
-        };
-
-        this.generateBolt(jaggedMid, branchEnd, depth + 1, maxDepth - 1, segments);
-      }
-    }
-  }
-
-  private createBolt(start: Point, end: Point): LightningBolt {
-    const segments: Segment[] = [];
-    this.generateBolt(start, end, 0, this.config.maxBranches, segments);
-
-    return {
-      segments,
-      age: 0,
-      maxAge: this.config.fadeTime
-    };
-  }
-
-  private drawLine(
-    buffer: Cell[][],
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number,
-    char: string,
-    intensity: number,
-    size: Size
-  ): void {
-    const points = bresenhamLine(x1, y1, x2, y2);
-    const color = this.theme.getColor(intensity);
-    const thickness = this.config.thickness;
-
-    // Apply each point with thickness
-    for (const point of points) {
-      // Early rejection if point is far out of bounds
-      if (point.x + thickness < 0 || point.x - thickness >= size.width ||
-          point.y + thickness < 0 || point.y - thickness >= size.height) {
-        continue;
+      for (const pt of branchLinePoints) {
+        points.push({
+          x: pt.x,
+          y: pt.y,
+          intensity: Math.max(0.3, branchIntensity),
+          thickness: thicknessForDepth,
+          isBranch: depth > 0,
+          depth: depth
+        });
       }
 
-      // Apply thickness
-      for (let tx = -thickness + 1; tx < thickness; tx++) {
-        for (let ty = -thickness + 1; ty < thickness; ty++) {
-          const nx = point.x + tx;
-          const ny = point.y + ty;
-          if (nx >= 0 && nx < size.width && ny >= 0 && ny < size.height) {
-            buffer[ny][nx] = { char, color };
-          }
+      // Recursively spawn sub-branches at waypoints (skip first and last)
+      if (j > 0 && j < branchWaypoints.length - 2 && Math.random() < branchProbForDepth) {
+        // Calculate sub-branch direction (roughly perpendicular to current branch)
+        const subDx = bEnd.x - bStart.x;
+        const subDy = bEnd.y - bStart.y;
+        const subLength = Math.sqrt(subDx * subDx + subDy * subDy);
+        
+        if (subLength > 0.1) {
+          this.createBranchRecursive(
+            branchWaypoints[j],
+            { dx: subDx, dy: subDy, length: subLength },
+            depth + 1,
+            points
+          );
         }
       }
     }
   }
 
-  private getLineChar(dx: number, dy: number): string {
-    const angle = Math.atan2(dy, dx);
-    const absAngle = Math.abs(angle);
-
-    // Choose character based on angle
-    if (absAngle < Math.PI / 8 || absAngle > 7 * Math.PI / 8) {
-      return '─'; // Horizontal
-    } else if (absAngle > 3 * Math.PI / 8 && absAngle < 5 * Math.PI / 8) {
-      return '│'; // Vertical
-    } else if (angle > 0) {
-      return '\\'; // Diagonal down-right
-    } else {
-      return '/'; // Diagonal up-right
+  private createBolt(start: Point, end: Point): LightningBolt {
+    const points: LightningPoint[] = [];
+    
+    // Calculate main path direction
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    
+    if (length < 1) {
+      // Degenerate case: start and end are the same
+      return {
+        points: [{ x: start.x, y: start.y, intensity: 1.0, thickness: this.config.thickness, isBranch: false, depth: 0 }],
+        age: 0,
+        maxAge: this.config.fadeTime
+      };
     }
+    
+    const perpX = -dy / length;
+    const perpY = dx / length;
+    
+    // Generate jagged waypoints for the main path (8-12 segments)
+    const numSegments = 8 + Math.floor(Math.random() * 5);
+    const waypoints: Point[] = [start];
+    
+    for (let i = 1; i < numSegments; i++) {
+      const t = i / numSegments;
+      const baseX = start.x + dx * t;
+      const baseY = start.y + dy * t;
+      
+      // Add perpendicular jaggedness
+      const offset = (Math.random() - 0.5) * this.config.mainPathJaggedness;
+      
+      waypoints.push({
+        x: baseX + perpX * offset,
+        y: baseY + perpY * offset
+      });
+    }
+    waypoints.push(end);
+    
+    // Connect waypoints with Bresenham lines to create solid bolt
+    for (let i = 0; i < waypoints.length - 1; i++) {
+      const segmentStart = waypoints[i];
+      const segmentEnd = waypoints[i + 1];
+      
+      const linePoints = bresenhamLine(
+        Math.floor(segmentStart.x), Math.floor(segmentStart.y),
+        Math.floor(segmentEnd.x), Math.floor(segmentEnd.y)
+      );
+      
+      // Add each point with thickness and main path intensity
+      for (const pt of linePoints) {
+        points.push({
+          x: pt.x,
+          y: pt.y,
+          intensity: 1.0,
+          thickness: this.config.thickness,
+          isBranch: false,
+          depth: 0
+        });
+      }
+      
+      // Spawn branches recursively at some waypoints
+      if (i > 0 && i < waypoints.length - 2 && Math.random() < this.config.branchProbability) {
+        this.createBranchRecursive(
+          waypoints[i],
+          { dx, dy, length },
+          1, // Start at depth 1 (branches of main bolt)
+          points
+        );
+      }
+    }
+    
+    // Cap total points at 500 to maintain performance (Phase 2 allows more complexity)
+    if (points.length > 500) {
+      points.length = 500;
+    }
+    
+    return {
+      points,
+      age: 0,
+      maxAge: this.config.fadeTime
+    };
   }
 
   render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void {
     const { width, height } = size;
 
     // Auto-strike at intervals
-    // Track current time for mouse click
     this.currentTime = time;
     if (time - this.lastStrike > this.config.strikeInterval) {
       const startX = Math.random() * width;
@@ -260,8 +305,8 @@ export class LightningPattern implements Pattern {
 
       this.lastStrike = time;
 
-      // Limit active bolts
-      if (this.bolts.length > 5) {
+      // Limit active bolts to 3
+      if (this.bolts.length > 3) {
         this.bolts.shift();
       }
     }
@@ -277,7 +322,7 @@ export class LightningPattern implements Pattern {
         continue;
       }
 
-      // Calculate flash intensity
+      // Calculate flash intensity with age-based fade
       let flashIntensity: number;
       if (bolt.age < 3) {
         flashIntensity = 1.0; // Full brightness for first few frames
@@ -285,18 +330,58 @@ export class LightningPattern implements Pattern {
         flashIntensity = 1.0 - (bolt.age - 3) / (bolt.maxAge - 3);
       }
 
-      // Render segments
-      for (const seg of bolt.segments) {
-        const depthFade = 1.0 - (seg.depth / this.config.maxBranches);
-        const intensity = flashIntensity * depthFade;
-
-        const x1 = Math.floor(seg.x1);
-        const y1 = Math.floor(seg.y1);
-        const x2 = Math.floor(seg.x2);
-        const y2 = Math.floor(seg.y2);
-
-        const char = this.getLineChar(x2 - x1, y2 - y1);
-        this.drawLine(buffer, x1, y1, x2, y2, char, intensity, size);
+      // Render points with thickness support
+      for (const point of bolt.points) {
+        const x = Math.floor(point.x);
+        const y = Math.floor(point.y);
+        
+        // Bounds check
+        if (x >= 0 && x < width && y >= 0 && y < height) {
+          const finalIntensity = point.intensity * flashIntensity;
+          
+          // Choose character based on type and intensity
+          let char: string;
+          if (point.isBranch) {
+            // Branches use angled characters
+            if (finalIntensity > 0.6) {
+              char = Math.random() < 0.5 ? '╱' : '╲';
+            } else {
+              char = Math.random() < 0.5 ? '/' : '\\';
+            }
+          } else {
+            // Main bolt uses vertical characters
+            if (finalIntensity > 0.8) {
+              char = '║'; // Thick vertical
+            } else if (finalIntensity > 0.5) {
+              char = '|'; // Standard vertical
+            } else {
+              char = '⚡'; // Stylized lightning
+            }
+          }
+          
+          // Render main point
+          buffer[y][x] = {
+            char,
+            color: this.theme.getColor(finalIntensity)
+          };
+          
+          // Add thickness pixels if thickness > 1
+          if (point.thickness > 1) {
+            // Add horizontal neighbors for thickness
+            for (let tx = 1; tx < point.thickness; tx++) {
+              const offsetX = Math.floor(tx / 2) * (tx % 2 === 0 ? 1 : -1);
+              const thickX = x + offsetX;
+              
+              if (thickX >= 0 && thickX < width && thickX !== x) {
+                const thickIntensity = finalIntensity * 0.8; // Slightly dimmer
+                buffer[y][thickX] = {
+                  char,
+                  color: this.theme.getColor(thickIntensity)
+                };
+              }
+            }
+          }
+        }
       }
     }
 
@@ -342,23 +427,19 @@ export class LightningPattern implements Pattern {
   }
 
   onMouseClick(pos: Point): void {
-    // Spawn 3-4 bolts in area around click
-    const numBolts = 3 + Math.floor(Math.random() * 2);
-    
-    for (let i = 0; i < numBolts; i++) {
-      const startX = pos.x + (Math.random() - 0.5) * 20;
-      const startY = Math.random() * 5;
-      const endX = pos.x + (Math.random() - 0.5) * 15;
-      const endY = pos.y + (Math.random() - 0.5) * 10;
+    // Spawn single bolt at click position
+    const startX = pos.x + (Math.random() - 0.5) * 10;
+    const startY = Math.random() * 5;
+    const endX = pos.x + (Math.random() - 0.5) * 15;
+    const endY = pos.y + (Math.random() - 0.5) * 10;
 
-      this.bolts.push(this.createBolt(
-        { x: startX, y: startY },
-        { x: endX, y: endY }
-      ));
-    }
+    this.bolts.push(this.createBolt(
+      { x: startX, y: startY },
+      { x: endX, y: endY }
+    ));
 
-    // Limit total bolts
-    while (this.bolts.length > 8) {
+    // Limit total bolts to 3
+    while (this.bolts.length > 3) {
       this.bolts.shift();
     }
 
@@ -368,7 +449,7 @@ export class LightningPattern implements Pattern {
   getMetrics(): Record<string, number> {
     return {
       activeBolts: this.bolts.length,
-      totalSegments: this.bolts.reduce((sum, bolt) => sum + bolt.segments.length, 0),
+      totalPoints: this.bolts.reduce((sum, bolt) => sum + bolt.points.length, 0),
       chargeParticles: this.chargeParticles.length
     };
   }

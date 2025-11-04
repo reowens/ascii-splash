@@ -30,6 +30,7 @@ interface SmokeParticle {
   life: number;    // Lifetime counter
   maxLife: number; // When to respawn
   plumeId: number; // Which plume spawned this
+  temperature: number; // Heat level (1.0 at spawn, decreases as it rises)
 }
 
 interface Plume {
@@ -133,7 +134,8 @@ export class SmokePattern implements Pattern {
       size: Math.random() * 3,
       life: 0,
       maxLife: 50 + Math.random() * 50,
-      plumeId
+      plumeId,
+      temperature: 1.0
     };
   }
 
@@ -196,6 +198,9 @@ export class SmokePattern implements Pattern {
       // Age particle
       p.life++;
       p.opacity -= this.config.dissipationRate;
+      
+      // Cool down as it rises
+      p.temperature -= 0.01;
 
       // Remove dead particles
       if (p.opacity <= 0 || p.life > p.maxLife || p.y < -5) {
@@ -260,9 +265,15 @@ export class SmokePattern implements Pattern {
         else if (opacity > 0.15) char = '·';
         else char = ' ';
 
-        // Color based on height (darker at bottom, lighter at top)
-        const heightIntensity = 1 - (p.y / height) * 0.3; // 0.7-1.0 range
-        const intensity = clamp(opacity * heightIntensity, 0, 1);
+        // Color based on temperature and height
+        // Hot smoke (near source) is brighter, cool smoke (risen) is dimmer
+        const heightRatio = clamp(p.y / height, 0, 1);
+        const tempFactor = clamp(p.temperature, 0, 1);
+        
+        // Combine height and temperature: hot = bright, cool + high = dim
+        const heightIntensity = 1 - heightRatio * 0.4; // 0.6-1.0 based on height
+        const tempIntensity = 0.7 + tempFactor * 0.3; // 0.7-1.0 based on temperature
+        const intensity = clamp(opacity * heightIntensity * tempIntensity, 0, 1);
         const color = this.theme.getColor(intensity);
 
         if (char !== ' ') {
@@ -292,7 +303,8 @@ export class SmokePattern implements Pattern {
         size: Math.random() * 3,
         life: 0,
         maxLife: 40 + Math.random() * 30,
-        plumeId: -1 // Special ID for clicked particles
+        plumeId: -1, // Special ID for clicked particles
+        temperature: 1.0
       });
     }
   }

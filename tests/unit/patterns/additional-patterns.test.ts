@@ -198,15 +198,15 @@ describe('Additional Pattern Tests', () => {
     });
 
     describe('getPresets()', () => {
-      it('returns array of 6 presets', () => {
+      it('returns array of 9 presets', () => {
         const presets = RainPattern.getPresets();
-        expect(presets).toHaveLength(6);
+        expect(presets).toHaveLength(9);
       });
 
-      it('preset IDs are sequential 1-6', () => {
+      it('preset IDs are sequential 1-9', () => {
         const presets = RainPattern.getPresets();
         const ids = presets.map(p => p.id).sort();
-        expect(ids).toEqual([1, 2, 3, 4, 5, 6]);
+        expect(ids).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
       });
 
       it('each preset has required fields', () => {
@@ -259,7 +259,7 @@ describe('Additional Pattern Tests', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
         
-        for (let id = 1; id <= 6; id++) {
+        for (let id = 1; id <= 9; id++) {
           expect(pattern.applyPreset(id)).toBe(true);
           expect(() => {
             pattern.render(buffer, 1000 * id, size);
@@ -283,6 +283,24 @@ describe('Additional Pattern Tests', () => {
       it('Mist has slow speed', () => {
         const preset = RainPattern.getPreset(4);
         expect(preset?.config.speed).toBeLessThan(0.5);
+      });
+
+      it('Breezy Day has light wind', () => {
+        const preset = RainPattern.getPreset(7);
+        expect(preset?.config.windSpeed).toBe(0.3);
+        expect(preset?.config.gustiness).toBe(0.2);
+      });
+
+      it('Windy Storm has strong wind', () => {
+        const preset = RainPattern.getPreset(8);
+        expect(preset?.config.windSpeed).toBe(0.6);
+        expect(preset?.config.gustiness).toBe(0.5);
+      });
+
+      it('Hurricane has near-horizontal rain', () => {
+        const preset = RainPattern.getPreset(9);
+        expect(preset?.config.windSpeed).toBeGreaterThanOrEqual(0.9);
+        expect(preset?.config.gustiness).toBeGreaterThanOrEqual(0.8);
       });
     });
 
@@ -724,15 +742,15 @@ describe('Additional Pattern Tests', () => {
     });
 
     describe('getPresets()', () => {
-      it('returns array of 6 presets', () => {
+      it('returns array of 9 presets', () => {
         const presets = PlasmaPattern.getPresets();
-        expect(presets).toHaveLength(6);
+        expect(presets).toHaveLength(9);
       });
 
-      it('preset IDs are sequential 1-6', () => {
+      it('preset IDs are sequential 1-9', () => {
         const presets = PlasmaPattern.getPresets();
         const ids = presets.map(p => p.id).sort();
-        expect(ids).toEqual([1, 2, 3, 4, 5, 6]);
+        expect(ids).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
       });
 
       it('each preset has required fields', () => {
@@ -745,6 +763,8 @@ describe('Additional Pattern Tests', () => {
           expect(preset.config.frequency).toBeDefined();
           expect(preset.config.speed).toBeDefined();
           expect(preset.config.complexity).toBeDefined();
+          expect(preset.config.colorShift).toBeDefined();
+          expect(preset.config.shiftSpeed).toBeDefined();
         });
       });
     });
@@ -784,7 +804,7 @@ describe('Additional Pattern Tests', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
         
-        for (let id = 1; id <= 6; id++) {
+        for (let id = 1; id <= 9; id++) {
           expect(pattern.applyPreset(id)).toBe(true);
           expect(() => {
             pattern.render(buffer, 1000 * id, size);
@@ -807,6 +827,24 @@ describe('Additional Pattern Tests', () => {
       it('Cosmic Nebula has minimal complexity', () => {
         const preset = PlasmaPattern.getPreset(6);
         expect(preset?.config.complexity).toBe(1);
+      });
+
+      it('Rainbow Flow has color shifting enabled', () => {
+        const preset = PlasmaPattern.getPreset(7);
+        expect(preset?.config.colorShift).toBe(true);
+        expect(preset?.config.shiftSpeed).toBeGreaterThan(0);
+      });
+
+      it('Psychedelic Storm has fast color shifting', () => {
+        const preset = PlasmaPattern.getPreset(8);
+        expect(preset?.config.colorShift).toBe(true);
+        expect(preset?.config.shiftSpeed).toBeGreaterThanOrEqual(0.0008);
+      });
+
+      it('Aurora Borealis has medium color shifting', () => {
+        const preset = PlasmaPattern.getPreset(9);
+        expect(preset?.config.colorShift).toBe(true);
+        expect(preset?.config.shiftSpeed).toBe(0.0005);
       });
     });
 
@@ -1041,9 +1079,10 @@ describe('Additional Pattern Tests', () => {
           expect(preset.name).toBeDefined();
           expect(preset.description).toBeDefined();
           expect(preset.config).toBeDefined();
-          expect(preset.config.boltDensity).toBeDefined();
           expect(preset.config.branchProbability).toBeDefined();
           expect(preset.config.strikeInterval).toBeDefined();
+          expect(preset.config.mainPathJaggedness).toBeDefined();
+          expect(preset.config.branchSpread).toBeDefined();
         });
       });
     });
@@ -1103,9 +1142,9 @@ describe('Additional Pattern Tests', () => {
         expect(preset?.config.branchProbability).toBeGreaterThanOrEqual(0.5);
       });
 
-      it('Chain Lightning has thick bolts', () => {
+      it('Chain Lightning has minimal fade time', () => {
         const preset = LightningPattern.getPreset(5);
-        expect(preset?.config.thickness).toBeGreaterThanOrEqual(3);
+        expect(preset?.config.fadeTime).toBeLessThan(20);
       });
     });
 

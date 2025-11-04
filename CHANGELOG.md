@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Visual Enhancements**: Comprehensive improvements to all 17 patterns with new visual effects
+  - **Starfield**: Star twinkling effect with individual twinkle rates and phases for organic shimmer
+  - **Wave**: Foam/whitecap effects on wave crests with intermittent foam generation
+  - **Rain**: Wind and gust effects creating diagonal rain with variable wind speeds
+  - **Plasma**: Color cycling through theme palette with configurable shift speeds and 3 new presets
+  - **Matrix**: Size variation for columns, fading heads, and enhanced column density
+  - **Spiral**: Multi-arm bursts, branch angles, and variable rotation speeds
+  - **Tunnel**: Independent ring speeds, depth pulsing, and boost mode for dynamic effects
+  - **Lightning**: Variable branch angles, fork distance variation, and pulsing walls for electric atmosphere
+  - **Snow**: Particle size pulsing during fall creating breathing/shimmer effect
+  - **DNA**: Base pair pulsing/breathing animation on connecting lines and base labels
+  - **Smoke**: Enhanced height-based temperature gradient with cooling effect as particles rise
+  - **Fireworks**: Multi-stage recursive explosions with sparkle particles and shaped bursts
+    - 3-level depth explosions (primary → secondary → tertiary bursts)
+    - Sparkle particles (bright white/yellow, fast, short-lived)
+    - 5 burst shapes: circle, ring, heart, star, random
+    - Rainbow color variation within bursts blending HSV rainbow with theme colors
+    - Performance: All presets under 500 particles, <1000 writes/frame
+  - **LavaLamp**: Temperature-based color variation modulating blob intensity
+  - **Particle**: Particle trails with fading opacity showing motion history
+  - **Life**: Cell age-based coloring where older cells glow brighter (ages 0-20)
+  - **Maze**: Solved path highlighting using BFS pathfinding with visual path overlay
+  - **Quicksilver**: Surface tension variation using noise field affecting droplet behavior
+
+### Changed
+- All 17 patterns now include enhanced visual effects while maintaining performance targets
+- Presets updated across patterns to showcase new visual enhancements
+- Pattern rendering more dynamic and visually engaging across the board
+
 ## [0.1.2] - 2025-11-03
 
 ### Fixed
