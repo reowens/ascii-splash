@@ -61,24 +61,12 @@ export class StarfieldPattern implements Pattern {
     },
     {
       id: 5,
-      name: 'Nebula Drift',
-      description: 'Slow, dense starfield',
-      config: { starCount: 180, speed: 0.4, mouseRepelRadius: 12, twinkleEnabled: false, twinkleIntensity: 0 }
-    },
-    {
-      id: 6,
       name: 'Photon Torpedo',
       description: 'Fast, sparse streaks',
       config: { starCount: 80, speed: 2.5, mouseRepelRadius: 4, twinkleEnabled: false, twinkleIntensity: 0 }
     },
     {
-      id: 7,
-      name: 'Twinkling Night',
-      description: 'Gentle twinkling stars',
-      config: { starCount: 120, speed: 0.6, mouseRepelRadius: 6, twinkleEnabled: true, twinkleIntensity: 0.4 }
-    },
-    {
-      id: 8,
+      id: 6,
       name: 'Pulsing Cosmos',
       description: 'Dramatic pulsating stars',
       config: { starCount: 100, speed: 0.7, mouseRepelRadius: 5, twinkleEnabled: true, twinkleIntensity: 0.8 }

@@ -27,9 +27,9 @@ describe('WavePattern', () => {
       expect(buffer[0][0].char).toBeDefined();
     });
 
-    it('should have 8 presets', () => {
+    it('should have 6 presets', () => {
       const presets = WavePattern.getPresets();
-      expect(presets).toHaveLength(8);
+      expect(presets).toHaveLength(6);
     });
   });
 
@@ -54,7 +54,7 @@ describe('WavePattern', () => {
     });
 
     it('should render foam when foamEnabled is true', () => {
-      pattern.applyPreset(7); // Stormy Seas: foamEnabled true
+      pattern.applyPreset(5); // Stormy Seas: foamEnabled true
       pattern.render(buffer, 0, size);
 
       const foamChars = ['◦', '∘', '°', '·'];
@@ -162,7 +162,7 @@ describe('WavePattern', () => {
     });
 
     it('should only show foam on wave crests (intensity < 0.5)', () => {
-      pattern.applyPreset(7); // Stormy Seas with foam
+      pattern.applyPreset(5); // Stormy Seas with foam
 
       // Render multiple times to cover various foam positions
       for (let t = 0; t < 5; t++) {
@@ -189,7 +189,7 @@ describe('WavePattern', () => {
     });
 
     it('should use foam characters correctly', () => {
-      pattern.applyPreset(7); // Stormy Seas
+      pattern.applyPreset(5); // Stormy Seas
 
       let foundFoamChars = new Set<string>();
 
@@ -216,7 +216,7 @@ describe('WavePattern', () => {
     });
 
     it('should render foam with slightly dimmer color (0.9 intensity)', () => {
-      pattern.applyPreset(7); // Stormy Seas
+      pattern.applyPreset(5); // Stormy Seas
 
       for (let t = 0; t < 10; t++) {
         const testBuffer = createMockBuffer(size.width, size.height);
@@ -282,33 +282,33 @@ describe('WavePattern', () => {
       expect(buffer[0][0].char).toBeDefined();
     });
 
-    it('preset 7 (Stormy Seas) should have foam enabled', () => {
-      pattern.applyPreset(7);
-      const preset = WavePattern.getPreset(7);
+    it('preset 5 (Stormy Seas) should have foam enabled', () => {
+      pattern.applyPreset(5);
+      const preset = WavePattern.getPreset(5);
 
       expect(preset?.config.foamEnabled).toBe(true);
       expect(preset?.config.foamThreshold).toBe(0.7);
       expect(preset?.config.foamDensity).toBe(0.6);
     });
 
-    it('preset 8 (Gentle Surf) should have foam enabled', () => {
-      pattern.applyPreset(8);
-      const preset = WavePattern.getPreset(8);
+    it('preset 6 (Gentle Surf) should have foam enabled', () => {
+      pattern.applyPreset(6);
+      const preset = WavePattern.getPreset(6);
 
       expect(preset?.config.foamEnabled).toBe(true);
       expect(preset?.config.foamThreshold).toBe(0.8);
       expect(preset?.config.foamDensity).toBe(0.3);
     });
 
-    it('presets 1-6 should have foam disabled', () => {
-      for (let i = 1; i <= 6; i++) {
+    it('presets 1-4 should have foam disabled', () => {
+      for (let i = 1; i <= 4; i++) {
         const preset = WavePattern.getPreset(i);
         expect(preset?.config.foamEnabled).toBe(false);
       }
     });
 
     it('should handle foam rendering over extended time', () => {
-      pattern.applyPreset(7);
+      pattern.applyPreset(5);
 
       // Render for many frames with foam
       for (let t = 0; t < 100; t++) {
@@ -336,7 +336,7 @@ describe('WavePattern', () => {
     });
 
     it('should render consistent foam pattern with same time', () => {
-      pattern.applyPreset(7);
+      pattern.applyPreset(5);
 
       const buffer1 = createMockBuffer(size.width, size.height);
       pattern.render(buffer1, 100, size);
@@ -353,7 +353,7 @@ describe('WavePattern', () => {
     });
 
     it('should render different foam pattern at different times', () => {
-      pattern.applyPreset(7);
+      pattern.applyPreset(5);
 
       const buffer1 = createMockBuffer(size.width, size.height);
       pattern.render(buffer1, 0, size);
@@ -463,7 +463,7 @@ describe('WavePattern', () => {
     });
 
     it('should memory-safe: no buffer overflow with foam rendering', () => {
-      pattern.applyPreset(7);
+      pattern.applyPreset(5);
 
       // Render for many frames with foam
       for (let t = 0; t < 500; t++) {
@@ -484,7 +484,7 @@ describe('WavePattern', () => {
     });
 
     it('should handle foam with mouse interactions', () => {
-      pattern.applyPreset(7);
+      pattern.applyPreset(5);
 
       // Render with mouse
       const mousePos = createMockPoint(40, 12);
@@ -520,17 +520,17 @@ describe('WavePattern', () => {
     });
 
     it('should render foam-enabled presets correctly', () => {
-      // Test Stormy Seas (preset 7)
-      pattern.applyPreset(7);
-      let preset = WavePattern.getPreset(7);
+      // Test Stormy Seas (preset 5)
+      pattern.applyPreset(5);
+      let preset = WavePattern.getPreset(5);
       expect(preset?.config.foamEnabled).toBe(true);
 
       pattern.render(buffer, 0, size);
       expect(buffer[0][0].char).toBeDefined();
 
-      // Test Gentle Surf (preset 8)
-      pattern.applyPreset(8);
-      preset = WavePattern.getPreset(8);
+      // Test Gentle Surf (preset 6)
+      pattern.applyPreset(6);
+      preset = WavePattern.getPreset(6);
       expect(preset?.config.foamEnabled).toBe(true);
 
       const buffer2 = createMockBuffer(size.width, size.height);
@@ -539,10 +539,10 @@ describe('WavePattern', () => {
     });
 
     it('should maintain foam config when switching between presets', () => {
-      pattern.applyPreset(7); // With foam
+      pattern.applyPreset(5); // With foam
       let metrics1 = pattern.getMetrics();
 
-      pattern.applyPreset(8); // Also with foam
+      pattern.applyPreset(6); // Also with foam
       let metrics2 = pattern.getMetrics();
 
       // Both should have same config structure
@@ -552,13 +552,13 @@ describe('WavePattern', () => {
   });
 
   describe('Presets', () => {
-    it('should have 8 presets', () => {
+    it('should have 6 presets', () => {
       const presets = WavePattern.getPresets();
-      expect(presets).toHaveLength(8);
+      expect(presets).toHaveLength(6);
     });
 
     it('should apply all presets without errors', () => {
-      for (let i = 1; i <= 8; i++) {
+      for (let i = 1; i <= 6; i++) {
         const result = pattern.applyPreset(i);
         expect(result).toBe(true);
 

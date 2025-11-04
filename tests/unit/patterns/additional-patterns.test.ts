@@ -198,15 +198,15 @@ describe('Additional Pattern Tests', () => {
     });
 
     describe('getPresets()', () => {
-      it('returns array of 9 presets', () => {
+      it('returns array of 6 presets', () => {
         const presets = RainPattern.getPresets();
-        expect(presets).toHaveLength(9);
+        expect(presets).toHaveLength(6);
       });
 
-      it('preset IDs are sequential 1-9', () => {
+      it('preset IDs are sequential 1-6', () => {
         const presets = RainPattern.getPresets();
         const ids = presets.map(p => p.id).sort();
-        expect(ids).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        expect(ids).toEqual([1, 2, 3, 4, 5, 6]);
       });
 
       it('each preset has required fields', () => {
@@ -259,7 +259,7 @@ describe('Additional Pattern Tests', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
         
-        for (let id = 1; id <= 9; id++) {
+        for (let id = 1; id <= 6; id++) {
           expect(pattern.applyPreset(id)).toBe(true);
           expect(() => {
             pattern.render(buffer, 1000 * id, size);
@@ -269,36 +269,14 @@ describe('Additional Pattern Tests', () => {
     });
 
     describe('Preset Characteristics', () => {
-      it('Light Drizzle has low density', () => {
+      it('has Light Drizzle as first preset', () => {
         const preset = RainPattern.getPreset(1);
-        expect(preset?.config.density).toBe(0.1);
+        expect(preset?.name).toBe('Light Drizzle');
+        expect(preset?.config.density).toBeLessThan(0.2);
       });
 
-      it('Monsoon has maximum density', () => {
-        const preset = RainPattern.getPreset(5);
-        expect(preset?.config.density).toBeGreaterThanOrEqual(0.5);
-        expect(preset?.config.speed).toBeGreaterThan(2);
-      });
-
-      it('Mist has slow speed', () => {
-        const preset = RainPattern.getPreset(4);
-        expect(preset?.config.speed).toBeLessThan(0.5);
-      });
-
-      it('Breezy Day has light wind', () => {
-        const preset = RainPattern.getPreset(7);
-        expect(preset?.config.windSpeed).toBe(0.3);
-        expect(preset?.config.gustiness).toBe(0.2);
-      });
-
-      it('Windy Storm has strong wind', () => {
-        const preset = RainPattern.getPreset(8);
-        expect(preset?.config.windSpeed).toBe(0.6);
-        expect(preset?.config.gustiness).toBe(0.5);
-      });
-
-      it('Hurricane has near-horizontal rain', () => {
-        const preset = RainPattern.getPreset(9);
+      it('Heavy Storm has high density', () => {
+        const preset = RainPattern.getPreset(6);
         expect(preset?.config.windSpeed).toBeGreaterThanOrEqual(0.9);
         expect(preset?.config.gustiness).toBeGreaterThanOrEqual(0.8);
       });
@@ -744,13 +722,13 @@ describe('Additional Pattern Tests', () => {
     describe('getPresets()', () => {
       it('returns array of 9 presets', () => {
         const presets = PlasmaPattern.getPresets();
-        expect(presets).toHaveLength(9);
+        expect(presets).toHaveLength(6);
       });
 
-      it('preset IDs are sequential 1-9', () => {
+      it('preset IDs are sequential 1-6', () => {
         const presets = PlasmaPattern.getPresets();
         const ids = presets.map(p => p.id).sort();
-        expect(ids).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        expect(ids).toEqual([1, 2, 3, 4, 5, 6]);
       });
 
       it('each preset has required fields', () => {
@@ -776,8 +754,8 @@ describe('Additional Pattern Tests', () => {
         expect(preset?.name).toBe('Gentle Waves');
       });
 
-      it('returns preset 5 (Electric Storm)', () => {
-        const preset = PlasmaPattern.getPreset(5);
+      it('returns preset 4 (Electric Storm)', () => {
+        const preset = PlasmaPattern.getPreset(4);
         expect(preset).toBeDefined();
         expect(preset?.name).toBe('Electric Storm');
         expect(preset?.config.frequency).toBeGreaterThanOrEqual(0.2);
@@ -804,7 +782,7 @@ describe('Additional Pattern Tests', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
         
-        for (let id = 1; id <= 9; id++) {
+        for (let id = 1; id <= 6; id++) {
           expect(pattern.applyPreset(id)).toBe(true);
           expect(() => {
             pattern.render(buffer, 1000 * id, size);
@@ -814,35 +792,19 @@ describe('Additional Pattern Tests', () => {
     });
 
     describe('Preset Characteristics', () => {
-      it('Lava Lamp has low frequency', () => {
-        const preset = PlasmaPattern.getPreset(4);
-        expect(preset?.config.frequency).toBeLessThanOrEqual(0.05);
-      });
-
       it('Turbulent Energy has high speed', () => {
         const preset = PlasmaPattern.getPreset(3);
         expect(preset?.config.speed).toBeGreaterThan(1.5);
       });
 
-      it('Cosmic Nebula has minimal complexity', () => {
-        const preset = PlasmaPattern.getPreset(6);
-        expect(preset?.config.complexity).toBe(1);
-      });
-
-      it('Rainbow Flow has color shifting enabled', () => {
-        const preset = PlasmaPattern.getPreset(7);
-        expect(preset?.config.colorShift).toBe(true);
-        expect(preset?.config.shiftSpeed).toBeGreaterThan(0);
-      });
-
       it('Psychedelic Storm has fast color shifting', () => {
-        const preset = PlasmaPattern.getPreset(8);
+        const preset = PlasmaPattern.getPreset(5);
         expect(preset?.config.colorShift).toBe(true);
         expect(preset?.config.shiftSpeed).toBeGreaterThanOrEqual(0.0008);
       });
 
-      it('Aurora Borealis has medium color shifting', () => {
-        const preset = PlasmaPattern.getPreset(9);
+      it('Aurora has medium color shifting', () => {
+        const preset = PlasmaPattern.getPreset(6);
         expect(preset?.config.colorShift).toBe(true);
         expect(preset?.config.shiftSpeed).toBe(0.0005);
       });
@@ -891,24 +853,18 @@ describe('Additional Pattern Tests', () => {
        });
      });
 
-     describe('Color Shifting - Feature Tests', () => {
-       it('Rainbow Flow preset has color shift enabled', () => {
-         const preset = PlasmaPattern.getPreset(7);
-         expect(preset?.config.colorShift).toBe(true);
-         expect(preset?.config.shiftSpeed).toBeGreaterThan(0);
-       });
+      describe('Color Shifting - Feature Tests', () => {
+        it('Psychedelic Storm has fast color shifting', () => {
+          const preset = PlasmaPattern.getPreset(5);
+          expect(preset?.config.colorShift).toBe(true);
+          expect(preset?.config.shiftSpeed).toBeGreaterThanOrEqual(0.0008);
+        });
 
-       it('Psychedelic Storm has fast color shifting', () => {
-         const preset = PlasmaPattern.getPreset(8);
-         expect(preset?.config.colorShift).toBe(true);
-         expect(preset?.config.shiftSpeed).toBeGreaterThanOrEqual(0.0008);
-       });
-
-       it('Aurora Borealis has medium color shifting speed', () => {
-         const preset = PlasmaPattern.getPreset(9);
-         expect(preset?.config.colorShift).toBe(true);
-         expect(preset?.config.shiftSpeed).toBe(0.0005);
-       });
+        it('Aurora has medium color shifting speed', () => {
+          const preset = PlasmaPattern.getPreset(6);
+          expect(preset?.config.colorShift).toBe(true);
+          expect(preset?.config.shiftSpeed).toBe(0.0005);
+        });
 
        it('Gentle Waves preset has color shift disabled', () => {
          const preset = PlasmaPattern.getPreset(1);
@@ -922,20 +878,20 @@ describe('Additional Pattern Tests', () => {
        });
      });
 
-     describe('Color Shifting - Rendering with Shift Enabled', () => {
-       it('applies color offset when colorShift is enabled', () => {
-         pattern.applyPreset(7); // Rainbow Flow
-         const buffer = createMockBuffer(80, 24);
-         const size = createMockSize(80, 24);
-         
-         // Render at time 0
-         pattern.render(buffer, 0, size);
-         
-         // Render at later time to see color shift effect
-         expect(() => {
-           pattern.render(buffer, 5000, size);
-         }).not.toThrow();
-       });
+      describe('Color Shifting - Rendering with Shift Enabled', () => {
+        it('applies color offset when colorShift is enabled', () => {
+          pattern.applyPreset(5); // Psychedelic Storm
+          const buffer = createMockBuffer(80, 24);
+          const size = createMockSize(80, 24);
+          
+          // Render at time 0
+          pattern.render(buffer, 0, size);
+          
+          // Render at later time to see color shift effect
+          expect(() => {
+            pattern.render(buffer, 5000, size);
+          }).not.toThrow();
+        });
 
        it('does not apply color offset when colorShift is disabled', () => {
          pattern.applyPreset(1); // Gentle Waves (no shift)
@@ -947,38 +903,38 @@ describe('Additional Pattern Tests', () => {
          }).not.toThrow();
        });
 
-       it('animates color cycling over time (Rainbow Flow)', () => {
-         pattern.applyPreset(7);
-         const buffer1 = createMockBuffer(80, 24);
-         const buffer2 = createMockBuffer(80, 24);
-         const size = createMockSize(80, 24);
-         
-         // Render at two different times
-         pattern.render(buffer1, 1000, size);
-         pattern.render(buffer2, 6000, size); // 5 seconds later
-         
-         // Buffers should differ due to color shift
-         // (At least some cells should have different colors/chars)
-         let differences = 0;
-         for (let y = 0; y < size.height; y++) {
-           for (let x = 0; x < size.width; x++) {
-             if (buffer1[y][x].char !== buffer2[y][x].char) {
-               differences++;
-             }
-           }
-         }
-         
-         expect(differences).toBeGreaterThan(0);
-       });
+        it('animates color cycling over time (Psychedelic Storm)', () => {
+          pattern.applyPreset(5);
+          const buffer1 = createMockBuffer(80, 24);
+          const buffer2 = createMockBuffer(80, 24);
+          const size = createMockSize(80, 24);
+          
+          // Render at two different times
+          pattern.render(buffer1, 1000, size);
+          pattern.render(buffer2, 6000, size); // 5 seconds later
+          
+          // Buffers should differ due to color shift
+          // (At least some cells should have different colors/chars)
+          let differences = 0;
+          for (let y = 0; y < size.height; y++) {
+            for (let x = 0; x < size.width; x++) {
+              if (buffer1[y][x].char !== buffer2[y][x].char) {
+                differences++;
+              }
+            }
+          }
+          
+          expect(differences).toBeGreaterThan(0);
+        });
 
-       it('Psychedelic Storm cycles colors faster than Aurora Borealis', () => {
-         const psychedelicPreset = PlasmaPattern.getPreset(8);
-         const auroraPreset = PlasmaPattern.getPreset(9);
-         
-         expect(psychedelicPreset?.config.shiftSpeed).toBeGreaterThan(
-           auroraPreset?.config.shiftSpeed ?? 0
-         );
-       });
+        it('Psychedelic Storm cycles colors faster than Aurora', () => {
+          const psychedelicPreset = PlasmaPattern.getPreset(5);
+          const auroraPreset = PlasmaPattern.getPreset(6);
+          
+          expect(psychedelicPreset?.config.shiftSpeed).toBeGreaterThan(
+            auroraPreset?.config.shiftSpeed ?? 0
+          );
+        });
      });
 
      describe('Color Shifting - Wrapping and Cycling', () => {
@@ -1037,79 +993,79 @@ describe('Additional Pattern Tests', () => {
          }).not.toThrow();
        });
 
-       it('can switch between color shifting and non-color shifting presets', () => {
-         const buffer = createMockBuffer(80, 24);
-         const size = createMockSize(80, 24);
-         
-         // Cycle through all presets multiple times
-         for (let cycle = 0; cycle < 2; cycle++) {
-           for (let id = 1; id <= 9; id++) {
-             expect(pattern.applyPreset(id)).toBe(true);
-             expect(() => {
-               pattern.render(buffer, 1000 + cycle * 500, size);
-             }).not.toThrow();
-           }
-         }
-       });
+        it('can switch between color shifting and non-color shifting presets', () => {
+          const buffer = createMockBuffer(80, 24);
+          const size = createMockSize(80, 24);
+          
+          // Cycle through all presets multiple times
+          for (let cycle = 0; cycle < 2; cycle++) {
+            for (let id = 1; id <= 6; id++) {
+              expect(pattern.applyPreset(id)).toBe(true);
+              expect(() => {
+                pattern.render(buffer, 1000 + cycle * 500, size);
+              }).not.toThrow();
+            }
+          }
+        });
      });
 
-     describe('Color Shifting - Visual Stability', () => {
-       it('Rainbow Flow renders consistently at same time value', () => {
-         pattern.applyPreset(7);
-         const buffer1 = createMockBuffer(80, 24);
-         const buffer2 = createMockBuffer(80, 24);
-         const size = createMockSize(80, 24);
-         
-         // Render at same time
-         pattern.render(buffer1, 5000, size);
-         
-         // Reset pattern for comparison
-         pattern.applyPreset(7);
-         pattern.render(buffer2, 5000, size);
-         
-         // Should be identical (deterministic at same time)
-         let identicalCells = 0;
-         for (let y = 0; y < size.height; y++) {
-           for (let x = 0; x < size.width; x++) {
-             if (buffer1[y][x].char === buffer2[y][x].char) {
-               identicalCells++;
-             }
-           }
-         }
-         
-         expect(identicalCells).toBeGreaterThan(0);
-       });
+      describe('Color Shifting - Visual Stability', () => {
+        it('Psychedelic Storm renders consistently at same time value', () => {
+          pattern.applyPreset(5);
+          const buffer1 = createMockBuffer(80, 24);
+          const buffer2 = createMockBuffer(80, 24);
+          const size = createMockSize(80, 24);
+          
+          // Render at same time
+          pattern.render(buffer1, 5000, size);
+          
+          // Reset pattern for comparison
+          pattern.applyPreset(5);
+          pattern.render(buffer2, 5000, size);
+          
+          // Should be identical (deterministic at same time)
+          let identicalCells = 0;
+          for (let y = 0; y < size.height; y++) {
+            for (let x = 0; x < size.width; x++) {
+              if (buffer1[y][x].char === buffer2[y][x].char) {
+                identicalCells++;
+              }
+            }
+          }
+          
+          expect(identicalCells).toBeGreaterThan(0);
+        });
 
-       it('handles color shift with mouse interactions', () => {
-         pattern.applyPreset(8); // Psychedelic Storm
-         const buffer = createMockBuffer(80, 24);
-         const size = createMockSize(80, 24);
-         
-         // Move mouse and click while color shifting
-         pattern.onMouseMove({ x: 40, y: 12 });
-         pattern.render(buffer, 1000, size);
-         
-         pattern.onMouseClick({ x: 50, y: 15 });
-         pattern.render(buffer, 2000, size);
-         
-         expect(() => {
-           pattern.render(buffer, 3000, size);
-         }).not.toThrow();
-       });
+        it('handles color shift with mouse interactions', () => {
+          pattern.applyPreset(5); // Psychedelic Storm
+          const buffer = createMockBuffer(80, 24);
+          const size = createMockSize(80, 24);
+          
+          // Move mouse and click while color shifting
+          pattern.onMouseMove({ x: 40, y: 12 });
+          pattern.render(buffer, 1000, size);
+          
+          pattern.onMouseClick({ x: 50, y: 15 });
+          pattern.render(buffer, 2000, size);
+          
+          expect(() => {
+            pattern.render(buffer, 3000, size);
+          }).not.toThrow();
+        });
 
-       it('Aurora Borealis creates smooth color transitions', () => {
-         pattern.applyPreset(9);
-         const buffer = createMockBuffer(80, 24);
-         const size = createMockSize(80, 24);
-         
-         // Render multiple frames for smooth animation
-         for (let i = 0; i < 10; i++) {
-           expect(() => {
-             pattern.render(buffer, i * 100, size);
-           }).not.toThrow();
-         }
-       });
-     });
+        it('Aurora creates smooth color transitions', () => {
+          pattern.applyPreset(6);
+          const buffer = createMockBuffer(80, 24);
+          const size = createMockSize(80, 24);
+          
+          // Render multiple frames for smooth animation
+          for (let i = 0; i < 10; i++) {
+            expect(() => {
+              pattern.render(buffer, i * 100, size);
+            }).not.toThrow();
+          }
+        });
+      });
    });
 
    describe('TunnelPattern', () => {

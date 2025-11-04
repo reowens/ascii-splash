@@ -45,36 +45,18 @@ export class PlasmaPattern implements Pattern {
     },
     {
       id: 4,
-      name: 'Lava Lamp',
-      description: 'Large blobs, slow movement',
-      config: { frequency: 0.05, speed: 0.4, complexity: 2, colorShift: false, shiftSpeed: 0 }
-    },
-    {
-      id: 5,
       name: 'Electric Storm',
       description: 'High frequency, intense patterns',
       config: { frequency: 0.2, speed: 1.5, complexity: 5, colorShift: false, shiftSpeed: 0 }
     },
     {
-      id: 6,
-      name: 'Cosmic Nebula',
-      description: 'Minimal complexity, ethereal flow',
-      config: { frequency: 0.06, speed: 0.8, complexity: 1, colorShift: false, shiftSpeed: 0 }
-    },
-    {
-      id: 7,
-      name: 'Rainbow Flow',
-      description: 'Gentle waves with slow color cycling',
-      config: { frequency: 0.08, speed: 0.6, complexity: 2, colorShift: true, shiftSpeed: 0.0002 }
-    },
-    {
-      id: 8,
+      id: 5,
       name: 'Psychedelic Storm',
       description: 'Fast plasma with rapid color shifts',
       config: { frequency: 0.15, speed: 1.5, complexity: 4, colorShift: true, shiftSpeed: 0.0008 }
     },
     {
-      id: 9,
+      id: 6,
       name: 'Aurora Borealis',
       description: 'Medium waves with mesmerizing color dance',
       config: { frequency: 0.1, speed: 1.0, complexity: 3, colorShift: true, shiftSpeed: 0.0005 }

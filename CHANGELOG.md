@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2025-11-03
+
+### Changed
+- **Preset Standardization**: All 17 patterns now have exactly 6 presets each (102 total)
+  - **WavePattern**: Reduced from 8 to 6 presets (removed "Glass Lake" and one duplicate)
+  - **StarfieldPattern**: Reduced from 8 to 6 presets (consolidated similar variations)
+  - **PlasmaPattern**: Reduced from 9 to 6 presets (removed redundant color variations)
+  - **RainPattern**: Reduced from 9 to 6 presets (streamlined intensity variations)
+  - Improved consistency: All patterns follow the same 6-preset structure
+  - Enhanced user experience with predictable preset cycling (`.` and `,` keys)
+  - Command system now consistent across all patterns (`c01-c06`)
+
+### Tests
+- Updated all pattern tests to reflect new 6-preset structure
+- All 1503 tests passing with zero regressions
+- Test suites updated: wave.test.ts, starfield.test.ts, plasma.test.ts, additional-patterns.test.ts, presets.test.ts
+
 ### Added
 - **Visual Enhancements**: Comprehensive improvements to all 17 patterns with new visual effects
   - **Starfield**: Star twinkling effect with individual twinkle rates and phases for organic shimmer
@@ -403,6 +420,8 @@ Built with `terminal-kit` for terminal control and inspired by classic terminal 
 - Performance optimizations
 - Extended terminal emulator support
 
-[Unreleased]: https://github.com/reowens/ascii-splash/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/reowens/ascii-splash/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/reowens/ascii-splash/compare/v0.1.2...v0.1.3
+[0.1.2]: https://github.com/reowens/ascii-splash/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/reowens/ascii-splash/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/reowens/ascii-splash/releases/tag/v0.1.0

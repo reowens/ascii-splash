@@ -26,7 +26,6 @@ export class WavePattern implements Pattern {
   private foamChars = ['◦', '∘', '°', '·'];
 
   private currentTime: number = 0;
-  // Tier 1 Presets (01-09): Essential/Popular
   private static readonly PRESETS: WavePreset[] = [
     {
       id: 1,
@@ -48,30 +47,18 @@ export class WavePattern implements Pattern {
     },
     {
       id: 4,
-      name: 'Glass Lake',
-      description: 'Barely perceptible movement',
-      config: { speed: 0.3, amplitude: 2, frequency: 0.05, layers: 1, foamEnabled: false, foamThreshold: 0, foamDensity: 0 }
-    },
-    {
-      id: 5,
       name: 'Tsunami',
       description: 'Massive, powerful waves',
       config: { speed: 1.5, amplitude: 12, frequency: 0.06, layers: 3, foamEnabled: false, foamThreshold: 0, foamDensity: 0 }
     },
     {
-      id: 6,
-      name: 'Choppy Waters',
-      description: 'Irregular, textured surface',
-      config: { speed: 1.2, amplitude: 6, frequency: 0.25, layers: 6, foamEnabled: false, foamThreshold: 0, foamDensity: 0 }
-    },
-    {
-      id: 7,
+      id: 5,
       name: 'Stormy Seas',
       description: 'High waves with crashing foam',
       config: { speed: 1.8, amplitude: 10, frequency: 0.12, layers: 4, foamEnabled: true, foamThreshold: 0.7, foamDensity: 0.6 }
     },
     {
-      id: 8,
+      id: 6,
       name: 'Gentle Surf',
       description: 'Soft waves with light foam',
       config: { speed: 0.8, amplitude: 5, frequency: 0.1, layers: 3, foamEnabled: true, foamThreshold: 0.8, foamDensity: 0.3 }

@@ -273,9 +273,9 @@ describe('PlasmaPattern', () => {
   });
 
   describe('presets', () => {
-    it('should have 9 presets defined', () => {
+    it('should have 6 presets defined', () => {
       const presets = PlasmaPattern.getPresets();
-      expect(presets).toHaveLength(9);
+      expect(presets).toHaveLength(6);
     });
 
     it('should have unique preset IDs', () => {
@@ -291,7 +291,7 @@ describe('PlasmaPattern', () => {
         expect(preset.name).toBeTruthy();
         expect(preset.description).toBeTruthy();
         expect(preset.id).toBeGreaterThan(0);
-        expect(preset.id).toBeLessThanOrEqual(9);
+        expect(preset.id).toBeLessThanOrEqual(6);
         expect(preset.config).toBeDefined();
         expect(preset.config.frequency).toBeDefined();
         expect(preset.config.speed).toBeDefined();
@@ -328,7 +328,7 @@ describe('PlasmaPattern', () => {
       }).not.toThrow();
     });
 
-    it('should apply preset 4 (Lava Lamp)', () => {
+    it('should apply preset 4 (Electric Storm)', () => {
       const result = pattern.applyPreset(4);
       expect(result).toBe(true);
       
@@ -337,7 +337,7 @@ describe('PlasmaPattern', () => {
       }).not.toThrow();
     });
 
-    it('should apply preset 5 (Electric Storm)', () => {
+    it('should apply preset 5 (Psychedelic Storm)', () => {
       const result = pattern.applyPreset(5);
       expect(result).toBe(true);
       
@@ -346,7 +346,7 @@ describe('PlasmaPattern', () => {
       }).not.toThrow();
     });
 
-    it('should apply preset 6 (Cosmic Nebula)', () => {
+    it('should apply preset 6 (Aurora)', () => {
       const result = pattern.applyPreset(6);
       expect(result).toBe(true);
       

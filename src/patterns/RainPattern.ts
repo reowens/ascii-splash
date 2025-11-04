@@ -51,36 +51,18 @@ export class RainPattern implements Pattern {
     },
     {
       id: 4,
-      name: 'Mist',
-      description: 'Fine, slow-falling mist',
-      config: { density: 0.3, speed: 0.3, characters: ['.', '·', '∙', '˙', '˚'], windSpeed: 0, gustiness: 0 }
-    },
-    {
-      id: 5,
       name: 'Monsoon',
       description: 'Torrential rain with maximum density',
       config: { density: 0.5, speed: 2.2, characters: ['║', '┃', '|', '!', '‖'], windSpeed: 0, gustiness: 0 }
     },
     {
-      id: 6,
-      name: 'Spring Shower',
-      description: 'Varied drops, medium intensity',
-      config: { density: 0.25, speed: 1.2, characters: ['\'', ',', '.', '|', '!', '`', '·', '∙', '˙'], windSpeed: 0, gustiness: 0 }
-    },
-    {
-      id: 7,
-      name: 'Breezy Day',
-      description: 'Light wind pushing rain gently sideways',
-      config: { density: 0.2, speed: 1.0, characters: ['\'', ',', '.', '|', '!', '`', '·'], windSpeed: 0.3, gustiness: 0.2 }
-    },
-    {
-      id: 8,
+      id: 5,
       name: 'Windy Storm',
       description: 'Strong gusts driving rain at an angle',
       config: { density: 0.35, speed: 1.5, characters: ['/', '|', '!', '‖', '┃'], windSpeed: 0.6, gustiness: 0.5 }
     },
     {
-      id: 9,
+      id: 6,
       name: 'Hurricane',
       description: 'Violent wind with nearly horizontal rain',
       config: { density: 0.4, speed: 2.0, characters: ['─', '/', '—', '|', '‖'], windSpeed: 0.9, gustiness: 0.8 }

@@ -12,9 +12,9 @@ describe('Pattern Presets', () => {
     });
 
     describe('getPresets()', () => {
-      it('returns array of 8 presets', () => {
+      it('returns array of 6 presets', () => {
         const presets = WavePattern.getPresets();
-        expect(presets).toHaveLength(8);
+        expect(presets).toHaveLength(6);
       });
 
       it('returns a copy of presets (not reference)', () => {
@@ -37,17 +37,17 @@ describe('Pattern Presets', () => {
         });
       });
 
-      it('preset IDs are sequential 1-8', () => {
+      it('preset IDs are sequential 1-6', () => {
         const presets = WavePattern.getPresets();
         const ids = presets.map(p => p.id).sort();
-        expect(ids).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+        expect(ids).toEqual([1, 2, 3, 4, 5, 6]);
       });
 
       it('all preset names are unique', () => {
         const presets = WavePattern.getPresets();
         const names = presets.map(p => p.name);
         const uniqueNames = new Set(names);
-        expect(uniqueNames.size).toBe(8);
+        expect(uniqueNames.size).toBe(6);
       });
     });
 
@@ -143,7 +143,7 @@ describe('Pattern Presets', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
         
-        for (let id = 1; id <= 8; id++) {
+        for (let id = 1; id <= 6; id++) {
           expect(pattern.applyPreset(id)).toBe(true);
           expect(() => {
             pattern.render(buffer, 1000 * id, size);
@@ -165,14 +165,8 @@ describe('Pattern Presets', () => {
         expect(preset?.config.layers).toBeGreaterThan(3);
       });
 
-      it('Glass Lake has minimal amplitude and single layer', () => {
-        const preset = WavePattern.getPreset(4);
-        expect(preset?.config.amplitude).toBeLessThanOrEqual(2);
-        expect(preset?.config.layers).toBe(1);
-      });
-
       it('Tsunami has very high amplitude', () => {
-        const preset = WavePattern.getPreset(5);
+        const preset = WavePattern.getPreset(4);
         expect(preset?.config.amplitude).toBeGreaterThanOrEqual(10);
       });
     });
@@ -223,9 +217,9 @@ describe('Pattern Presets', () => {
     });
 
     describe('getPresets()', () => {
-      it('returns array of 8 presets', () => {
+      it('returns array of 6 presets', () => {
         const presets = StarfieldPattern.getPresets();
-        expect(presets).toHaveLength(8);
+        expect(presets).toHaveLength(6);
       });
 
       it('each preset has required fields', () => {
@@ -240,10 +234,10 @@ describe('Pattern Presets', () => {
         });
       });
 
-      it('preset IDs are sequential 1-8', () => {
+      it('preset IDs are sequential 1-6', () => {
         const presets = StarfieldPattern.getPresets();
         const ids = presets.map(p => p.id).sort();
-        expect(ids).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+        expect(ids).toEqual([1, 2, 3, 4, 5, 6]);
       });
     });
 
@@ -301,7 +295,7 @@ describe('Pattern Presets', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
         
-        for (let id = 1; id <= 8; id++) {
+        for (let id = 1; id <= 6; id++) {
           expect(pattern.applyPreset(id)).toBe(true);
           expect(() => {
             pattern.render(buffer, 1000 * id, size);
@@ -365,13 +359,13 @@ describe('Pattern Presets', () => {
   });
 
   describe('Preset System Integration', () => {
-    it('WavePattern and StarfieldPattern have consistent preset IDs (1-8)', () => {
+    it('WavePattern and StarfieldPattern have consistent preset IDs (1-6)', () => {
       const wavePresets = WavePattern.getPresets();
       const starfieldPresets = StarfieldPattern.getPresets();
       
       expect(wavePresets.length).toBe(starfieldPresets.length);
-      expect(wavePresets.map(p => p.id).sort()).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
-      expect(starfieldPresets.map(p => p.id).sort()).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+      expect(wavePresets.map(p => p.id).sort()).toEqual([1, 2, 3, 4, 5, 6]);
+      expect(starfieldPresets.map(p => p.id).sort()).toEqual([1, 2, 3, 4, 5, 6]);
     });
 
     it('patterns can be rendered after applying presets', () => {
