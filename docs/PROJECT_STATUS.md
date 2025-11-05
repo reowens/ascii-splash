@@ -10,14 +10,14 @@ ascii-splash is a terminal ASCII animation app that displays animated patterns i
 - 👤 [User guide & installation](../README.md)
 - 🏗️ [Technical architecture](ARCHITECTURE.md)
 - 🧪 [Testing details](TESTING_PLAN.md)
+- 🚀 [v0.2.0 ESM Migration Plan](V0.2.0_ESM_MIGRATION_PLAN.md)
 
-## Current Status: v0.1.4 (Ready for Release) ✅
+## Current Status: v0.1.5 (Published) ✅
 
-The project is **live on npm** with **visual demonstrations added to README**.
+The project is **live on npm** with **dependency updates and workflow optimization planned**.
 
 - **npm Package**: https://www.npmjs.com/package/ascii-splash
-- **Latest Published**: v0.1.3 (Preset standardization + Fireworks fix + test stability)
-- **Ready for Release**: v0.1.4 (Visual demonstrations with 7 animated GIFs)
+- **Latest Published**: v0.1.5 (Dependency maintenance update)
 - **Published**: November 4, 2025
 - **Installation**: `npm install -g ascii-splash` or `npx ascii-splash`
 
@@ -28,6 +28,18 @@ The project is **live on npm** with **visual demonstrations added to README**.
 - **1505 Tests** with **82.34% Coverage**
 - **3-Layer Architecture**: Renderer → Engine → Patterns
   - For technical details, see [ARCHITECTURE.md](ARCHITECTURE.md)
+
+### v0.1.5 Release Highlights (November 4, 2025) ✅
+- **Dependency Updates**: Updated `@types/node` to 24.10.0
+- **Test Stability**: Maintained all 1505 tests passing with updated dependencies
+- **Coverage**: Maintained 82.34% test coverage
+- **Note**: `conf` remains at v10.2.0 (v15+ requires ESM migration, planned for v0.2.0)
+
+### v0.1.5 Release Highlights (November 4, 2025) ✅
+- **Dependency Updates**: Updated @types/node to 24.10.0 (patch update)
+- **Stability**: Kept conf at 10.2.0 (v15+ requires ESM migration, planned for v0.2.0)
+- **Testing**: All 1505 tests passing, 82.34% coverage maintained
+- **CI/CD**: Successful automated release via GitHub Actions (5m40s)
 
 ### v0.1.4 Release Highlights (November 4, 2025) ✅
 - **Visual Demonstrations**: Added animated GIF previews to README
@@ -69,6 +81,7 @@ The project is **live on npm** with **visual demonstrations added to README**.
 | Phase 2 (Post) - Performance | ✅ COMPLETE (v0.1.2) |
 | Phase 3 (Post) - Preset Standardization | ✅ COMPLETE (v0.1.3) |
 | Phase 4 (Post) - Visual Demonstrations | ✅ COMPLETE (v0.1.4) |
+| Phase 5 (Post) - Dependency Maintenance | ✅ COMPLETE (v0.1.5) |
 
 ## Features
 
@@ -148,7 +161,13 @@ Highlights:
 
 ## What's Next
 
-**v0.1.4 Ready for Release!** ✅ Visual demonstrations complete, ready for npm publish.
+**v0.2.0 ESM Migration Planned!** 🚀 See [V0.2.0_ESM_MIGRATION_PLAN.md](V0.2.0_ESM_MIGRATION_PLAN.md)
+
+**Completed in v0.1.5:**
+- ✅ Dependency maintenance (@types/node 24.10.0)
+- ✅ Documented conf v15 ESM incompatibility
+- ✅ Automated release via GitHub Actions (5m40s)
+- ✅ All 1505 tests passing, 82.34% coverage
 
 **Completed in v0.1.4:**
 - ✅ Visual demonstrations (7 animated GIFs in README)
@@ -162,7 +181,15 @@ Highlights:
 - ✅ Test stability improvements (fixed flaky Smoke and Rain tests)
 - ✅ CI/CD reliability established
 
-**Future Enhancements (v0.1.5+):**
+**Planned for v0.2.0 (Major Release):**
+- 🔄 **ESM Migration** (CommonJS → ECMAScript Modules)
+- 🔄 **conf v15.0.2 Update** (requires ESM)
+- 🔄 **GitHub Actions Workflow Optimization** (remove duplicate test runs)
+- 🔄 **Documentation Updates** (migration guide, breaking changes)
+- 📅 Estimated: 8-12 hours of focused work
+- 📅 Timeline: TBD (detailed plan ready)
+
+**Future Enhancements (v0.3.0+):**
 - Pattern refinements and bug fixes from user feedback
 - Additional visual enhancements and effects
 - Additional patterns (Constellation, Ripple Grid, Waveform, Mandelbrot, Kaleidoscope)
@@ -184,15 +211,15 @@ Highlights:
 
 ## Contributing
 
-**Status:** v0.1.3 published and stable. Future contributions welcome!
+**Status:** v0.1.5 ready for release. Future contributions welcome!
 
 **For contribution guidelines**, see [README.md](../README.md#-contributing).
 
 ---
 
-**Project Status:** v0.1.4 - Ready for npm Release ✅  
-**Latest Published:** v0.1.3 (November 4, 2025) ✅  
-**Ready for Release:** v0.1.4 (Visual demonstrations complete)  
+**Project Status:** v0.1.5 - Published & Stable ✅  
+**Latest Published:** v0.1.5 (November 4, 2025) ✅  
+**Next Release:** v0.2.0 (ESM Migration - Planned)  
 **Test Coverage:** 82.34% (1505 tests) ✅  
 **Branch:** main (stable, up to date, pushed to GitHub)  
 **npm Registry:** https://www.npmjs.com/package/ascii-splash  
