@@ -219,4 +219,9 @@ benchmarks/results/
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# ============================================
+# AI Assistant & OpenCode Settings (Local)
+# ============================================
 .claude/settings.local.json
+.opencode/node_modules/
