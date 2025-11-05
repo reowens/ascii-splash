@@ -60,13 +60,13 @@
     "LICENSE",
     "CHANGELOG.md"
   ],
-
   "engines": {
     "node": ">=20.0.0"
   },
   "dependencies": {
     "commander": "^14.0.2",
     "conf": "^15.0.2",
+    "simplex-noise": "^4.0.3",
     "terminal-kit": "^3.1.2"
   },
   "devDependencies": {

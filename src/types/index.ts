@@ -227,6 +227,71 @@ export interface SnowPatternConfig {
   accumulation?: boolean;
 }
 
+// Vector2 for 2D math operations
+export interface Vector2 {
+  x: number;
+  y: number;
+}
+
+// Scene graph layer interface for layered rendering
+export interface SceneLayer {
+  name: string;
+  zIndex: number;
+  visible: boolean;
+  update(deltaTime: number, size: Size): void;
+  render(buffer: Cell[][], size: Size): void;
+}
+
+// Sprite for animated characters/objects
+export interface Sprite {
+  position: Vector2;
+  velocity: Vector2;
+  frames: string[][];  // Animation frames (each frame is array of lines)
+  currentFrame: number;
+  frameTime: number;   // Time accumulated for current frame (ms)
+  frameDuration: number; // Duration per frame (ms)
+  color: Color;
+  scale: number;
+  active: boolean;
+}
+
+// Particle for particle systems
+export interface Particle {
+  position: Vector2;
+  velocity: Vector2;
+  acceleration: Vector2;
+  life: number;        // Remaining lifetime in seconds
+  maxLife: number;     // Total lifetime for fade calculation
+  color: Color;
+  char: string;
+  active: boolean;
+}
+
+// Range types for particle emitters
+export interface Vector2Range {
+  min: Vector2;
+  max: Vector2;
+}
+
+export interface ColorRange {
+  start: Color;
+  end: Color;
+}
+
+// Particle emitter configuration
+export interface ParticleEmitter {
+  position: Vector2;
+  emissionRate: number;      // Particles per second
+  particleLife: number;      // Lifetime in seconds
+  initialVelocity: Vector2Range;
+  acceleration: Vector2;     // Gravity, wind, etc.
+  colorRange: ColorRange;
+  characters: string[];
+  maxParticles?: number;
+  burstMode?: boolean;       // Emit all at once vs continuous
+  burstCount?: number;       // Number of particles in burst
+}
+
 // Favorite slot interface
 export interface FavoriteSlot {
   pattern: string;           // Pattern name (e.g., "WavePattern")
