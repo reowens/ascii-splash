@@ -1,5 +1,5 @@
-import { Pattern, Cell, Size, Point, Theme } from '../types';
-import { validateCount, validateSpeed, clamp, ensureNonNegative } from '../utils/validation';
+import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
+import { validateCount, validateSpeed, clamp, ensureNonNegative } from '../utils/validation.js';
 
 interface Particle {
   x: number;

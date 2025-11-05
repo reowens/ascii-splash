@@ -1,6 +1,7 @@
-import { StarfieldPattern } from '../../../src/patterns/StarfieldPattern';
-import { Cell, Point, Size, Theme } from '../../../src/types';
-import { createMockTheme, createMockBuffer } from '../../utils/mocks';
+import { jest, describe, it, test, expect, beforeEach, afterEach } from '@jest/globals';
+import { StarfieldPattern } from '../../../src/patterns/StarfieldPattern.js';
+import { Cell, Point, Size, Theme } from '../../../src/types/index.js';
+import { createMockTheme, createMockBuffer } from '../../utils/mocks.js';
 
 describe('StarfieldPattern', () => {
   let pattern: StarfieldPattern;

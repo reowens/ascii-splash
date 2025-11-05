@@ -1,5 +1,5 @@
-import { Pattern, Cell, Size, Point, Theme } from '../types';
-import { bresenhamLine } from '../utils/drawing';
+import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
+import { bresenhamLine } from '../utils/drawing.js';
 
 interface TunnelConfig {
   shape: 'circle' | 'square' | 'hexagon' | 'star';

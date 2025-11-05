@@ -1,6 +1,6 @@
-import { MazePattern } from '../../../src/patterns/MazePattern';
-import { Cell, Theme } from '../../../src/types';
-import { createMockTheme, createMockBuffer } from '../../utils/mocks';
+import { MazePattern } from '../../../src/patterns/MazePattern.js';
+import { Cell, Theme } from '../../../src/types/index.js';
+import { createMockTheme, createMockBuffer } from '../../utils/mocks.js';
 
 describe('MazePattern', () => {
   let pattern: MazePattern;

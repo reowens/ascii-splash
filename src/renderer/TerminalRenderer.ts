@@ -1,6 +1,6 @@
 import terminalKit from 'terminal-kit';
-import { Buffer } from './Buffer';
-  import { Size } from '../types';
+import { Buffer } from './Buffer.js';
+  import { Size } from '../types/index.js';
 
 const term = terminalKit.terminal;
 

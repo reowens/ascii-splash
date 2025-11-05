@@ -8,11 +8,12 @@
  * Expected tests: ~70
  */
 
-import { CommandExecutor, ExecutionResult } from '../../../src/engine/CommandExecutor';
-import { ParsedCommand } from '../../../src/engine/CommandParser';
-import { AnimationEngine } from '../../../src/engine/AnimationEngine';
-import { ConfigLoader } from '../../../src/config/ConfigLoader';
-import { Pattern, Theme, FavoriteSlot } from '../../../src/types';
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { CommandExecutor, ExecutionResult } from '../../../src/engine/CommandExecutor.js';
+import { ParsedCommand } from '../../../src/engine/CommandParser.js';
+import { AnimationEngine } from '../../../src/engine/AnimationEngine.js';
+import { ConfigLoader } from '../../../src/config/ConfigLoader.js';
+import { Pattern, Theme, FavoriteSlot } from '../../../src/types/index.js';
 
 // Mock dependencies
 jest.mock('../../../src/engine/AnimationEngine');

@@ -1,4 +1,4 @@
-import { Cell, Size } from '../types';
+import { Cell, Size } from '../types/index.js';
 
 export class Buffer {
   private buffer: Cell[][];

@@ -7,6 +7,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-11-04
+
+### ⚠️ BREAKING CHANGES
+
+**This is a major version bump due to the ESM migration.**
+
+- **ESM Migration**: Project now uses ECMAScript Modules (ESM) instead of CommonJS
+  - **CLI users**: ✅ **NO CHANGES REQUIRED** - Installation and usage remain identical
+  - **Library consumers** (if any): ⚠️ Must update to ESM syntax (`import` instead of `require()`)
+  - Node.js 20+ required (already a requirement since v0.1.0)
+
+### Changed
+
+- **Module System**: Migrated from CommonJS to ESM
+  - All source files now use ESM `import`/`export` syntax
+  - All imports now include explicit `.js` file extensions (required by ESM)
+  - `package.json` now has `"type": "module"`
+  - TypeScript outputs ESM syntax (`"module": "Node16"`)
+- **Dependencies**: Updated `conf` from v10.2.0 to v15.0.2 (ESM-compatible)
+  - Primary motivation for ESM migration
+  - Enables future updates to other modern ESM-only packages
+
+### Technical
+
+- **TypeScript Configuration**:
+  - Changed `"module"` from `"commonjs"` to `"Node16"`
+  - Changed `"moduleResolution"` to `"node16"` for proper ESM resolution
+  - All compiled output uses ESM syntax
+- **Jest Configuration**:
+  - Renamed `jest.config.js` to `jest.config.mjs`
+  - Configured for ESM testing with `--experimental-vm-modules`
+  - Using `ts-jest` with ESM support
+  - All 1505 tests passing with ESM configuration
+- **Import Conventions**:
+  - All relative imports include `.js` extensions (e.g., `'./Pattern.js'`)
+  - ESM imports work correctly in both source TypeScript and compiled JavaScript
+- **Build System**:
+  - TypeScript compilation produces clean ESM output
+  - Binary execution works correctly: `node dist/main.js`
+  - Package exports configured for ESM
+
+### Migration Details
+
+**Phases Completed**:
+1. ✅ Configuration updates (package.json, tsconfig.json, jest.config.mjs)
+2. ✅ Code updates (added `.js` extensions to all imports)
+3. ✅ Jest ESM compatibility fixes (explicit Jest imports, ESM mocking)
+4. ✅ Build and runtime testing (all tests passing, application works)
+
+**Files Modified**: 58 TypeScript files (source + tests)
+**Test Results**: All 1505 tests passing, 28 test suites
+**Coverage**: 92.35% (maintained and improved from 82.34%)
+
+### For Library Consumers
+
+If you use ascii-splash as a library (not via CLI), you'll need to update your code:
+
+**Before (CommonJS):**
+```javascript
+const { AnimationEngine } = require('ascii-splash');
+```
+
+**After (ESM):**
+```javascript
+import { AnimationEngine } from 'ascii-splash';
+```
+
+**Note**: The vast majority of users install via `npm install -g ascii-splash` or use `npx ascii-splash`, which are **not affected** by this change.
+
 ## [0.1.5] - 2025-11-04
 
 ### Changed
@@ -463,7 +532,8 @@ Built with `terminal-kit` for terminal control and inspired by classic terminal 
 - Performance optimizations
 - Extended terminal emulator support
 
-[Unreleased]: https://github.com/reowens/ascii-splash/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/reowens/ascii-splash/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/reowens/ascii-splash/compare/v0.1.5...v0.2.0
 [0.1.5]: https://github.com/reowens/ascii-splash/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/reowens/ascii-splash/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/reowens/ascii-splash/compare/v0.1.2...v0.1.3

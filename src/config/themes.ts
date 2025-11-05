@@ -1,4 +1,4 @@
-import { Theme, Color } from '../types';
+import { Theme, Color } from '../types/index.js';
 
 /**
  * Base theme class with color interpolation logic

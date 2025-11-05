@@ -236,7 +236,7 @@ interface Theme {
 
 ## Current Status (AI Awareness)
 
-**Status**: v0.1.0 - Published and Live ✅
+**Status**: v0.1.5 - Ready for Release ✅
 
 **Completion**:
 - ✅ 17 Interactive patterns (11 core + Life + Maze + DNA + LavaLamp + Smoke + Snow)
@@ -244,9 +244,9 @@ interface Theme {
 - ✅ 5 color themes
 - ✅ Configuration system
 - ✅ Favorites & shuffle mode
-- ✅ 817 tests, 82.34% coverage
+- ✅ 1505 tests, 82.34% coverage
 - ✅ Complete documentation
-- ✅ Published to npm (v0.1.0: Nov 2, v0.1.3: Nov 4, 2025)
+- ✅ Published to npm (v0.1.0-v0.1.4: Nov 2-4, 2025; v0.1.5: Ready)
 
 **Future Enhancements**:
 - Additional patterns (Constellation, Ripple Grid, Waveform, Mandelbrot, Kaleidoscope)

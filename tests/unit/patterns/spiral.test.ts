@@ -1,6 +1,6 @@
-import { SpiralPattern } from '../../../src/patterns/SpiralPattern';
-import { Cell, Point, Size, Theme } from '../../../src/types';
-import { createMockTheme, createMockBuffer } from '../../utils/mocks';
+import { SpiralPattern } from '../../../src/patterns/SpiralPattern.js';
+import { Cell, Point, Size, Theme } from '../../../src/types/index.js';
+import { createMockTheme, createMockBuffer } from '../../utils/mocks.js';
 
 describe('SpiralPattern', () => {
   let pattern: SpiralPattern;

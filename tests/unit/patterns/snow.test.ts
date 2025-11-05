@@ -1,6 +1,6 @@
-import { SnowPattern } from '../../../src/patterns/SnowPattern';
-import { Cell, Theme } from '../../../src/types';
-import { createMockTheme, createMockBuffer } from '../../utils/mocks';
+import { SnowPattern } from '../../../src/patterns/SnowPattern.js';
+import { Cell, Theme } from '../../../src/types/index.js';
+import { createMockTheme, createMockBuffer } from '../../utils/mocks.js';
 
 describe('SnowPattern', () => {
   let pattern: SnowPattern;

@@ -1,6 +1,6 @@
-import { LavaLampPattern } from '../../../src/patterns/LavaLampPattern';
-import { Cell, Theme, Point } from '../../../src/types';
-import { createMockTheme, createMockBuffer } from '../../utils/mocks';
+import { LavaLampPattern } from '../../../src/patterns/LavaLampPattern.js';
+import { Cell, Theme, Point } from '../../../src/types/index.js';
+import { createMockTheme, createMockBuffer } from '../../utils/mocks.js';
 
 describe('LavaLampPattern', () => {
   let pattern: LavaLampPattern;

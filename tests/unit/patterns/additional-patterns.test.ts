@@ -1,13 +1,13 @@
-import { MatrixPattern } from '../../../src/patterns/MatrixPattern';
-import { RainPattern } from '../../../src/patterns/RainPattern';
-import { QuicksilverPattern } from '../../../src/patterns/QuicksilverPattern';
-import { ParticlePattern } from '../../../src/patterns/ParticlePattern';
-import { SpiralPattern } from '../../../src/patterns/SpiralPattern';
-import { PlasmaPattern } from '../../../src/patterns/PlasmaPattern';
-import { TunnelPattern } from '../../../src/patterns/TunnelPattern';
-import { LightningPattern } from '../../../src/patterns/LightningPattern';
-import { FireworksPattern } from '../../../src/patterns/FireworksPattern';
-import { createMockTheme, createMockSize, createMockBuffer } from '../../utils/mocks';
+import { MatrixPattern } from '../../../src/patterns/MatrixPattern.js';
+import { RainPattern } from '../../../src/patterns/RainPattern.js';
+import { QuicksilverPattern } from '../../../src/patterns/QuicksilverPattern.js';
+import { ParticlePattern } from '../../../src/patterns/ParticlePattern.js';
+import { SpiralPattern } from '../../../src/patterns/SpiralPattern.js';
+import { PlasmaPattern } from '../../../src/patterns/PlasmaPattern.js';
+import { TunnelPattern } from '../../../src/patterns/TunnelPattern.js';
+import { LightningPattern } from '../../../src/patterns/LightningPattern.js';
+import { FireworksPattern } from '../../../src/patterns/FireworksPattern.js';
+import { createMockTheme, createMockSize, createMockBuffer } from '../../utils/mocks.js';
 
 describe('Additional Pattern Tests', () => {
   describe('MatrixPattern', () => {

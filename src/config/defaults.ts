@@ -1,4 +1,4 @@
-import { ConfigSchema } from '../types';
+import { ConfigSchema } from '../types/index.js';
 
 /**
  * Default configuration values for ascii-splash.

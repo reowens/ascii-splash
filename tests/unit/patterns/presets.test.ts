@@ -1,6 +1,6 @@
-import { WavePattern } from '../../../src/patterns/WavePattern';
-import { StarfieldPattern } from '../../../src/patterns/StarfieldPattern';
-import { createMockTheme, createMockSize, createMockBuffer } from '../../utils/mocks';
+import { WavePattern } from '../../../src/patterns/WavePattern.js';
+import { StarfieldPattern } from '../../../src/patterns/StarfieldPattern.js';
+import { createMockTheme, createMockSize, createMockBuffer } from '../../utils/mocks.js';
 
 describe('Pattern Presets', () => {
   describe('WavePattern Presets', () => {

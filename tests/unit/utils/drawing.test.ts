@@ -1,5 +1,5 @@
-import { bresenhamLine, applyRadialSymmetry, applyMirrorSymmetry, drawCircle } from '../../../src/utils/drawing';
-import { Point } from '../../../src/types';
+import { bresenhamLine, applyRadialSymmetry, applyMirrorSymmetry, drawCircle } from '../../../src/utils/drawing.js';
+import { Point } from '../../../src/types/index.js';
 
 describe('Drawing Utils', () => {
   describe('bresenhamLine', () => {

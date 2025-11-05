@@ -1,6 +1,7 @@
-import { QuicksilverPattern } from '../../../src/patterns/QuicksilverPattern';
-import { createMockBuffer, createMockTheme, createMockSize, createMockPoint } from '../../utils/mocks';
-import { Cell } from '../../../src/types';
+import { jest, describe, it, expect, beforeEach } from '@jest/globals';
+import { QuicksilverPattern } from '../../../src/patterns/QuicksilverPattern.js';
+import { createMockBuffer, createMockTheme, createMockSize, createMockPoint } from '../../utils/mocks.js';
+import { Cell } from '../../../src/types/index.js';
 
 describe('QuicksilverPattern', () => {
   let pattern: QuicksilverPattern;

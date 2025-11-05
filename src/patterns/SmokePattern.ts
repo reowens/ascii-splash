@@ -1,6 +1,6 @@
-import { Pattern, Cell, Size, Point, Theme } from '../types';
-import { PerlinNoise } from '../utils/noise';
-import { clamp } from '../utils/math';
+import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
+import { PerlinNoise } from '../utils/noise.js';
+import { clamp } from '../utils/math.js';
 
 interface SmokeConfig {
   plumeCount: number;       // Number of smoke sources (1-8)

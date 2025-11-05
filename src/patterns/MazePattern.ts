@@ -1,4 +1,4 @@
-import { Pattern, Cell, Size, Point, Theme } from '../types';
+import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
 
 interface MazeConfig {
   algorithm: 'dfs' | 'prim' | 'recursive-division' | 'kruskal' | 'eller' | 'wilson';

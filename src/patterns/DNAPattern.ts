@@ -1,5 +1,5 @@
-import { Pattern, Cell, Size, Point, Theme } from '../types';
-import { Point3D, projectTo2D, inBounds, clamp } from '../utils/math';
+import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
+import { Point3D, projectTo2D, inBounds, clamp } from '../utils/math.js';
 
 interface DNAConfig {
   rotationSpeed: number;      // radians per second

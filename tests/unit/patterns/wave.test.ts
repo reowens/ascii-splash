@@ -1,6 +1,6 @@
-import { WavePattern } from '../../../src/patterns/WavePattern';
-import { createMockTheme, createMockBuffer, createMockSize, createMockPoint } from '../../utils/mocks';
-import { Cell } from '../../../src/types';
+import { WavePattern } from '../../../src/patterns/WavePattern.js';
+import { createMockTheme, createMockBuffer, createMockSize, createMockPoint } from '../../utils/mocks.js';
+import { Cell } from '../../../src/types/index.js';
 
 describe('WavePattern', () => {
   let pattern: WavePattern;

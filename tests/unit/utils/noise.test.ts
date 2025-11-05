@@ -1,4 +1,4 @@
-import { PerlinNoise, getGlobalNoise, turbulence } from '../../../src/utils/noise';
+import { PerlinNoise, getGlobalNoise, turbulence } from '../../../src/utils/noise.js';
 
 describe('Noise Utils', () => {
   describe('PerlinNoise', () => {

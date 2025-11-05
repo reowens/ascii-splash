@@ -1,6 +1,7 @@
-import { PlasmaPattern } from '../../../src/patterns/PlasmaPattern';
-import { Cell, Theme } from '../../../src/types';
-import { createMockTheme, createMockBuffer } from '../../utils/mocks';
+import { jest, describe, it, test, expect, beforeEach, afterEach } from '@jest/globals';
+import { PlasmaPattern } from '../../../src/patterns/PlasmaPattern.js';
+import { Cell, Theme } from '../../../src/types/index.js';
+import { createMockTheme, createMockBuffer } from '../../utils/mocks.js';
 
 describe('PlasmaPattern', () => {
   let pattern: PlasmaPattern;

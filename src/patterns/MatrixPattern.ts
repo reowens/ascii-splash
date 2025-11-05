@@ -1,5 +1,5 @@
-import { Pattern, Cell, Size, Point, Theme } from '../types';
-import { validateDensity, validateSpeed } from '../utils/validation';
+import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
+import { validateDensity, validateSpeed } from '../utils/validation.js';
 
 interface Column {
   x: number;
