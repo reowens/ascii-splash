@@ -1,8 +1,8 @@
 # Documentation Index
 
-> **📦 Version v0.2.0 - ESM Migration Complete, Ready for npm Publication** ✅
+> **📦 Version v0.2.0 - ESM Migration Complete, Published to npm** ✅
 >
-> The project has completed ESM migration with conf v15.0.2, all 1505 tests passing (92.35% coverage), and is ready for npm publication.
+> The project has completed ESM migration with conf v15.0.2, all 1505 tests passing (92.35% coverage), and is published on npm.
 
 Welcome to **ascii-splash** documentation. Choose your path based on your role:
 
@@ -178,5 +178,5 @@ npm run test:coverage  # Coverage report
 
 ---
 
-**Last Updated**: November 4, 2025 (v0.2.0 Complete - Reorganized)
+**Last Updated**: November 5, 2025 (v0.2.0 Published to npm)
 **Organization Status**: ✅ Consolidated, Reorganized, and Ready

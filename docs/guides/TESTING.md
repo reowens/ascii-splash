@@ -4,11 +4,11 @@
 
 This document outlines the comprehensive testing strategy for ascii-splash, a terminal ASCII animation application with 17 patterns, 102 presets, 5 themes, and an advanced command system.
 
-**Current Status**: ✅ **817 tests passing** across 10 test suites (100%)  
-**Current Coverage**: 82.34% overall (core components at 96-100%)  
-**Target Coverage**: 80%+ for core logic ✅ **ACHIEVED**  
+**Current Status**: ✅ **1505 tests passing** across 28 test suites (100%)  
+**Current Coverage**: 92.35% overall (core components at 96-100%)  
+**Target Coverage**: 80%+ for core logic ✅ **EXCEEDED**  
 **Testing Framework**: Jest 29.7.0 (✅ Installed and configured)  
-**Document Version**: 1.7 (v0.1.0 Release)
+**Document Version**: 2.0 (v0.2.0 Published to npm)
 
 **Quick Links**:
 - 📊 [Current project status](../PROJECT_STATUS.md)
@@ -856,8 +856,8 @@ npm test -- --testNamePattern="Preset Commands"
 - **CommandBuffer**: 95% ✅ **ACHIEVED (100%)**
 - **AnimationEngine**: 90% ✅ **ACHIEVED (98.14%)**
 - **CommandExecutor**: 90% ✅ **ACHIEVED (96.63%)**
-- **Pattern Presets**: 80% ✅ **ACHIEVED (173 tests passing, 53%-94% coverage range)**
-- **Overall Project**: 80%+ ✅ **ACHIEVED (82.34%)**
+- **Pattern Presets**: 80% ✅ **ACHIEVED (667 tests passing, 95%-100% coverage range)**
+- **Overall Project**: 80%+ ✅ **EXCEEDED (92.35%)**
 
 ---
 
@@ -886,7 +886,7 @@ When issues are found during testing:
 
 **All Core Testing Complete** ✅
 
-With 817 tests and 82.34% coverage achieved, all primary testing goals are complete. Future enhancements are **optional** and not required for production:
+With 1505 tests and 92.35% coverage achieved, all primary testing goals are complete. Future enhancements are **optional** and not required for production:
 
 1. **Integration Tests** (Optional) - End-to-end flow testing across components (~30 tests)
 2. **CI/CD Pipeline** (Optional) - Automated testing on push/PR (see [Section 4.1](#41-github-actions-workflow))
@@ -923,34 +923,35 @@ npm run build && npm start
 
 ---
 
-**Document Version**: 1.7  
-**Last Updated**: 2025-11-04  
-**Status**: ✅ v0.1.3 Release - All milestones complete, 1505 tests passing (100%), 82.34% coverage achieved, 17 patterns complete
+**Document Version**: 2.0  
+**Last Updated**: 2025-11-05  
+**Status**: ✅ v0.2.0 Published to npm - All milestones complete, 1505 tests passing (100%), 92.35% coverage achieved, 17 patterns complete
 
 ---
 
 ## Test Results Summary
 
-**Current Status** (v0.1.0):
-- ✅ **817 tests passing** across 10 test suites (100%)
-- ✅ **82.34% overall coverage** (target: 80%+)
-- ✅ **All 17 patterns tested** (323 pattern tests)
+**Current Status** (v0.2.0):
+- ✅ **1505 tests passing** across 28 test suites (100%)
+- ✅ **92.35% overall coverage** (target: 80%+ **EXCEEDED**)
+- ✅ **All 17 patterns tested** (667 pattern tests)
 - ✅ **All engine components tested** (CommandParser, CommandBuffer, CommandExecutor, AnimationEngine)
 - ✅ **All core systems tested** (Config, Buffer, PerformanceMonitor, Themes)
 
 **Test Suite Breakdown**:
 - **Engine Tests** (310 tests): CommandParser (68), CommandBuffer (56), CommandExecutor (96), AnimationEngine (55), PerformanceMonitor (35)
-- **Pattern Tests** (323 tests): All 17 patterns with preset/rendering tests
+- **Pattern Tests** (667 tests): All 17 patterns with preset/rendering tests
 - **Config Tests** (76 tests): ConfigLoader (28), Themes (48)
-- **Renderer Tests** (33 tests): Buffer with dirty tracking
-- **Test Utilities** (75 tests): Mocks and helpers
+- **Renderer Tests** (113 tests): Buffer with dirty tracking, TerminalRenderer
+- **Utility Tests** (339 tests): Drawing, math, noise, validation, metaballs, buffer safety
 
 **Coverage by Component**:
 - Core Engine: 96-100% (CommandParser, CommandBuffer, PerformanceMonitor)
 - Animation: 98.14% (AnimationEngine)
 - Configuration: 100% (ConfigLoader, Themes)
-- Rendering: 100% (Buffer)
-- Patterns: 53-94% range (average ~72%)
+- Rendering: 88.49-100% (Buffer: 100%, TerminalRenderer: 88.49%)
+- Patterns: 95-100% statements for core patterns (average ~97%)
+- Utilities: 91-100% (Drawing: 94.52%, Math: 91.12%, Noise: 92.10%)
 
 **For detailed coverage metrics and test breakdowns**, see [PROJECT_STATUS.md](PROJECT_STATUS.md#testing-coverage).
 

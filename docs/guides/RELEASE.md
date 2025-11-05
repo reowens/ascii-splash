@@ -307,4 +307,6 @@ If you encounter issues with the release process:
 
 ---
 
-**Last Updated**: November 2, 2025
+**Last Updated**: November 5, 2025
+
+**Note**: For v0.2.0, we fixed a critical ESM compatibility issue in the release workflow. See [v0.2.0 Release Report](../status/reports/2025-11-05-v0.2.0-release.md) for lessons learned.

@@ -388,4 +388,4 @@ splash --pattern wave  # Ignore config file default
 
 ---
 
-**Last Updated**: November 4, 2025
+**Last Updated**: November 5, 2025

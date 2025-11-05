@@ -267,4 +267,4 @@ New global settings go in `src/config/defaults.ts`. See [guides/CONFIGURATION.md
 
 ---
 
-**Last Updated**: November 4, 2025
+**Last Updated**: November 5, 2025

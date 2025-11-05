@@ -4,9 +4,9 @@
 
 **Quick Links**:
 - 📊 [Current metrics & status](PROJECT_STATUS.md)
-- 🧪 [Testing strategy](TESTING_PLAN.md)
+- 🧪 [Testing strategy](guides/TESTING.md)
 - 👤 [User guide](../README.md)
-- 📦 [Release process](RELEASE_PROCESS.md)
+- 📦 [Release process](guides/RELEASE.md)
 
 ---
 
@@ -725,11 +725,11 @@ interface YourPatternConfig {
 ## References
 
 - **User Guide**: [README.md](../README.md)
-- **Testing Strategy**: [TESTING_PLAN.md](TESTING_PLAN.md)
+- **Testing Strategy**: [guides/TESTING.md](guides/TESTING.md)
 - **Project Status**: [PROJECT_STATUS.md](PROJECT_STATUS.md)
 - **Configuration Example**: [examples/.splashrc.example](../examples/.splashrc.example)
 
 ---
 
-**Last Updated**: November 4, 2025
+**Last Updated**: November 5, 2025
 **For**: Developer contributions and deep technical understanding

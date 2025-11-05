@@ -8,9 +8,9 @@ This directory contains enhancement proposals, feature plans, and future roadmap
 
 | Item | Status | Last Updated |
 |------|--------|--------------|
-| **v0.2.0 ESM Migration** | ✅ Complete | Nov 4, 2025 |
+| **v0.2.0 ESM Migration** | ✅ Published | Nov 5, 2025 |
 | **Fireworks Enhancement** | 📋 Proposed | Nov 3, 2025 |
-| **Visual Media (GIFs)** | 📋 Proposed | Nov 4, 2025 |
+| **Visual Media (GIFs)** | ✅ Complete (v0.1.4) | Nov 4, 2025 |
 | **Pattern Audit** | 📊 Reference | Nov 3, 2025 |
 
 ---
@@ -31,15 +31,15 @@ Multi-stage explosions, particle variations, and secondary effects to enhance th
 ---
 
 ### [Visual Media (README GIFs)](./enhancement-proposals/VISUAL_MEDIA.md)
-**Status**: Proposed
+**Status**: ✅ Complete (v0.1.4)
 **Difficulty**: Low-Medium
 **Impact**: User engagement & documentation
 
-Add animated GIFs to README.md showcasing 7 priority patterns, improving visual presentation without compromising README load times.
+Added animated GIFs to README.md showcasing 7 priority patterns, improving visual presentation without compromising README load times.
 
-- Phase 1: Setup & tooling
-- Phase 2: Pattern recording
-- Phase 3: GIF optimization & embedding
+- ✅ Phase 1: Setup & tooling complete
+- ✅ Phase 2: Pattern recording complete
+- ✅ Phase 3: GIF optimization & embedding complete
 
 ---
 
@@ -148,5 +148,5 @@ Completed features are moved to [../archive/](../archive/) for historical refere
 
 ---
 
-**Last Updated**: November 4, 2025
+**Last Updated**: November 5, 2025
 **Organization**: Active enhancement proposals separated from completed work

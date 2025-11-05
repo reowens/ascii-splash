@@ -8,7 +8,7 @@ Get ascii-splash running locally in 5 minutes.
 
 ```bash
 # Clone and install
-git clone https://github.com/yourusername/ascii-splash.git
+git clone https://github.com/reowens/ascii-splash.git
 cd ascii-splash
 npm install
 
