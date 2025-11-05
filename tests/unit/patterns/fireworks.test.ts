@@ -1,6 +1,6 @@
-import { FireworksPattern } from '../../../src/patterns/FireworksPattern';
-import { createMockBuffer, createMockTheme, createMockSize, createMockPoint } from '../../utils/mocks';
-import { Cell } from '../../../src/types';
+import { FireworksPattern } from '../../../src/patterns/FireworksPattern.js';
+import { createMockBuffer, createMockTheme, createMockSize, createMockPoint } from '../../utils/mocks.js';
+import { Cell } from '../../../src/types/index.js';
 
 describe('FireworksPattern', () => {
   let pattern: FireworksPattern;

@@ -1,6 +1,6 @@
 import Conf from 'conf';
-import { ConfigSchema, CliOptions, QualityPreset } from '../types';
-import { defaultConfig, qualityPresets } from './defaults';
+import { ConfigSchema, CliOptions, QualityPreset } from '../types/index.js';
+import { defaultConfig, qualityPresets } from './defaults.js';
 
 /**
  * ConfigLoader manages loading and merging configuration from multiple sources.

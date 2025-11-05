@@ -1,5 +1,5 @@
-import { THEMES, THEME_NAMES, getTheme, getNextThemeName } from '../../../src/config/themes';
-import { Theme } from '../../../src/types';
+import { THEMES, THEME_NAMES, getTheme, getNextThemeName } from '../../../src/config/themes.js';
+import { Theme } from '../../../src/types/index.js';
 
 describe('Theme System', () => {
   describe('BaseTheme Color Interpolation', () => {

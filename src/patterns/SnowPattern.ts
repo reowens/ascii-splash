@@ -1,5 +1,5 @@
-import { Pattern, Cell, Size, Point, Theme } from '../types';
-import { PerlinNoise } from '../utils/noise';
+import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
+import { PerlinNoise } from '../utils/noise.js';
 
 interface SnowConfig {
   particleCount: number;     // Total particles (20-200)

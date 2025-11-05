@@ -1,6 +1,6 @@
-import { Pattern, Cell, Size, Point, Theme } from '../types';
-import { validateProbability, validateInterval, clamp } from '../utils/validation';
-import { bresenhamLine } from '../utils/drawing';
+import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
+import { validateProbability, validateInterval, clamp } from '../utils/validation.js';
+import { bresenhamLine } from '../utils/drawing.js';
 
 interface LightningConfig {
   branchProbability: number;

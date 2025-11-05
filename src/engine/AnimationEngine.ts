@@ -1,7 +1,7 @@
-import { TerminalRenderer } from '../renderer/TerminalRenderer';
-import { Pattern } from '../types';
-import { PerformanceMonitor } from './PerformanceMonitor';
-import { bufferSafety, safeRenderWrapper } from '../utils/bufferSafety';
+import { TerminalRenderer } from '../renderer/TerminalRenderer.js';
+import { Pattern } from '../types/index.js';
+import { PerformanceMonitor } from './PerformanceMonitor.js';
+import { bufferSafety, safeRenderWrapper } from '../utils/bufferSafety.js';
 
 export class AnimationEngine {
   private renderer: TerminalRenderer;

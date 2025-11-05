@@ -1,6 +1,6 @@
-import { SmokePattern } from '../../../src/patterns/SmokePattern';
-import { Cell, Theme, Point } from '../../../src/types';
-import { createMockTheme, createMockBuffer } from '../../utils/mocks';
+import { SmokePattern } from '../../../src/patterns/SmokePattern.js';
+import { Cell, Theme, Point } from '../../../src/types/index.js';
+import { createMockTheme, createMockBuffer } from '../../utils/mocks.js';
 
 describe('SmokePattern', () => {
   let pattern: SmokePattern;

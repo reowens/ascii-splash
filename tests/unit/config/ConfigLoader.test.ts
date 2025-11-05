@@ -5,9 +5,9 @@
  * Note: We mock the Conf library since it interacts with the filesystem
  */
 
-import { ConfigLoader } from '../../../src/config/ConfigLoader';
-import { ConfigSchema, CliOptions, FavoriteSlot } from '../../../src/types';
-import { defaultConfig, qualityPresets } from '../../../src/config/defaults';
+import { ConfigLoader } from '../../../src/config/ConfigLoader.js';
+import { ConfigSchema, CliOptions, FavoriteSlot } from '../../../src/types/index.js';
+import { defaultConfig, qualityPresets } from '../../../src/config/defaults.js';
 
 // Mock the Conf library
 jest.mock('conf');

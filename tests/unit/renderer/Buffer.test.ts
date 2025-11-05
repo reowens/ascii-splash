@@ -3,9 +3,9 @@
  * Target: 90%+ coverage
  */
 
-import { Buffer } from '../../../src/renderer/Buffer';
-import { Cell, Size } from '../../../src/types';
-import { createMockSize, createMockColor } from '../../utils/mocks';
+import { Buffer } from '../../../src/renderer/Buffer.js';
+import { Cell, Size } from '../../../src/types/index.js';
+import { createMockSize, createMockColor } from '../../utils/mocks.js';
 
 describe('Buffer', () => {
   let buffer: Buffer;

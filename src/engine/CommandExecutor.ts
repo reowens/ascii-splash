@@ -4,10 +4,10 @@
  * Interfaces with patterns, engine, themes, and config to apply commands
  */
 
-import { ParsedCommand } from './CommandParser';
-import { AnimationEngine } from './AnimationEngine';
-import { Pattern, Theme, FavoriteSlot } from '../types';
-import { ConfigLoader } from '../config/ConfigLoader';
+import { ParsedCommand } from './CommandParser.js';
+import { AnimationEngine } from './AnimationEngine.js';
+import { Pattern, Theme, FavoriteSlot } from '../types/index.js';
+import { ConfigLoader } from '../config/ConfigLoader.js';
 
 export interface ExecutionResult {
   success: boolean;

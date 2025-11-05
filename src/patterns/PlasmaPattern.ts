@@ -1,4 +1,4 @@
-import { Pattern, Cell, Size, Point, Theme } from '../types';
+import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
 
 interface PlasmaConfig {
   frequency: number;

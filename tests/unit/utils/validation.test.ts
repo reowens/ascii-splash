@@ -12,7 +12,7 @@ import {
   validateIntensity,
   isValidNumber,
   sanitizeNumeric
-} from '../../../src/utils/validation';
+} from '../../../src/utils/validation.js';
 
 describe('Validation Utils', () => {
   describe('clamp', () => {

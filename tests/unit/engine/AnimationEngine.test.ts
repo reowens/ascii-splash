@@ -1,7 +1,7 @@
-import { AnimationEngine } from '../../../src/engine/AnimationEngine';
-import { TerminalRenderer } from '../../../src/renderer/TerminalRenderer';
-import { Pattern, Cell, Size } from '../../../src/types';
-import { Buffer } from '../../../src/renderer/Buffer';
+import { AnimationEngine } from '../../../src/engine/AnimationEngine.js';
+import { TerminalRenderer } from '../../../src/renderer/TerminalRenderer.js';
+import { Pattern, Cell, Size } from '../../../src/types/index.js';
+import { Buffer } from '../../../src/renderer/Buffer.js';
 
 // Mock TerminalRenderer
 jest.mock('../../../src/renderer/TerminalRenderer');

@@ -3,31 +3,31 @@ import terminalKit from 'terminal-kit';
 import { Command } from 'commander';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { TerminalRenderer } from './renderer/TerminalRenderer';
-import { AnimationEngine } from './engine/AnimationEngine';
-import { WavePattern } from './patterns/WavePattern';
-import { StarfieldPattern } from './patterns/StarfieldPattern';
-import { MatrixPattern } from './patterns/MatrixPattern';
-import { RainPattern } from './patterns/RainPattern';
-import { QuicksilverPattern } from './patterns/QuicksilverPattern';
-import { ParticlePattern } from './patterns/ParticlePattern';
-import { SpiralPattern } from './patterns/SpiralPattern';
-import { PlasmaPattern } from './patterns/PlasmaPattern';
-import { TunnelPattern } from './patterns/TunnelPattern';
-import { LightningPattern } from './patterns/LightningPattern';
-import { FireworksPattern } from './patterns/FireworksPattern';
-import { MazePattern } from './patterns/MazePattern';
-import { LifePattern } from './patterns/LifePattern';
-import { DNAPattern } from './patterns/DNAPattern';
-import { LavaLampPattern } from './patterns/LavaLampPattern';
-import { SmokePattern } from './patterns/SmokePattern';
-import { SnowPattern } from './patterns/SnowPattern';
-import { Pattern, CliOptions, QualityPreset, ConfigSchema, Theme } from './types';
-import { ConfigLoader } from './config/ConfigLoader';
-import { getTheme, getNextThemeName } from './config/themes';
-import { CommandBuffer } from './engine/CommandBuffer';
-import { CommandParser } from './engine/CommandParser';
-import { CommandExecutor } from './engine/CommandExecutor';
+import { TerminalRenderer } from './renderer/TerminalRenderer.js';
+import { AnimationEngine } from './engine/AnimationEngine.js';
+import { WavePattern } from './patterns/WavePattern.js';
+import { StarfieldPattern } from './patterns/StarfieldPattern.js';
+import { MatrixPattern } from './patterns/MatrixPattern.js';
+import { RainPattern } from './patterns/RainPattern.js';
+import { QuicksilverPattern } from './patterns/QuicksilverPattern.js';
+import { ParticlePattern } from './patterns/ParticlePattern.js';
+import { SpiralPattern } from './patterns/SpiralPattern.js';
+import { PlasmaPattern } from './patterns/PlasmaPattern.js';
+import { TunnelPattern } from './patterns/TunnelPattern.js';
+import { LightningPattern } from './patterns/LightningPattern.js';
+import { FireworksPattern } from './patterns/FireworksPattern.js';
+import { MazePattern } from './patterns/MazePattern.js';
+import { LifePattern } from './patterns/LifePattern.js';
+import { DNAPattern } from './patterns/DNAPattern.js';
+import { LavaLampPattern } from './patterns/LavaLampPattern.js';
+import { SmokePattern } from './patterns/SmokePattern.js';
+import { SnowPattern } from './patterns/SnowPattern.js';
+import { Pattern, CliOptions, QualityPreset, ConfigSchema, Theme } from './types/index.js';
+import { ConfigLoader } from './config/ConfigLoader.js';
+import { getTheme, getNextThemeName } from './config/themes.js';
+import { CommandBuffer } from './engine/CommandBuffer.js';
+import { CommandParser } from './engine/CommandParser.js';
+import { CommandExecutor } from './engine/CommandExecutor.js';
 
 const term = terminalKit.terminal;
 
@@ -39,7 +39,7 @@ function parseCliArguments(): CliOptions {
   
   // Read package.json for version
   const packageJson = JSON.parse(
-    readFileSync(join(__dirname, '..', 'package.json'), 'utf-8')
+    readFileSync(join(import.meta.dirname, '..', 'package.json'), 'utf-8')
   );
   
   program

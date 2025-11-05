@@ -1,4 +1,4 @@
-import { Pattern, Cell, Size, Point, Theme, Color } from '../types';
+import { Pattern, Cell, Size, Point, Theme, Color } from '../types/index.js';
 
 interface FireworkConfig {
   burstSize: number;

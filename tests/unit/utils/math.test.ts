@@ -13,7 +13,7 @@ import {
   distance,
   Complex,
   Point3D
-} from '../../../src/utils/math';
+} from '../../../src/utils/math.js';
 
 describe('Math Utils', () => {
   describe('Complex number operations', () => {

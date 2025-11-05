@@ -1,4 +1,4 @@
-import { PerformanceMonitor } from '../../../src/engine/PerformanceMonitor';
+import { PerformanceMonitor } from '../../../src/engine/PerformanceMonitor.js';
 
 describe('PerformanceMonitor', () => {
   let monitor: PerformanceMonitor;

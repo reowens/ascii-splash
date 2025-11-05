@@ -15,14 +15,11 @@
   },
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch",
-    "start": "node dist/main.js",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:verbose": "jest --verbose",
-    "lint": "tsc --noEmit",
-    "prepublishOnly": "npm run build && npm test"
+    "start": "npm run build && node dist/main.js",
+    "dev": "tsc -w",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
+    "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch",
+    "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage"
   },
   "keywords": [
     "terminal",

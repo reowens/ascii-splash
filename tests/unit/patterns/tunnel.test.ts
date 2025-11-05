@@ -1,6 +1,6 @@
-import { TunnelPattern } from '../../../src/patterns/TunnelPattern';
-import { Cell, Point, Size, Theme } from '../../../src/types';
-import { createMockTheme, createMockBuffer } from '../../utils/mocks';
+import { TunnelPattern } from '../../../src/patterns/TunnelPattern.js';
+import { Cell, Point, Size, Theme } from '../../../src/types/index.js';
+import { createMockTheme, createMockBuffer } from '../../utils/mocks.js';
 
 describe('TunnelPattern', () => {
   let pattern: TunnelPattern;

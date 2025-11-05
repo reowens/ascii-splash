@@ -3,7 +3,7 @@
  * Target: 100% coverage
  */
 
-import { CommandParser } from '../../../src/engine/CommandParser';
+import { CommandParser } from '../../../src/engine/CommandParser.js';
 
 describe('CommandParser', () => {
   let parser: CommandParser;

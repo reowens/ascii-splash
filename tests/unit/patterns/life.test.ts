@@ -1,6 +1,6 @@
-import { LifePattern } from '../../../src/patterns/LifePattern';
-import { Cell, Theme } from '../../../src/types';
-import { createMockTheme, createMockBuffer } from '../../utils/mocks';
+import { LifePattern } from '../../../src/patterns/LifePattern.js';
+import { Cell, Theme } from '../../../src/types/index.js';
+import { createMockTheme, createMockBuffer } from '../../utils/mocks.js';
 
 describe('LifePattern', () => {
   let pattern: LifePattern;

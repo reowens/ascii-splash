@@ -1,6 +1,6 @@
-import { DNAPattern } from '../../../src/patterns/DNAPattern';
-import { Cell, Theme, Point } from '../../../src/types';
-import { createMockTheme, createMockBuffer } from '../../utils/mocks';
+import { DNAPattern } from '../../../src/patterns/DNAPattern.js';
+import { Cell, Theme, Point } from '../../../src/types/index.js';
+import { createMockTheme, createMockBuffer } from '../../utils/mocks.js';
 
 describe('DNAPattern', () => {
   let pattern: DNAPattern;

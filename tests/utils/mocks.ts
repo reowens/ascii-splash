@@ -2,7 +2,7 @@
  * Mock utilities for testing ascii-splash components
  */
 
-import { Cell, Color, Size, Theme, Point, CliOptions } from '../../src/types';
+import { Cell, Color, Size, Theme, Point, CliOptions } from '../../src/types/index.js';
 
 /**
  * Creates a mock buffer (2D array of cells)

@@ -1,4 +1,4 @@
-import { CommandBuffer } from '../../../src/engine/CommandBuffer';
+import { CommandBuffer } from '../../../src/engine/CommandBuffer.js';
 
 describe('CommandBuffer', () => {
   describe('Activation & Lifecycle', () => {

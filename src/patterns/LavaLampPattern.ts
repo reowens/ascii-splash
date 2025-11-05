@@ -1,7 +1,7 @@
-import { Pattern, Cell, Size, Point, Theme } from '../types';
-import { metaballField, metaballIntensity, Metaball } from '../utils/metaballs';
-import { PerlinNoise } from '../utils/noise';
-import { clamp } from '../utils/math';
+import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
+import { metaballField, metaballIntensity, Metaball } from '../utils/metaballs.js';
+import { PerlinNoise } from '../utils/noise.js';
+import { clamp } from '../utils/math.js';
 
 interface LavaLampConfig {
   blobCount: number;        // Number of metaballs (3-12)

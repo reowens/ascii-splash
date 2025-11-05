@@ -1,6 +1,6 @@
-import { RainPattern } from '../../../src/patterns/RainPattern';
-import { createMockTheme, createMockSize, createMockBuffer } from '../../utils/mocks';
-import { Point } from '../../../src/types';
+import { RainPattern } from '../../../src/patterns/RainPattern.js';
+import { createMockTheme, createMockSize, createMockBuffer } from '../../utils/mocks.js';
+import { Point } from '../../../src/types/index.js';
 
 describe('RainPattern', () => {
   let pattern: RainPattern;
