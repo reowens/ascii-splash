@@ -1,6 +1,6 @@
 # Project Status - ascii-splash
 
-**Last Updated:** November 4, 2025
+**Last Updated:** November 5, 2025
 
 ## Overview
 
@@ -10,35 +10,37 @@ ascii-splash is a terminal ASCII animation app that displays animated patterns i
 - 👤 [User guide & installation](../README.md)
 - 🏗️ [Technical architecture](ARCHITECTURE.md)
 - 🧪 [Testing details](TESTING_PLAN.md)
-- 🚀 [v0.2.0 ESM Migration Plan](V0.2.0_ESM_MIGRATION_PLAN.md)
+- 📊 [v0.2.0 Release Report](status/reports/2025-11-05-v0.2.0-release.md)
 
-## Current Status: v0.2.0 (Ready for npm Publication) ✅
+## Current Status: v0.2.0 (Published to npm) ✅
 
-The project has successfully completed **ESM migration** and is **ready for npm publication**.
+The project has successfully completed **ESM migration** and is **published on npm**.
 
 - **npm Package**: https://www.npmjs.com/package/ascii-splash
-- **Latest Published**: v0.1.5 (November 4, 2025)
-- **Ready to Publish**: v0.2.0 (ESM Migration - November 4, 2025)
-- **GitHub**: Tagged and pushed to main branch
-- **Installation**: `npm install -g ascii-splash` or `npx ascii-splash`
+- **Latest Published**: v0.2.0 (November 5, 2025) ✅
+- **GitHub Release**: https://github.com/reowens/ascii-splash/releases/tag/v0.2.0
+- **Installation**: `npm install -g ascii-splash@0.2.0` or `npx ascii-splash`
 
 ### Project Statistics
-- **17 Patterns** with **102 Presets** (6 per pattern - now standardized!)
+- **17 Patterns** with **102 Presets** (6 per pattern - standardized!)
 - **5 Color Themes** (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **40+ Commands** via advanced command system
-- **1505 Tests** with **92.35% Coverage** (improved with ESM migration!)
+- **1505 Tests** with **92.35% Coverage** (significantly exceeded 80% target!)
 - **3-Layer Architecture**: Renderer → Engine → Patterns
   - For technical details, see [ARCHITECTURE.md](ARCHITECTURE.md)
+- **Performance**: <5% CPU, ~40-50MB RAM (meeting all targets)
 
-### v0.2.0 Release Highlights (November 4, 2025) ✅
+### v0.2.0 Release Highlights (November 5, 2025) ✅
 - **ESM Migration**: Fully migrated to ESM (type: module in package.json)
 - **conf Update**: Updated from v10.2.0 to v15.0.2 (primary migration goal)
 - **Import Syntax**: Added .js extensions to all imports for ESM compliance
 - **Jest ESM**: Migrated to jest.config.mjs with ESM-compatible configuration
 - **Testing**: All 1505 tests passing, **92.35% coverage** (improved from 82.34%!)
 - **Type Compatibility**: Fixed conf v15 ESM type issues with workaround
+- **Workflow Fix**: Fixed release workflow for ESM compatibility (jq instead of require)
 - **Breaking Changes**: Library consumers need to use ESM syntax (CLI users unaffected)
-- **Status**: Merged to main, tagged v0.2.0, pushed to GitHub, ready for npm publication
+- **Status**: ✅ **PUBLISHED TO NPM** and GitHub Release created
+- **Release Time**: 3m53s (31% faster than previous releases)
 
 ### v0.1.5 Release Highlights (November 4, 2025) ✅
 - **Dependency Updates**: Updated @types/node to 24.10.0 (patch update)
@@ -168,18 +170,19 @@ Highlights:
 
 ## What's Next
 
-**v0.2.0 ESM Migration Complete!** ✅ Ready for npm publication
+**v0.2.0 Published!** ✅ Now live on npm
 
-**Completed in v0.2.0 (November 4, 2025):**
+**Completed in v0.2.0 (November 5, 2025):**
 - ✅ **ESM Migration** (CommonJS → ECMAScript Modules)
 - ✅ **conf v15.0.2 Update** (from v10.2.0)
 - ✅ **Import Syntax Updates** (.js extensions added to all imports)
 - ✅ **Jest ESM Configuration** (migrated to jest.config.mjs)
 - ✅ **Type Compatibility Fix** (conf v15 ESM type workaround)
+- ✅ **Workflow Fix** (ESM-compatible version check with jq)
 - ✅ **All 1505 tests passing**, 92.35% coverage (improved from 82.34%!)
-- ✅ **Merged to main** and tagged v0.2.0
-- ✅ **Pushed to GitHub** with complete documentation
-- 📦 **Ready for npm publish** (awaiting `npm login` + `npm publish`)
+- ✅ **Published to npm** (v0.2.0 live and verified)
+- ✅ **GitHub Release** created with full changelog
+- ✅ **Release Report** documented ([view report](status/reports/2025-11-05-v0.2.0-release.md))
 
 **Completed in v0.1.5:**
 - ✅ Dependency maintenance (@types/node 24.10.0)
@@ -200,9 +203,9 @@ Highlights:
 - ✅ CI/CD reliability established
 
 **Immediate Next Steps:**
-- 📦 **Publish v0.2.0 to npm** (`npm login` then `npm publish`)
-- 🎉 **Create GitHub Release** (use CHANGELOG v0.2.0 section)
-- 📊 **Monitor release** for first 24-48 hours
+- 📊 **Monitor npm downloads** for first 24-48 hours
+- 🐛 **Address any ESM-related issues** from user feedback
+- 🎯 **Plan v0.3.0 enhancements** based on community feedback
 
 **Future Enhancements (v0.3.0+):**
 - Pattern refinements and bug fixes from user feedback
@@ -232,12 +235,13 @@ Highlights:
 
 ---
 
-**Project Status:** v0.2.0 - ESM Migration Complete, Ready for npm Publication ✅  
-**Latest Published on npm:** v0.1.5 (November 4, 2025)  
-**Ready to Publish:** v0.2.0 - ESM Migration (November 4, 2025) ✅  
+**Project Status:** v0.2.0 - ESM Migration Complete, Published to npm ✅  
+**Latest Published on npm:** v0.2.0 (November 5, 2025) ✅  
+**GitHub Release:** https://github.com/reowens/ascii-splash/releases/tag/v0.2.0  
 **Test Coverage:** 92.35% (1505 tests) ✅ - Improved from 82.34%!  
-**Branch:** main (stable, v0.2.0 tagged and pushed to GitHub) ✅  
+**Branch:** main (stable, v0.2.0 live)  
 **npm Registry:** https://www.npmjs.com/package/ascii-splash  
 **GitHub Repository:** https://github.com/reowens/ascii-splash  
 **Visual Demos:** 7 animated GIFs (4.8MB total, optimized)  
-**Breaking Changes:** Library consumers need ESM syntax (CLI users unaffected)
+**Breaking Changes:** Library consumers need ESM syntax (CLI users unaffected)  
+**Release Report:** [2025-11-05 v0.2.0 Release](status/reports/2025-11-05-v0.2.0-release.md)
