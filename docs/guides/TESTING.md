@@ -11,9 +11,10 @@ This document outlines the comprehensive testing strategy for ascii-splash, a te
 **Document Version**: 1.7 (v0.1.0 Release)
 
 **Quick Links**:
-- 📊 [Current project status](PROJECT_STATUS.md)
-- 🏗️ [Technical architecture](ARCHITECTURE.md)
-- 👤 [User guide](../README.md)
+- 📊 [Current project status](../PROJECT_STATUS.md)
+- 🏗️ [Technical architecture](../ARCHITECTURE.md)
+- 👤 [User guide](../../README.md)
+- 📚 [Documentation Index](../README.md)
 
 ---
 

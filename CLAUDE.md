@@ -107,12 +107,42 @@ splash/
 │       ├── starfield.test.ts
 │       └── ... (17 pattern tests + engine/config/renderer tests)
 │
-├── docs/                         # Developer documentation
-│   ├── ARCHITECTURE.md          # ⭐ Technical architecture (for developers)
-│   ├── README.md                # Documentation navigation index
-│   ├── PROJECT_STATUS.md        # Current status snapshot
-│   ├── TESTING_PLAN.md          # Testing strategy & coverage
-│   └── DOCUMENTATION_AUDIT.md   # Documentation structure audit
+├── docs/                         # Developer documentation (reorganized Nov 4)
+│   ├── ARCHITECTURE.md          # ⭐ Technical architecture reference
+│   ├── PROJECT_STATUS.md        # Current metrics & status
+│   ├── README.md                # 📍 Navigation index
+│   │
+│   ├── core/                    # ⭐ Essential developer guides
+│   │   ├── QUICK_START.md       # 5-minute dev setup
+│   │   └── CONTRIBUTING.md      # Pattern development guide
+│   │
+│   ├── guides/                  # How-to and operational docs
+│   │   ├── TESTING.md           # Test strategy & coverage
+│   │   ├── RELEASE.md           # Release procedures
+│   │   └── CONFIGURATION.md     # Config reference
+│   │
+│   ├── planning/                # Enhancement proposals & roadmap
+│   │   ├── README.md            # Planning overview
+│   │   ├── enhancement-proposals/
+│   │   │   ├── FIREWORKS.md
+│   │   │   ├── VISUAL_MEDIA.md
+│   │   │   └── PATTERN_AUDIT.md
+│   │   └── roadmap/
+│   │
+│   ├── status/                  # Project reports & snapshots
+│   │   └── reports/
+│   │       ├── 2025-11-04-esm-migration.md
+│   │       └── 2025-11-03-audit-report.md
+│   │
+│   ├── issues/                  # Issue tracking & testing
+│   │   ├── README.md
+│   │   ├── checklists/
+│   │   └── completed/
+│   │
+│   └── archive/                 # Historical reference
+│       ├── lightning-evolution/ # Lightning pattern V1/V2
+│       ├── crash-analysis/      # Terminal crash investigations
+│       └── sessions/            # Session notes & reports
 │
 ├── examples/
 │   └── .splashrc.example        # Example configuration file
@@ -126,13 +156,18 @@ splash/
 └── jest.config.js
 ```
 
-**Note**: Session reports and audit documents are in `docs/archive/` for historical reference.
+**Note**: Documentation reorganized Nov 4, 2025 for clarity and maintainability (see [docs/README.md](docs/README.md)).
 
 **Key Navigation**:
 - 👤 **User documentation**: [README.md](README.md)
-- 👨‍💻 **Technical details**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- 📚 **Developer quick start**: [docs/core/QUICK_START.md](docs/core/QUICK_START.md)
+- 👨‍💻 **Technical architecture**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- 📖 **Contributing guide**: [docs/core/CONTRIBUTING.md](docs/core/CONTRIBUTING.md)
 - 📊 **Project status**: [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md)
-- 🧪 **Testing info**: [docs/TESTING_PLAN.md](docs/TESTING_PLAN.md)
+- 🧪 **Testing guide**: [docs/guides/TESTING.md](docs/guides/TESTING.md)
+- ⚙️ **Configuration reference**: [docs/guides/CONFIGURATION.md](docs/guides/CONFIGURATION.md)
+- 📈 **Planning & roadmap**: [docs/planning/README.md](docs/planning/README.md)
+- 📍 **Documentation index**: [docs/README.md](docs/README.md)
 
 ---
 
@@ -329,11 +364,18 @@ npm run test:coverage # Coverage report
 
 ### Documentation
 - 👤 **User Guide**: [README.md](README.md) - Installation, features, controls
-- 👨‍💻 **Technical Details**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Architecture, design patterns
-- 📊 **Status**: [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) - Current project status
-- 🧪 **Testing**: [docs/TESTING_PLAN.md](docs/TESTING_PLAN.md) - Test strategy and coverage
-- 📋 **Audit**: [docs/DOCUMENTATION_AUDIT.md](docs/DOCUMENTATION_AUDIT.md) - Documentation structure
-- 🗂️ **Index**: [docs/README.md](docs/README.md) - Documentation navigation
+- 📍 **Documentation Index**: [docs/README.md](docs/README.md) - Full documentation navigation
+- 👨‍💻 **Technical Architecture**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - System design and deep dive
+- 📊 **Project Status**: [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) - Current metrics and status
+- 📚 **Core Docs**: [docs/core/](docs/core/) - Quick start and contributing guide
+  - [Quick Start](docs/core/QUICK_START.md) - Get running in 5 minutes
+  - [Contributing](docs/core/CONTRIBUTING.md) - Pattern development guide
+- 📖 **Implementation Guides**: [docs/guides/](docs/guides/) - How-to and reference
+  - [Testing Guide](docs/guides/TESTING.md) - Test strategy and coverage
+  - [Release Process](docs/guides/RELEASE.md) - Release procedures
+  - [Configuration Guide](docs/guides/CONFIGURATION.md) - Configuration reference
+- 📈 **Planning & Roadmap**: [docs/planning/README.md](docs/planning/README.md) - Enhancement proposals
+- 📦 **Archive**: [docs/archive/](docs/archive/) - Historical reference and completed work
 
 ### External Resources
 - [terminal-kit docs](https://github.com/cronvel/terminal-kit)
