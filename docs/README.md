@@ -1,7 +1,7 @@
 # Documentation Index
 
-> **📦 Version v0.1.3 - Published and Stable** ✅
-> 
+> **📦 Version v0.1.5 - Ready for Release** ✅
+>
 > The project is live on npm with all 17 patterns, 102 presets, and full theme support. See [PROJECT_STATUS.md](PROJECT_STATUS.md) for the latest release information.
 
 Welcome to the **ascii-splash** documentation. Choose your path based on your role:
