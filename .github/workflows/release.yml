@@ -12,6 +12,7 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     
     steps:
     - name: Checkout code
@@ -28,9 +29,6 @@ jobs:
     
     - name: Run TypeScript compiler
       run: npm run build
-    
-    - name: Run tests
-      run: npm test
     
     - name: Test coverage
       run: npm run test:coverage
@@ -60,7 +58,7 @@ jobs:
     - name: Verify package version matches tag
       run: |
         TAG_VERSION=${GITHUB_REF#refs/tags/v}
-        PACKAGE_VERSION=$(node -p "require('./package.json').version")
+        PACKAGE_VERSION=$(jq -r '.version' package.json)
         
         if [ "$TAG_VERSION" != "$PACKAGE_VERSION" ]; then
           echo "Error: Tag version ($TAG_VERSION) does not match package.json version ($PACKAGE_VERSION)"

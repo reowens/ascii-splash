@@ -5,6 +5,7 @@ tsconfig.json
 # Tests
 tests/
 jest.config.js
+jest.config.mjs
 coverage/
 
 # Documentation (keep README.md)
