@@ -5,30 +5,41 @@
  * Note: We mock the Conf library since it interacts with the filesystem
  */
 
-import { ConfigLoader } from '../../../src/config/ConfigLoader.js';
+import { jest, describe, it, expect, beforeEach, afterEach, test } from '@jest/globals';
 import { ConfigSchema, CliOptions, FavoriteSlot } from '../../../src/types/index.js';
 import { defaultConfig, qualityPresets } from '../../../src/config/defaults.js';
 
-// Mock the Conf library
-jest.mock('conf');
+// Create mock store
+const mockStore = {
+  has: jest.fn(),
+  get: jest.fn(),
+  set: jest.fn(),
+  clear: jest.fn(),
+  path: '/mock/path/.splashrc.json'
+};
+
+// Create mock Conf constructor
+const MockConf = jest.fn().mockImplementation(() => mockStore);
+
+// Mock the Conf library with ESM-compatible approach
+jest.unstable_mockModule('conf', () => ({
+  default: MockConf
+}));
+
+// Import ConfigLoader after mocking
+const { ConfigLoader } = await import('../../../src/config/ConfigLoader.js');
+type ConfigLoaderType = InstanceType<typeof ConfigLoader>;
 
 describe('ConfigLoader', () => {
-  let configLoader: ConfigLoader;
-  let mockStore: any;
+  let configLoader: ConfigLoaderType;
 
   beforeEach(() => {
-    // Reset mock before each test
-    mockStore = {
-      has: jest.fn(),
-      get: jest.fn(),
-      set: jest.fn(),
-      clear: jest.fn(),
-      path: '/mock/path/.splashrc.json'
-    };
-
-    // Mock Conf constructor to return our mock store
-    const Conf = require('conf');
-    Conf.mockImplementation(() => mockStore);
+    // Reset all mock functions
+    jest.clearAllMocks();
+    mockStore.has.mockReturnValue(false);
+    mockStore.get.mockReturnValue(undefined);
+    mockStore.set.mockImplementation(() => {}); // Reset to no-op implementation
+    mockStore.clear.mockImplementation(() => {}); // Reset to no-op implementation
 
     configLoader = new ConfigLoader();
   });
@@ -39,8 +50,7 @@ describe('ConfigLoader', () => {
 
   describe('Construction', () => {
     test('initializes with correct project name', () => {
-      const Conf = require('conf');
-      expect(Conf).toHaveBeenCalledWith({
+      expect(MockConf).toHaveBeenCalledWith({
         projectName: 'ascii-splash',
         defaults: defaultConfig,
         configName: '.splashrc'
@@ -75,8 +85,8 @@ describe('ConfigLoader', () => {
 
     test('CLI options override file config', () => {
       // File says waves, CLI says starfield
-      mockStore.has.mockImplementation((key: string) => key === 'defaultPattern');
-      mockStore.get.mockImplementation((key: string) => {
+      mockStore.has.mockImplementation((key: any) => key === 'defaultPattern');
+      mockStore.get.mockImplementation((key: any) => {
         if (key === 'defaultPattern') return 'waves';
       });
 
@@ -91,7 +101,7 @@ describe('ConfigLoader', () => {
 
     test('loads all config file settings', () => {
       mockStore.has.mockReturnValue(true);
-      mockStore.get.mockImplementation((key: string) => {
+      mockStore.get.mockImplementation((key: any) => {
         const fileConfig: any = {
           defaultPattern: 'matrix',
           quality: 'high',
@@ -145,8 +155,8 @@ describe('ConfigLoader', () => {
 
     test('deep merges pattern configurations', () => {
       // File has partial wave config
-      mockStore.has.mockImplementation((key: string) => key === 'patterns');
-      mockStore.get.mockImplementation((key: string) => {
+      mockStore.has.mockImplementation((key: any) => key === 'patterns');
+      mockStore.get.mockImplementation((key: any) => {
         if (key === 'patterns') {
           return {
             waves: { frequency: 0.5 } // Only override frequency
@@ -177,7 +187,7 @@ describe('ConfigLoader', () => {
     });
 
     test('handles save errors gracefully', () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       mockStore.set.mockImplementation(() => {
         throw new Error('Write error');
       });
@@ -365,7 +375,7 @@ describe('ConfigLoader', () => {
 
   describe('Error Handling', () => {
     test('handles config file read errors', () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       
       mockStore.has.mockImplementation(() => {
         throw new Error('File system error');

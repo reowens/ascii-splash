@@ -8,6 +8,7 @@
  * Expected tests: ~70
  */
 
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { CommandExecutor, ExecutionResult } from '../../../src/engine/CommandExecutor.js';
 import { ParsedCommand } from '../../../src/engine/CommandParser.js';
 import { AnimationEngine } from '../../../src/engine/AnimationEngine.js';

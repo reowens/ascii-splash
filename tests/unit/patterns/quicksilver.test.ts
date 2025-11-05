@@ -1,3 +1,4 @@
+import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import { QuicksilverPattern } from '../../../src/patterns/QuicksilverPattern.js';
 import { createMockBuffer, createMockTheme, createMockSize, createMockPoint } from '../../utils/mocks.js';
 import { Cell } from '../../../src/types/index.js';

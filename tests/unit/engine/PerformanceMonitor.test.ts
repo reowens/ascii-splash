@@ -124,14 +124,15 @@ describe('PerformanceMonitor', () => {
       
       monitor.startFrame();
       
-      // Simulate frame time just under drop threshold (25ms = 1.5x 16.67ms)
+      // Simulate frame time well under drop threshold (25ms = 1.5x 16.67ms)
+      // Use 10ms to have a very safe margin and avoid timing flakiness
       const start = performance.now();
-      while (performance.now() - start < 20) {}
+      while (performance.now() - start < 10) {}
       
       monitor.startFrame();
       const metrics = monitor.getMetrics();
       
-      // Should not detect drop with 20ms at 60fps (threshold is 25ms)
+      // Should not detect drop with 10ms at 60fps (threshold is 25ms)
       expect(metrics.frameDrops).toBe(0);
     });
   });

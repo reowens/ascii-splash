@@ -1,3 +1,4 @@
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { AnimationEngine } from '../../../src/engine/AnimationEngine.js';
 import { TerminalRenderer } from '../../../src/renderer/TerminalRenderer.js';
 import { Pattern, Cell, Size } from '../../../src/types/index.js';
