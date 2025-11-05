@@ -1,6 +1,20 @@
-module.exports = {
-  preset: 'ts-jest',
+export default {
   testEnvironment: 'node',
+  extensionsToTreatAsEsm: ['.ts'],
+  transform: {
+    '^.+\\.tsx?$': ['tsx', {
+      tsconfig: {
+        module: 'ES2020',
+        moduleResolution: 'node16',
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true,
+      }
+    }]
+  },
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',  // Map .js imports to .ts files
+    '^@/(.*)$': '<rootDir>/src/$1'
+  },
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: [
     '**/__tests__/**/*.ts',
@@ -19,9 +33,6 @@ module.exports = {
       lines: 80,
       statements: 80
     }
-  },
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1'
   },
   // Suppress console output during tests
   silent: false,
