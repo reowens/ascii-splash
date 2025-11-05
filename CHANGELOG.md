@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5] - 2025-11-04
+
+### Changed
+- Updated `@types/node` to 24.10.0 (patch update for Node.js 24 type definitions)
+
+### Maintenance
+- Confirmed all 1505 tests passing with updated dependencies
+- Maintained 82.34% test coverage
+- **Note**: `conf` remains at v10.2.0 (v15+ requires ESM migration, planned for v0.2.0)
+
 ## [0.1.4] - 2025-11-04
 
 ### Added
@@ -453,7 +463,9 @@ Built with `terminal-kit` for terminal control and inspired by classic terminal 
 - Performance optimizations
 - Extended terminal emulator support
 
-[Unreleased]: https://github.com/reowens/ascii-splash/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/reowens/ascii-splash/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/reowens/ascii-splash/compare/v0.1.4...v0.1.5
+[0.1.4]: https://github.com/reowens/ascii-splash/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/reowens/ascii-splash/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/reowens/ascii-splash/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/reowens/ascii-splash/compare/v0.1.0...v0.1.1
