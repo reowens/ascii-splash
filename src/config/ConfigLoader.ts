@@ -8,11 +8,10 @@ import { defaultConfig, qualityPresets } from './defaults.js';
  * Priority order: CLI arguments > config file (~/.splashrc) > defaults
  */
 export class ConfigLoader {
-  private store: any; // Using 'any' due to conf v15 ESM type compatibility issue
-  
+  private store: Conf<ConfigSchema>;
+
   constructor() {
     // Initialize conf with project name and defaults
-    // @ts-expect-error - conf v15 ESM default export has type issues, but works at runtime
     this.store = new Conf<ConfigSchema>({
       projectName: 'ascii-splash',
       defaults: defaultConfig,
