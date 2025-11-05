@@ -9,7 +9,8 @@ This directory contains enhancement proposals, feature plans, and future roadmap
 | Item | Status | Last Updated |
 |------|--------|--------------|
 | **v0.2.0 ESM Migration** | ✅ Published | Nov 5, 2025 |
-| **Fireworks Enhancement** | 📋 Proposed | Nov 3, 2025 |
+| **v0.3.0 Scene-Based Patterns** | 🔄 Planning | Nov 5, 2025 |
+| **Fireworks Enhancement** | ✅ Complete | Nov 3, 2025 |
 | **Visual Media (GIFs)** | ✅ Complete (v0.1.4) | Nov 4, 2025 |
 | **Pattern Audit** | 📊 Reference | Nov 3, 2025 |
 
@@ -17,8 +18,22 @@ This directory contains enhancement proposals, feature plans, and future roadmap
 
 ## Enhancement Proposals
 
+### [v0.3.0 Roadmap](./v0.3.0-ROADMAP.md) 🆕
+**Status**: Planning & Discussion  
+**Difficulty**: High  
+**Impact**: Transformative - Scene-based patterns + Advanced effects
+
+Comprehensive roadmap for v0.3.0 featuring 5 new scene-based patterns (Ocean Beach, Campfire, Aquarium, Night Sky, Snowfall), one advanced effect (Metaball Playground), and architectural enhancements (scene graph, sprite system, enhanced particles).
+
+- Foundation: Scene graph architecture, Ocean Beach, Campfire
+- Core Scenes: Aquarium, Night Sky, Snowfall
+- Technical Showcase: Metaball Playground
+- Polish: Enhancements, documentation, testing
+
+---
+
 ### [Fireworks Enhancement](./enhancement-proposals/FIREWORKS.md)
-**Status**: Proposed
+**Status**: ✅ Complete
 **Difficulty**: Medium
 **Impact**: Visual enhancement for Fireworks pattern
 
@@ -26,7 +41,7 @@ Multi-stage explosions, particle variations, and secondary effects to enhance th
 
 - Phase 1: Secondary explosion effects ✅
 - Phase 2: Advanced variations (shape bursts, crackles) ✅
-- Testing & refinement: 🔄 In Progress
+- Testing & refinement: ✅ Complete
 
 ---
 
@@ -56,25 +71,45 @@ Key finding: **Fireworks** is the standout candidate for Lightning-style enhance
 
 ---
 
-## Roadmap (Future Versions)
+## Roadmap
 
-### v0.3.0 - Visual Enhancements
-- [ ] Fireworks multi-stage explosions (Phase 1 & 2)
-- [ ] Demo GIFs in README
-- [ ] Additional particle patterns
+### [v0.3.0 - "Next-Generation Terminal Graphics"](./v0.3.0-ROADMAP.md) 🔄
+**Status**: Planning & Discussion  
+**Focus**: Scene-based patterns + Advanced effects
 
-### v0.4.0 - Advanced Features
+**Proposed Features**:
+- [ ] **Scene Graph Architecture** - Layered rendering system
+- [ ] **Ocean Beach Scene** - Waves, seagulls, clouds, interactive
+- [ ] **Campfire Scene** - Flames, sparks, smoke, radial glow
+- [ ] **Aquarium Scene** - Fish schools (boids), plants, bubbles
+- [ ] **Night Sky with Aurora** - Stars, aurora ribbons, meteors
+- [ ] **Snowfall in Park** - Falling snow, accumulation, swaying trees
+- [ ] **Metaball Playground** - Interactive liquid physics
+- [ ] Particle pattern enhancement (connection lines)
+- [ ] Life pattern interactivity (click to edit)
+
+**See**: [v0.3.0-ROADMAP.md](./v0.3.0-ROADMAP.md) for full details
+
+---
+
+### v0.4.0 - Advanced Technical Features
+- [ ] ASCII Fluid Dynamics (water/smoke/fire simulation)
+- [ ] Ray-Marched 3D Scenes (mountains, cityscapes)
 - [ ] Custom color gradient support
 - [ ] Performance profiling UI
 - [ ] Community pattern showcase
 
 ### Future - Nice-to-Have
+- [ ] Additional scenes:
+  - Forest Clearing (swaying trees, wildlife)
+  - Rainy Window (droplets, puddles, lightning)
+  - Mountain Sunrise (time-of-day control)
+  - Undersea Cave (bioluminescent creatures)
 - [ ] Additional patterns:
   - Constellation Map
   - Ripple Grid
   - Waveform Visualizer
-  - Mandelbrot Set
-  - Kaleidoscope
+  - ASCII Art Morphing
 - [ ] Demo/tutorial mode
 - [ ] Integration with terminal themes
 
