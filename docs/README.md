@@ -1,8 +1,8 @@
 # Documentation Index
 
-> **📦 Version v0.1.5 - Ready for Release** ✅
+> **📦 Version v0.2.0 - ESM Migration Complete, Ready for npm Publication** ✅
 >
-> The project is live on npm with all 17 patterns, 102 presets, and full theme support. See [PROJECT_STATUS.md](PROJECT_STATUS.md) for the latest release information.
+> The project has completed ESM migration with conf v15.0.2, all 1505 tests passing (92.35% coverage), and is ready for npm publication. See [PROJECT_STATUS.md](PROJECT_STATUS.md) for details.
 
 Welcome to the **ascii-splash** documentation. Choose your path based on your role:
 
@@ -86,7 +86,7 @@ Previous iterations and completed work:
 ---
 
 **For current project statistics**, see [PROJECT_STATUS.md](PROJECT_STATUS.md)  
-**Last Updated:** November 4, 2025  
+**Last Updated:** November 4, 2025 (v0.2.0 ESM Migration Complete)  
 **Organization Status:** ✅ Consolidation Complete (Phases 1, 2 & 3)
 
 ---

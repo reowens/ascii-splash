@@ -22,11 +22,11 @@
 - **Target**: Node.js 20+
 
 **Tech Stack**:
-- TypeScript/Node.js (ES2020, CommonJS)
+- TypeScript/Node.js (ES2020, **ESM** - migrated in v0.2.0)
 - `terminal-kit` - Terminal control & input
 - `chalk` - Color output
 - `commander` - CLI parsing
-- `conf` - Config file management
+- `conf` v15.0.2 - Config file management (updated in v0.2.0)
 
 ---
 
@@ -236,7 +236,7 @@ interface Theme {
 
 ## Current Status (AI Awareness)
 
-**Status**: v0.1.5 - Ready for Release ✅
+**Status**: v0.2.0 - ESM Migration Complete, Ready for npm Publication ✅
 
 **Completion**:
 - ✅ 17 Interactive patterns (11 core + Life + Maze + DNA + LavaLamp + Smoke + Snow)
@@ -244,9 +244,12 @@ interface Theme {
 - ✅ 5 color themes
 - ✅ Configuration system
 - ✅ Favorites & shuffle mode
-- ✅ 1505 tests, 82.34% coverage
+- ✅ 1505 tests, **92.35% coverage** (improved from 82.34%!)
+- ✅ **ESM Migration** - Full migration to ESM modules
+- ✅ **conf v15.0.2** - Updated from v10.2.0
 - ✅ Complete documentation
-- ✅ Published to npm (v0.1.0-v0.1.4: Nov 2-4, 2025; v0.1.5: Ready)
+- ✅ Published to npm (v0.1.0-v0.1.5: Nov 2-4, 2025)
+- 📦 **v0.2.0 Ready** - Merged to main, tagged, pushed to GitHub
 
 **Future Enhancements**:
 - Additional patterns (Constellation, Ripple Grid, Waveform, Mandelbrot, Kaleidoscope)
