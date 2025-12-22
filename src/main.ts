@@ -22,6 +22,8 @@ import { DNAPattern } from './patterns/DNAPattern.js';
 import { LavaLampPattern } from './patterns/LavaLampPattern.js';
 import { SmokePattern } from './patterns/SmokePattern.js';
 import { SnowPattern } from './patterns/SnowPattern.js';
+import { OceanBeachPattern } from './patterns/OceanBeachPattern.js';
+import { CampfirePattern } from './patterns/CampfirePattern.js';
 import { Pattern, CliOptions, QualityPreset, ConfigSchema, Theme } from './types/index.js';
 import { ConfigLoader } from './config/ConfigLoader.js';
 import { getTheme, getNextThemeName } from './config/themes.js';
@@ -36,66 +38,75 @@ const term = terminalKit.terminal;
  */
 function parseCliArguments(): CliOptions {
   const program = new Command();
-  
+
   // Read package.json for version
   const packageJson = JSON.parse(
     readFileSync(join(import.meta.dirname, '..', 'package.json'), 'utf-8')
   );
-  
+
   program
     .name('splash')
     .description('A terminal ASCII animation app that adds visual flow to your IDE workspace')
     .version(packageJson.version);
-  
+
   // Pattern selection
   program.option(
     '-p, --pattern <name>',
-    'Start with specific pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, maze, life, dna, lavalamp, smoke, snow)'
+    'Start with specific pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, maze, life, dna, lavalamp, smoke, snow, oceanbeach, campfire)'
   );
-  
+
   // Quality preset
-  program.option(
-    '-q, --quality <preset>',
-    'Set quality preset (low, medium, high)',
-    'medium'
-  );
-  
+  program.option('-q, --quality <preset>', 'Set quality preset (low, medium, high)', 'medium');
+
   // FPS override
-  program.option(
-    '-f, --fps <number>',
-    'Set custom FPS (10-60)',
-    (value) => {
-      const fps = parseInt(value, 10);
-      if (isNaN(fps) || fps < 10 || fps > 60) {
-        program.error(`FPS must be a number between 10 and 60 (got: ${value})`);
-      }
-      return fps;
+  program.option('-f, --fps <number>', 'Set custom FPS (10-60)', value => {
+    const fps = parseInt(value, 10);
+    if (isNaN(fps) || fps < 10 || fps > 60) {
+      program.error(`FPS must be a number between 10 and 60 (got: ${value})`);
     }
-  );
-  
+    return fps;
+  });
+
   // Theme
   program.option(
     '-t, --theme <name>',
     'Set color theme (ocean, matrix, starlight, fire, monochrome)'
   );
-  
+
   // Mouse control
-  program.option(
-    '--no-mouse',
-    'Disable mouse interaction'
-  );
-  
+  program.option('--no-mouse', 'Disable mouse interaction');
+
   program.parse();
   const options = program.opts();
-  
+
   // Validate pattern if provided
-  const validPatterns = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma', 'tunnel', 'lightning', 'fireworks', 'maze', 'life', 'dna', 'lavalamp', 'smoke', 'snow'];
+  const validPatterns = [
+    'waves',
+    'starfield',
+    'matrix',
+    'rain',
+    'quicksilver',
+    'particles',
+    'spiral',
+    'plasma',
+    'tunnel',
+    'lightning',
+    'fireworks',
+    'maze',
+    'life',
+    'dna',
+    'lavalamp',
+    'smoke',
+    'snow',
+    'oceanbeach',
+    'campfire',
+  ];
   if (options.pattern && !validPatterns.includes(options.pattern.toLowerCase())) {
     program.error(
       `Invalid pattern: ${options.pattern}\nValid patterns: ${validPatterns.join(', ')}`
     );
   }
-  
+
   // Validate quality
   const validQualities: QualityPreset[] = ['low', 'medium', 'high'];
   if (options.quality && !validQualities.includes(options.quality.toLowerCase())) {
@@ -103,13 +114,13 @@ function parseCliArguments(): CliOptions {
       `Invalid quality: ${options.quality}\nValid qualities: ${validQualities.join(', ')}`
     );
   }
-  
+
   return {
     pattern: options.pattern?.toLowerCase(),
     quality: options.quality?.toLowerCase() as QualityPreset,
     fps: options.fps,
     theme: options.theme?.toLowerCase(),
-    mouse: options.mouse
+    mouse: options.mouse,
   };
 }
 
@@ -131,67 +142,67 @@ function checkTTY(): void {
 function main() {
   // Parse CLI arguments (allows --help/--version to work without TTY)
   const cliOptions = parseCliArguments();
-  
+
   // Check TTY after parsing arguments (so --help works)
   checkTTY();
-  
+
   // Load configuration (CLI > config file > defaults)
   const configLoader = new ConfigLoader();
   const config = configLoader.load(cliOptions);
-  
+
   // Determine mouse enabled state from config
   const mouseEnabled = config.mouseEnabled !== false;
-  
+
   // Create renderer with mouse setting
   const renderer = new TerminalRenderer(mouseEnabled);
-  
+
   // Current quality setting
   let currentQuality: QualityPreset = config.quality || 'medium';
-  
+
   // Quality-based FPS presets (used when quality changes)
   const qualityFpsPresets = {
     low: 15,
     medium: 30,
-    high: 60
+    high: 60,
   };
-  
+
   // Load theme from config
   let currentTheme: Theme = getTheme(config.theme);
-  
+
   // Create patterns with configuration
   let patterns: Pattern[] = [];
-  
+
   function createPatternsFromConfig(cfg: ConfigSchema, theme: Theme): Pattern[] {
     return [
       new WavePattern(theme, {
         layers: cfg.patterns?.waves?.layers,
         amplitude: cfg.patterns?.waves?.amplitude,
         speed: cfg.patterns?.waves?.speed,
-        frequency: cfg.patterns?.waves?.frequency
+        frequency: cfg.patterns?.waves?.frequency,
       }),
       new StarfieldPattern(theme, {
         starCount: cfg.patterns?.starfield?.starCount,
-        speed: cfg.patterns?.starfield?.speed
+        speed: cfg.patterns?.starfield?.speed,
       }),
       new MatrixPattern(theme, {
         density: cfg.patterns?.matrix?.columnDensity,
-        speed: cfg.patterns?.matrix?.speed
+        speed: cfg.patterns?.matrix?.speed,
       }),
       new RainPattern(theme, {
         density: cfg.patterns?.rain?.dropCount ? cfg.patterns.rain.dropCount / 500 : undefined,
-        speed: cfg.patterns?.rain?.speed
+        speed: cfg.patterns?.rain?.speed,
       }),
       new QuicksilverPattern(theme, {
         speed: cfg.patterns?.quicksilver?.speed,
         flowIntensity: cfg.patterns?.quicksilver?.viscosity,
-        noiseScale: 0.05
+        noiseScale: 0.05,
       }),
       new ParticlePattern(theme, {
         particleCount: cfg.patterns?.particles?.particleCount,
         speed: cfg.patterns?.particles?.speed,
         gravity: cfg.patterns?.particles?.gravity,
         mouseForce: cfg.patterns?.particles?.mouseForce,
-        spawnRate: cfg.patterns?.particles?.spawnRate
+        spawnRate: cfg.patterns?.particles?.spawnRate,
       }),
       new SpiralPattern(theme, {
         armCount: cfg.patterns?.spiral?.armCount,
@@ -201,12 +212,12 @@ function main() {
         particleSpeed: cfg.patterns?.spiral?.particleSpeed,
         trailLength: cfg.patterns?.spiral?.trailLength,
         direction: cfg.patterns?.spiral?.direction,
-        pulseEffect: cfg.patterns?.spiral?.pulseEffect
+        pulseEffect: cfg.patterns?.spiral?.pulseEffect,
       }),
       new PlasmaPattern(theme, {
         frequency: cfg.patterns?.plasma?.frequency,
         speed: cfg.patterns?.plasma?.speed,
-        complexity: cfg.patterns?.plasma?.complexity
+        complexity: cfg.patterns?.plasma?.complexity,
       }),
       new TunnelPattern(theme, {
         shape: cfg.patterns?.tunnel?.shape,
@@ -218,14 +229,14 @@ function main() {
         glowIntensity: cfg.patterns?.tunnel?.glowIntensity,
         chromatic: cfg.patterns?.tunnel?.chromatic,
         rotationSpeed: cfg.patterns?.tunnel?.rotationSpeed,
-        radius: cfg.patterns?.tunnel?.radius
+        radius: cfg.patterns?.tunnel?.radius,
       }),
       new LightningPattern(theme, {
         branchProbability: cfg.patterns?.lightning?.branchProbability,
         fadeTime: cfg.patterns?.lightning?.fadeTime,
         strikeInterval: cfg.patterns?.lightning?.strikeInterval,
         mainPathJaggedness: cfg.patterns?.lightning?.mainPathJaggedness,
-        branchSpread: cfg.patterns?.lightning?.branchSpread
+        branchSpread: cfg.patterns?.lightning?.branchSpread,
       }),
       new FireworksPattern(theme, {
         burstSize: cfg.patterns?.fireworks?.burstSize,
@@ -233,7 +244,7 @@ function main() {
         gravity: cfg.patterns?.fireworks?.gravity,
         fadeRate: cfg.patterns?.fireworks?.fadeRate,
         spawnInterval: cfg.patterns?.fireworks?.spawnInterval,
-        trailLength: cfg.patterns?.fireworks?.trailLength
+        trailLength: cfg.patterns?.fireworks?.trailLength,
       }),
       new MazePattern(theme, {
         algorithm: cfg.patterns?.maze?.algorithm,
@@ -241,7 +252,7 @@ function main() {
         generationSpeed: cfg.patterns?.maze?.generationSpeed,
         wallChar: cfg.patterns?.maze?.wallChar,
         pathChar: cfg.patterns?.maze?.pathChar,
-        animateGeneration: cfg.patterns?.maze?.animateGeneration
+        animateGeneration: cfg.patterns?.maze?.animateGeneration,
       }),
       new LifePattern(theme, {
         cellSize: cfg.patterns?.life?.cellSize,
@@ -250,15 +261,16 @@ function main() {
         aliveChar: cfg.patterns?.life?.aliveChar,
         deadChar: cfg.patterns?.life?.deadChar,
         randomDensity: cfg.patterns?.life?.randomDensity,
-        initialPattern: cfg.patterns?.life?.initialPattern
-
+        initialPattern: cfg.patterns?.life?.initialPattern,
       }),
       new DNAPattern(theme, {
         rotationSpeed: cfg.patterns?.dna?.rotationSpeed,
         helixRadius: cfg.patterns?.dna?.helixRadius,
-        basePairDensity: cfg.patterns?.dna?.basePairSpacing ? 1 / cfg.patterns.dna.basePairSpacing : undefined,
+        basePairDensity: cfg.patterns?.dna?.basePairSpacing
+          ? 1 / cfg.patterns.dna.basePairSpacing
+          : undefined,
         twistRate: cfg.patterns?.dna?.twistRate,
-        showLabels: true
+        showLabels: true,
       }),
       new LavaLampPattern(theme, {
         blobCount: cfg.patterns?.lavaLamp?.blobCount,
@@ -269,7 +281,7 @@ function main() {
         threshold: cfg.patterns?.lavaLamp?.threshold,
         mouseForce: cfg.patterns?.lavaLamp?.mouseForce,
         turbulence: cfg.patterns?.lavaLamp?.turbulence,
-        gravity: cfg.patterns?.lavaLamp?.gravity
+        gravity: cfg.patterns?.lavaLamp?.gravity,
       }),
       new SmokePattern(theme, {
         plumeCount: cfg.patterns?.smoke?.plumeCount,
@@ -279,7 +291,7 @@ function main() {
         turbulence: cfg.patterns?.smoke?.turbulence,
         spread: cfg.patterns?.smoke?.spread,
         windStrength: cfg.patterns?.smoke?.windStrength,
-        mouseBlowForce: cfg.patterns?.smoke?.mouseBlowForce
+        mouseBlowForce: cfg.patterns?.smoke?.mouseBlowForce,
       }),
       new SnowPattern(theme, {
         particleCount: cfg.patterns?.snow?.particleCount,
@@ -289,37 +301,61 @@ function main() {
         rotationSpeed: cfg.patterns?.snow?.rotationSpeed,
         particleType: cfg.patterns?.snow?.particleType,
         accumulation: cfg.patterns?.snow?.accumulation,
-        mouseWindForce: cfg.patterns?.snow?.mouseWindForce
-      })
+        mouseWindForce: cfg.patterns?.snow?.mouseWindForce,
+      }),
+      new OceanBeachPattern(theme, {}),
+      new CampfirePattern(theme, {}),
     ];
   }
-  
+
   patterns = createPatternsFromConfig(config, currentTheme);
-  
+
   // Pattern names mapping (internal names)
-  const patternNames = ['waves', 'starfield', 'matrix', 'rain', 'quicksilver', 'particles', 'spiral', 'plasma', 'tunnel', 'lightning', 'fireworks', 'maze', 'life', 'dna', 'lavalamp', 'smoke', 'snow'];
-  
+  const patternNames = [
+    'waves',
+    'starfield',
+    'matrix',
+    'rain',
+    'quicksilver',
+    'particles',
+    'spiral',
+    'plasma',
+    'tunnel',
+    'lightning',
+    'fireworks',
+    'maze',
+    'life',
+    'dna',
+    'lavalamp',
+    'smoke',
+    'snow',
+    'oceanbeach',
+    'campfire',
+  ];
+
   // Pattern display names for user-facing messages
   const patternDisplayNames: Record<string, string> = {
-    'waves': 'Waves',
-    'starfield': 'Starfield',
-    'matrix': 'Matrix',
-    'rain': 'Rain',
-    'quicksilver': 'Quicksilver',
-    'particles': 'Particles',
-    'spiral': 'Spiral',
-    'plasma': 'Plasma',
-    'tunnel': 'Tunnel',
-    'lightning': 'Lightning',
-    'fireworks': 'Fireworks',
-    'maze': 'Maze',
-    'life': 'Life',
-    'dna': 'DNA',
-    'lavalamp': 'Lava Lamp',
-    'smoke': 'Smoke',
-    'snow': 'Snow'
+    waves: 'Waves',
+    starfield: 'Starfield',
+    matrix: 'Matrix',
+    rain: 'Rain',
+    quicksilver: 'Quicksilver',
+    particles: 'Particles',
+    spiral: 'Spiral',
+    plasma: 'Plasma',
+    tunnel: 'Tunnel',
+    lightning: 'Lightning',
+    fireworks: 'Fireworks',
+    maze: 'Maze',
+    life: 'Life',
+    dna: 'DNA',
+    lavalamp: 'Lava Lamp',
+    smoke: 'Smoke',
+    snow: 'Snow',
+    oceanbeach: 'Ocean Beach',
+    campfire: 'Campfire',
   };
-  
+
   // Determine starting pattern from config
   let currentPatternIndex = 0;
   if (config.defaultPattern) {
@@ -328,34 +364,42 @@ function main() {
       currentPatternIndex = index;
     }
   }
-  
+
   let showingHelp = false;
   let debugMode = false;
-  
+
   // Overlay message state
   let overlayMessage: string | null = null;
   let overlayMessageTimeout: NodeJS.Timeout | null = null;
   let isPatternSwitching = false; // Mutex to prevent overlay corruption during pattern switch
-  
+
   // Determine initial FPS from config
   const initialFps = ConfigLoader.getFpsFromConfig(config);
-  
+
   // Create animation engine with selected pattern and FPS
   const engine = new AnimationEngine(renderer, patterns[currentPatternIndex], initialFps);
-  
+
   // Initialize command system
   const commandBuffer = new CommandBuffer();
   const commandParser = new CommandParser();
-  let currentThemeIndex = ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'].indexOf(currentTheme.name);
+  let currentThemeIndex = ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'].indexOf(
+    currentTheme.name
+  );
   const commandExecutor = new CommandExecutor(
     engine,
     patterns,
-    Object.values({ ocean: getTheme('ocean'), matrix: getTheme('matrix'), starlight: getTheme('starlight'), fire: getTheme('fire'), monochrome: getTheme('monochrome') }),
+    Object.values({
+      ocean: getTheme('ocean'),
+      matrix: getTheme('matrix'),
+      starlight: getTheme('starlight'),
+      fire: getTheme('fire'),
+      monochrome: getTheme('monochrome'),
+    }),
     currentPatternIndex,
     currentThemeIndex,
-    configLoader  // Pass ConfigLoader for favorites support
+    configLoader // Pass ConfigLoader for favorites support
   );
-  
+
   // Set up theme change callback for command executor
   commandExecutor.setThemeChangeCallback((themeIndex: number) => {
     const themeNames = ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'];
@@ -365,19 +409,19 @@ function main() {
     engine.setPattern(patterns[currentPatternIndex]);
     commandExecutor.updateState(currentPatternIndex, currentThemeIndex);
   });
-  
+
   // Command result message state (tracked for cleanup timing)
-  let commandResultTimeout: NodeJS.Timeout | null = null;
-  
+  const _commandResultTimeout: NodeJS.Timeout | null = null;
+
   // Pattern buffer state (for enhanced 'p' key functionality)
   let patternBuffer = '';
   let patternBufferActive = false;
   let patternBufferTimeout: NodeJS.Timeout | null = null;
   const patternBufferTimeoutMs = 5000; // 5 seconds
-  
+
   // Preset tracking state (for cycling presets)
   let currentPresetIndex = 1; // Default to preset 1 (1-6)
-  
+
   function switchPattern(index: number) {
     if (index >= 0 && index < patterns.length) {
       isPatternSwitching = true; // Set flag to prevent overlay rendering during switch
@@ -386,7 +430,7 @@ function main() {
       engine.setPattern(patterns[currentPatternIndex]);
       commandExecutor.updateState(currentPatternIndex, currentThemeIndex);
       showPatternName(patterns[currentPatternIndex].name);
-      
+
       // Clear flag after short delay to allow screen clear to complete
       setTimeout(() => {
         isPatternSwitching = false;
@@ -396,43 +440,45 @@ function main() {
 
   function setQuality(quality: QualityPreset) {
     currentQuality = quality;
-    
+
     // Update config with new quality
     config.quality = quality;
     patterns = createPatternsFromConfig(config, currentTheme);
     engine.setFps(qualityFpsPresets[quality]);
     engine.setPattern(patterns[currentPatternIndex]);
-    
+
     const qualityNames = { low: 'LOW (15 FPS)', medium: 'MEDIUM (30 FPS)', high: 'HIGH (60 FPS)' };
     showMessage(`Quality: ${qualityNames[quality]}`);
   }
-  
+
   function cycleTheme() {
     const nextThemeName = getNextThemeName(currentTheme.name);
     currentTheme = getTheme(nextThemeName);
-    currentThemeIndex = ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'].indexOf(currentTheme.name);
-    
+    currentThemeIndex = ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'].indexOf(
+      currentTheme.name
+    );
+
     // Recreate patterns with new theme
     patterns = createPatternsFromConfig(config, currentTheme);
     engine.setPattern(patterns[currentPatternIndex]);
     commandExecutor.updateState(currentPatternIndex, currentThemeIndex);
-    
+
     showMessage(`Theme: ${currentTheme.displayName}`);
   }
 
   function showPatternName(name: string) {
     const displayName = patternDisplayNames[name] || name;
-    
+
     // Clear existing timeout
     if (overlayMessageTimeout) {
       clearTimeout(overlayMessageTimeout);
     }
-    
+
     // Set overlay message
     overlayMessage = `Pattern: ${displayName}`;
-    
+
     // Message will be rendered by renderBottomOverlay in the next frame
-    
+
     // Clear after 2 seconds
     overlayMessageTimeout = setTimeout(() => {
       overlayMessage = null;
@@ -464,12 +510,12 @@ function main() {
         'MOUSE',
         '─────────────────',
         'Move     Interactive effects',
-        'Click    Ripple/burst effect'
+        'Click    Ripple/burst effect',
       ];
-      
+
       const startY = Math.floor((renderer.getSize().height - helpLines.length) / 2);
       const startX = 5;
-      
+
       helpLines.forEach((line, i) => {
         term.moveTo(startX, startY + i);
         term.bold.cyan(line);
@@ -500,7 +546,7 @@ function main() {
     const bufferSafety = engine.getBufferSafety();
     const errorsByPattern = bufferSafety.getErrorsByPattern();
     const totalErrors = Object.values(errorsByPattern).reduce((sum, count) => sum + count, 0);
-    
+
     const lines = [
       `PERFORMANCE DEBUG`,
       `────────────────────────────`,
@@ -515,9 +561,9 @@ function main() {
       `Changed Cells: ${metrics.changedCells} / ${size.width * size.height}`,
       `Dropped Frames: ${stats.totalDroppedFrames}`,
       `Min/Avg/Max FPS: ${stats.minFps.toFixed(1)} / ${stats.avgFps.toFixed(1)} / ${stats.maxFps.toFixed(1)}`,
-      `Total Frames: ${stats.totalFrames}`
+      `Total Frames: ${stats.totalFrames}`,
     ];
-    
+
     // Add buffer safety errors if any
     if (totalErrors > 0) {
       lines.push(`────────────────────────────`);
@@ -526,7 +572,7 @@ function main() {
         lines.push(`  ${pattern}: ${count} errors`);
       }
     }
-    
+
     // Add shuffle info if active
     const shuffleInfo = commandExecutor.getShuffleInfo();
     if (shuffleInfo) {
@@ -565,7 +611,7 @@ function main() {
         }
       }
     });
-    
+
     term.defaultColor();
     term.bgDefaultColor();
   }
@@ -581,16 +627,16 @@ function main() {
   function renderBottomOverlay() {
     // Skip overlay rendering during pattern switch to prevent terminal corruption
     if (isPatternSwitching) return;
-    
+
     try {
       const size = renderer.getSize();
       const bottomRow = size.height; // terminal-kit uses 1-based coordinates
-      
+
       // Priority 1: Command mode
       if (commandBuffer.isActive()) {
         const buffer = commandBuffer.getBuffer();
         const cursorPos = commandBuffer.getCursorPos();
-        
+
         term.moveTo(1, bottomRow);
         term.eraseLine();
         term.bgBlack();
@@ -605,7 +651,7 @@ function main() {
         term.styleReset(); // Final reset to ensure clean state
         return;
       }
-      
+
       // Priority 2: Pattern selection mode
       if (patternBufferActive) {
         term.moveTo(1, bottomRow);
@@ -619,26 +665,26 @@ function main() {
         term.styleReset(); // Final reset to ensure clean state
         return;
       }
-      
+
       // Priority 3: Message banner (pattern names, status messages)
       if (overlayMessage) {
         const theme = currentTheme;
         const color = theme.getColor(0.8); // Bright color for visibility
-        
+
         term.moveTo(1, bottomRow);
         term.eraseLine();
         term.colorRgb(color.r, color.g, color.b, overlayMessage);
-        term.styleReset();        // CRITICAL: Reset style after colorRgb
-        term.defaultColor();      // Reset to default foreground
-        term.bgDefaultColor();    // Reset to default background
+        term.styleReset(); // CRITICAL: Reset style after colorRgb
+        term.defaultColor(); // Reset to default foreground
+        term.bgDefaultColor(); // Reset to default background
         return;
       }
-      
+
       // No overlay active - clear the line
       term.moveTo(1, bottomRow);
       term.eraseLine();
       term.styleReset(); // Defensive reset even when clearing
-    } catch (err) {
+    } catch {
       // Catch any terminal state errors during rapid operations
       // Terminal may be in inconsistent state, but don't crash the app
     }
@@ -649,36 +695,36 @@ function main() {
     if (overlayMessageTimeout) {
       clearTimeout(overlayMessageTimeout);
     }
-    
+
     // Format message with success/failure indicator
     const formattedMessage = success ? `✓ ${message}` : `✗ ${message}`;
     overlayMessage = formattedMessage;
-    
+
     // Will be rendered by renderBottomOverlay in the next frame
-    
+
     // Auto-clear after 2.5 seconds
     overlayMessageTimeout = setTimeout(() => {
       overlayMessage = null;
       // Will be cleared by renderBottomOverlay in the next frame
     }, 2500);
   }
-  
+
   function activatePatternBuffer() {
     patternBuffer = '';
     patternBufferActive = true;
-    
+
     // Clear any existing timeout
     if (patternBufferTimeout) {
       clearTimeout(patternBufferTimeout);
     }
-    
+
     // Set timeout to auto-cancel
     patternBufferTimeout = setTimeout(() => {
       patternBufferActive = false;
       patternBuffer = '';
     }, patternBufferTimeoutMs);
   }
-  
+
   function cancelPatternBuffer() {
     patternBufferActive = false;
     patternBuffer = '';
@@ -687,7 +733,7 @@ function main() {
       patternBufferTimeout = null;
     }
   }
-  
+
   function executePatternBuffer() {
     const input = patternBuffer.trim();
     patternBufferActive = false;
@@ -695,25 +741,30 @@ function main() {
       clearTimeout(patternBufferTimeout);
       patternBufferTimeout = null;
     }
-    
+
     if (!input) {
       // Empty input = previous pattern
       const nextIndex = currentPatternIndex - 1;
       switchPattern(nextIndex < 0 ? patterns.length - 1 : nextIndex);
       return;
     }
-    
+
     // Check for pattern.preset format (e.g., "3.5" or "12.2")
     if (input.includes('.')) {
       const parts = input.split('.');
       if (parts.length === 2) {
         const patternNum = parseInt(parts[0], 10);
         const presetNum = parseInt(parts[1], 10);
-        
-        if (!isNaN(patternNum) && !isNaN(presetNum) && patternNum >= 1 && patternNum <= patterns.length) {
+
+        if (
+          !isNaN(patternNum) &&
+          !isNaN(presetNum) &&
+          patternNum >= 1 &&
+          patternNum <= patterns.length
+        ) {
           const patternIndex = patternNum - 1;
           switchPattern(patternIndex);
-          
+
           // Apply preset
           const pattern = patterns[patternIndex];
           if (pattern.applyPreset && presetNum >= 1 && presetNum <= 6) {
@@ -730,14 +781,14 @@ function main() {
         }
       }
     }
-    
+
     // Check if input is a number (pattern index)
     const patternNum = parseInt(input, 10);
     if (!isNaN(patternNum) && patternNum >= 1 && patternNum <= patterns.length) {
       switchPattern(patternNum - 1);
       return;
     }
-    
+
     // Check if input is a pattern name
     const lowerInput = input.toLowerCase();
     const patternIndex = patternNames.indexOf(lowerInput);
@@ -745,18 +796,18 @@ function main() {
       switchPattern(patternIndex);
       return;
     }
-    
+
     // Partial name match
     const partialMatch = patternNames.findIndex(name => name.startsWith(lowerInput));
     if (partialMatch >= 0) {
       switchPattern(partialMatch);
       return;
     }
-    
+
     // Invalid input
     showCommandResult(`Unknown pattern: ${input}`, false);
   }
-  
+
   // Handle input
   term.on('key', (name: string, _matches: any, data: any) => {
     // Check if command buffer is active
@@ -766,7 +817,7 @@ function main() {
         commandBuffer.cancel();
       } else if (name === 'ENTER') {
         const cmdString = commandBuffer.execute();
-        
+
         // Parse and execute command
         if (cmdString) {
           const parsed = commandParser.parse(cmdString);
@@ -801,10 +852,10 @@ function main() {
           return; // Stay in command mode
         }
       }
-      
+
       return; // Don't process other keys in command mode
     }
-    
+
     // Check if pattern buffer is active
     if (patternBufferActive) {
       // Pattern mode is active
@@ -819,7 +870,7 @@ function main() {
         const char = String.fromCharCode(data.codepoint);
         if (/[0-9a-zA-Z.]/.test(char)) {
           patternBuffer += char;
-          
+
           // Reset timeout on input
           if (patternBufferTimeout) {
             clearTimeout(patternBufferTimeout);
@@ -831,12 +882,12 @@ function main() {
           return; // Stay in pattern mode
         }
       }
-      
+
       return; // Don't process other keys in pattern mode
     }
-    
+
     // Normal mode - existing keyboard shortcuts
-    
+
     // Quit commands
     if (name === 'CTRL_C' || name === 'q' || name === 'ESCAPE') {
       cleanup();
@@ -868,6 +919,8 @@ function main() {
       switchPattern(7); // Plasma
     } else if (name === '9') {
       switchPattern(8); // Tunnel
+    } else if (name === 'o') {
+      switchPattern(17); // Ocean Beach
     }
     // Pattern selection - next/previous
     else if (name === 'n') {
@@ -888,7 +941,9 @@ function main() {
         const nextPreset = (currentPresetIndex % 6) + 1;
         if (currentPattern.applyPreset(nextPreset)) {
           currentPresetIndex = nextPreset;
-          const displayName = patternDisplayNames[patternNames[currentPatternIndex]] || patternNames[currentPatternIndex];
+          const displayName =
+            patternDisplayNames[patternNames[currentPatternIndex]] ||
+            patternNames[currentPatternIndex];
           showMessage(`${displayName} - Preset ${nextPreset}`);
         }
       }
@@ -899,7 +954,9 @@ function main() {
         const prevPreset = currentPresetIndex === 1 ? 6 : currentPresetIndex - 1;
         if (currentPattern.applyPreset(prevPreset)) {
           currentPresetIndex = prevPreset;
-          const displayName = patternDisplayNames[patternNames[currentPatternIndex]] || patternNames[currentPatternIndex];
+          const displayName =
+            patternDisplayNames[patternNames[currentPatternIndex]] ||
+            patternNames[currentPatternIndex];
           showMessage(`${displayName} - Preset ${prevPreset}`);
         }
       }
@@ -955,11 +1012,11 @@ function main() {
   // Handle mouse events with throttling
   let lastMouseMoveTime = 0;
   const mouseThrottleMs = 16; // ~60fps for mouse events
-  
+
   term.on('mouse', (name: string, data: any) => {
     const currentPattern = patterns[currentPatternIndex];
     const now = Date.now();
-    
+
     if (name === 'MOUSE_MOTION' && currentPattern.onMouseMove) {
       // Throttle mouse move events
       if (now - lastMouseMoveTime >= mouseThrottleMs) {
@@ -977,12 +1034,12 @@ function main() {
     if (overlayMessageTimeout) {
       clearTimeout(overlayMessageTimeout);
     }
-    
+
     // Set overlay message
     overlayMessage = msg;
-    
+
     // Message will be rendered by renderBottomOverlay in the next frame
-    
+
     // Clear after 1.5 seconds
     overlayMessageTimeout = setTimeout(() => {
       overlayMessage = null;
@@ -998,17 +1055,17 @@ function main() {
 
   // Start animation
   engine.start();
-  
+
   // Set up terminal-based overlays (render after terminal write)
   // Unified bottom overlay system with priority: command > pattern > message > none
   engine.setAfterRenderCallback(() => {
     renderDebugOverlay();
     renderBottomOverlay();
   });
-  
+
   // Display welcome message briefly using the overlay system
   showMessage('ascii-splash - Press ? for help | q to quit');
-  
+
   return cleanup;
 }
 
@@ -1029,7 +1086,7 @@ process.on('SIGTERM', () => {
   process.exit(0);
 });
 
-process.on('uncaughtException', (err) => {
+process.on('uncaughtException', err => {
   if (cleanupHandler) {
     cleanupHandler();
   }
@@ -1037,7 +1094,7 @@ process.on('uncaughtException', (err) => {
   process.exit(1);
 });
 
-process.on('unhandledRejection', (reason) => {
+process.on('unhandledRejection', reason => {
   if (cleanupHandler) {
     cleanupHandler();
   }
