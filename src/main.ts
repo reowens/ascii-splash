@@ -26,6 +26,7 @@ import { OceanBeachPattern } from './patterns/OceanBeachPattern.js';
 import { CampfirePattern } from './patterns/CampfirePattern.js';
 import { NightSkyPattern } from './patterns/NightSkyPattern.js';
 import { AquariumPattern } from './patterns/AquariumPattern.js';
+import { SnowfallParkPattern } from './patterns/SnowfallParkPattern.js';
 import { Pattern, CliOptions, QualityPreset, ConfigSchema, Theme } from './types/index.js';
 import { ConfigLoader } from './config/ConfigLoader.js';
 import { getTheme, getNextThemeName } from './config/themes.js';
@@ -54,7 +55,7 @@ function parseCliArguments(): CliOptions {
   // Pattern selection
   program.option(
     '-p, --pattern <name>',
-    'Start with specific pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, maze, life, dna, lavalamp, smoke, snow, oceanbeach, campfire, nightsky, aquarium)'
+    'Start with specific pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, maze, life, dna, lavalamp, smoke, snow, oceanbeach, campfire, nightsky, aquarium, snowfallpark)'
   );
 
   // Quality preset
@@ -104,6 +105,7 @@ function parseCliArguments(): CliOptions {
     'campfire',
     'nightsky',
     'aquarium',
+    'snowfallpark',
   ];
   if (options.pattern && !validPatterns.includes(options.pattern.toLowerCase())) {
     program.error(
@@ -311,6 +313,7 @@ function main() {
       new CampfirePattern(theme, {}),
       new NightSkyPattern(theme, {}),
       new AquariumPattern(theme, {}),
+      new SnowfallParkPattern(theme, {}),
     ];
   }
 
@@ -339,6 +342,7 @@ function main() {
     'campfire',
     'nightsky',
     'aquarium',
+    'snowfallpark',
   ];
 
   // Pattern display names for user-facing messages
@@ -364,6 +368,7 @@ function main() {
     campfire: 'Campfire',
     nightsky: 'Night Sky',
     aquarium: 'Aquarium',
+    snowfallpark: 'Snowfall Park',
   };
 
   // Determine starting pattern from config
