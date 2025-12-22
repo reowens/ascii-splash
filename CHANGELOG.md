@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **New Pattern: Ocean Beach** - Serene beach scene with animated waves (Pattern #18, press `o`)
+  - Multi-layered scene architecture using SceneGraph and SpriteManager
+  - Animated wave system with realistic water motion
+  - Interactive footprints on beach (mouse click)
+  - Seagulls that fly across sky and react to mouse movement
+  - 6 presets: Calm Morning, Midday Sun, Stormy, Sunset, Night Beach, Tropical
+  - Dynamic sun position and lighting changes per preset
+  - Scene-based rendering with sprites, particles, and emitters
+  - Full test coverage with 47 tests (oceanbeach.test.ts)
+
+### Changed
+
+- Updated pattern count from 17 to 18 patterns
+- Updated preset count from 102 to 108 total presets
+- Test suite expanded from 1597 to 1644 tests (32 test suites)
+
 ## [0.2.0] - 2025-11-04
 
 ### ⚠️ BREAKING CHANGES
@@ -51,6 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Migration Details
 
 **Phases Completed**:
+
 1. ✅ Configuration updates (package.json, tsconfig.json, jest.config.mjs)
 2. ✅ Code updates (added `.js` extensions to all imports)
 3. ✅ Jest ESM compatibility fixes (explicit Jest imports, ESM mocking)
@@ -65,11 +84,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 If you use ascii-splash as a library (not via CLI), you'll need to update your code:
 
 **Before (CommonJS):**
+
 ```javascript
 const { AnimationEngine } = require('ascii-splash');
 ```
 
 **After (ESM):**
+
 ```javascript
 import { AnimationEngine } from 'ascii-splash';
 ```
@@ -79,9 +100,11 @@ import { AnimationEngine } from 'ascii-splash';
 ## [0.1.5] - 2025-11-04
 
 ### Changed
+
 - Updated `@types/node` to 24.10.0 (patch update for Node.js 24 type definitions)
 
 ### Maintenance
+
 - Confirmed all 1505 tests passing with updated dependencies
 - Maintained 82.34% test coverage
 - **Note**: `conf` remains at v10.2.0 (v15+ requires ESM migration, planned for v0.2.0)
@@ -89,6 +112,7 @@ import { AnimationEngine } from 'ascii-splash';
 ## [0.1.4] - 2025-11-04
 
 ### Added
+
 - **Visual Demonstrations**: Added animated GIF previews to README showcasing 7 key patterns
   - Hero patterns: Starfield, Matrix, Fireworks, Lightning
   - Additional patterns: Plasma, Waves, DNA
@@ -101,6 +125,7 @@ import { AnimationEngine } from 'ascii-splash';
   - All scripts support batch processing and progress reporting
 
 ### Changed
+
 - **README**: Added "Visual Preview" section with embedded pattern demonstrations
   - 2x2 hero pattern grid with descriptions
   - 1x3 additional patterns showcase
@@ -108,6 +133,7 @@ import { AnimationEngine } from 'ascii-splash';
 - **Documentation**: Added `docs/VISUAL_ENHANCEMENT_PLAN.md` with complete recording process
 
 ### Technical
+
 - Recording settings: 80x24 terminal, 30 FPS cap, 10 seconds duration
 - Optimization: lossy=80, colors=256, optimize=3
 - Tools: asciinema 3.0.1, agg 1.7.0, gifsicle 1.96
@@ -115,6 +141,7 @@ import { AnimationEngine } from 'ascii-splash';
 ## [0.1.3] - 2025-11-03
 
 ### Changed
+
 - **Preset Standardization**: All 17 patterns now have exactly 6 presets each (102 total)
   - **WavePattern**: Reduced from 8 to 6 presets (removed "Glass Lake" and one duplicate)
   - **StarfieldPattern**: Reduced from 8 to 6 presets (consolidated similar variations)
@@ -125,6 +152,7 @@ import { AnimationEngine } from 'ascii-splash';
   - Command system now consistent across all patterns (`c01-c06`)
 
 ### Fixed
+
 - **FireworksPattern**: Race condition where particle count could exceed hard caps during concurrent explosions
   - Now recalculates total particle count immediately before spawning secondary bursts (400 cap)
   - Now recalculates total particle count immediately before spawning sparkles (450 cap)
@@ -132,11 +160,13 @@ import { AnimationEngine } from 'ascii-splash';
   - Added comprehensive unit tests for concurrent spawn scenarios
 
 ### Tests
+
 - Updated all pattern tests to reflect new 6-preset structure
 - All 1505 tests passing with zero regressions (1503 existing + 2 new Fireworks race condition tests)
 - Test suites updated: wave.test.ts, starfield.test.ts, plasma.test.ts, additional-patterns.test.ts, presets.test.ts, fireworks.test.ts
 
 ### Added
+
 - **Visual Enhancements**: Comprehensive improvements to all 17 patterns with new visual effects
   - **Starfield**: Star twinkling effect with individual twinkle rates and phases for organic shimmer
   - **Wave**: Foam/whitecap effects on wave crests with intermittent foam generation
@@ -162,6 +192,7 @@ import { AnimationEngine } from 'ascii-splash';
   - **Quicksilver**: Surface tension variation using noise field affecting droplet behavior
 
 ### Changed
+
 - All 17 patterns now include enhanced visual effects while maintaining performance targets
 - Presets updated across patterns to showcase new visual enhancements
 - Pattern rendering more dynamic and visually engaging across the board
@@ -169,6 +200,7 @@ import { AnimationEngine } from 'ascii-splash';
 ## [0.1.2] - 2025-11-03
 
 ### Fixed
+
 - **Time Handling Consistency**: Fixed 7 patterns using `Date.now()` directly instead of `time` parameter
   - Affected patterns: Wave, Starfield, Rain, DNA, Lightning, Plasma, Quicksilver
   - **Impact**: Enables proper time-based testing, pause/resume functionality, and consistent behavior
@@ -179,12 +211,14 @@ import { AnimationEngine } from 'ascii-splash';
   - Prevents stale time values and other state from carrying over
 
 ### Changed
+
 - **Metrics Naming Standardization**: All patterns now use camelCase for metric keys
   - SnowPattern updated: `'Active Particles'` → `activeParticles`, `'Accumulated'` → `accumulated`, `'Avg Velocity'` → `avgVelocity`
   - Consistent naming across all 17 patterns improves debug overlay readability
   - Updated 15+ test assertions to match new naming convention
 
 ### Performance
+
 - **Spiral Pattern**: Optimized distance calculations with early rejection
   - Only calls `Math.sqrt()` when particles are within range
   - Prevents wasted computation on out-of-bounds particles
@@ -201,12 +235,14 @@ import { AnimationEngine } from 'ascii-splash';
   - Significantly improves performance for Game of Life simulation
 
 ### Added
+
 - **Pattern Enhancement Plan**: Added comprehensive `PATTERN_ENHANCEMENT_PLAN.md`
   - Documents systematic analysis of all 17 patterns
   - Tracks completed and planned improvements
   - Phase 1 (Critical Fixes) and Phase 2 (Performance) completed
 
 ### Tests
+
 - All 1407 tests passing
 - Zero regressions introduced
 - All optimizations maintain visual parity with original implementations
@@ -214,6 +250,7 @@ import { AnimationEngine } from 'ascii-splash';
 ## [0.1.1] - 2025-11-02
 
 ### Fixed
+
 - **Text Overlay Display**: Fixed critical UX issue where text overlays were overwritten by pattern rendering
   - Command mode overlay, pattern mode overlay, and debug info now properly persist
   - Root cause: Text rendered on input events but pattern buffer cleared/re-rendered 30-60x per second
@@ -222,13 +259,14 @@ import { AnimationEngine } from 'ascii-splash';
   - Significantly improves user experience when using command mode or pattern selection
 
 ### Added
+
 - **GitHub Actions CI/CD Pipeline**: Complete automated testing and release infrastructure
   - **CI Workflow**: Runs on push/PR to main/develop branches
     - Tests on Node.js 20, 22 for compatibility
     - TypeScript compilation checks
     - Build verification and package validation
     - Coverage upload to Codecov
-  - **Release Workflow**: Automated npm publishing on git tag push (v*.*.*)
+  - **Release Workflow**: Automated npm publishing on git tag push (v*.*.\*)
     - Full test suite execution
     - Version/tag verification
     - Automated npm publish (requires NPM_TOKEN secret)
@@ -247,6 +285,7 @@ import { AnimationEngine } from 'ascii-splash';
   - **Test Results**: 1357 tests passing, 26 test suites
 
 ### Changed
+
 - **Test Suite Refactoring**: Updated tests for refactored Spiral and Tunnel patterns
   - SpiralPattern: Complete test rewrite (67 tests) for particle-based architecture
     - Updated property names: `spiralCount` → `armCount`
@@ -268,6 +307,7 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
 **Installation**: `npm install -g ascii-splash` or `npx ascii-splash`
 
 ### Changed (Breaking Changes - Keyboard Controls)
+
 - **BREAKING**: Command mode key changed from `0` to `c` for better mnemonics
   - Old: `0` prefix for commands (e.g., `01`, `0p3`, `0t2`)
   - New: `c` prefix for commands (e.g., `c01`, `cp3`, `ct2`)
@@ -277,6 +317,7 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
   - More accurately describes LOW/MEDIUM/HIGH FPS settings
 
 ### Added (Phase 6 - Keyboard Improvements)
+
 - **Preset cycling**: Press `.` for next preset, `,` for previous preset
   - Explore all 102 presets easily without memorizing preset numbers
   - Wraps around at boundaries (preset 6 → preset 1)
@@ -293,6 +334,7 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
 - **Enhanced help overlay**: Updated with all new keyboard shortcuts and clearer organization
 
 ### Added (Phase 6 - UI/UX Improvements)
+
 - **Enhanced Pattern Selection**: New interactive pattern mode activated by pressing `p`
   - Type pattern number: `p12` → Pattern 12
   - Type pattern name: `pwaves` → Waves pattern
@@ -304,6 +346,7 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
   - Updated help overlay and documentation
 
 ### Added (Phase 6 - Release Preparation)
+
 - **DNA Helix Pattern**: Double helix rotation with base pairs (A-T, G-C, T-A, C-G)
   - 6 presets: Slow Helix, Fast Spin, Unwinding, Replication, Mutation, Rainbow
   - Mouse move creates twist effect, click spawns mutations
@@ -341,6 +384,7 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
   - `metaballs.ts`: Metaball field calculations for blob rendering
 
 ### Fixed (Release Preparation - November 2, 2025)
+
 - **TTY Guard**: Added `checkTTY()` function to prevent execution in non-interactive environments
   - Gracefully handles pipes, redirects, and cron jobs with helpful error message
   - Allows `--help` and `--version` to work without TTY
@@ -356,6 +400,7 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
 - **Dependencies**: Removed unused `chalk` dependency
 
 ### Changed
+
 - Pattern count increased from 13 to 17
 - Total presets increased from 78 to 102
 - Test suite expanded to 803 total tests
@@ -364,6 +409,7 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
 ### ✨ Features
 
 #### 🎨 13 Interactive Patterns (v1.0.0)
+
 - **Waves**: Sine wave animations with ripple effects
 - **Starfield**: 3D parallax starfield with force fields
 - **Matrix**: Digital rain effect with column spawning
@@ -379,12 +425,14 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
 - **Maze**: Dynamic maze generation and solving
 
 #### 🎭 78 Built-in Presets (v1.0.0)
+
 - **6 presets per pattern** (13 patterns × 6 = 78 total)
 - Each preset offers unique visual variations
 - Examples: "Ocean Storm", "Warp Speed", "Tesla Coil", "Grand Finale"
 - Access via command system: `01-99` for quick loading
 
 #### 🌈 5 Color Themes
+
 - **Ocean**: Blues, cyans, teals (default, calm and soothing)
 - **Matrix**: Green monochrome (classic hacker aesthetic)
 - **Starlight**: Deep blues, purples, white (cosmic space)
@@ -394,12 +442,14 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
 - Cycle with `t` key or jump directly with `0t2`, `0tfire`
 
 #### 🖱️ Full Mouse Support
+
 - **Mouse Move**: Pattern-specific hover effects (ripples, force fields, distortion)
 - **Mouse Click**: Burst animations, spawning effects, mode toggles
 - **Examples**: Click for splash in Waves, spawn bolts in Lightning, launch fireworks
 - Enable/disable with `--no-mouse` CLI flag
 
 #### ⌨️ Advanced Command System
+
 - **Dual-layer input**: Direct keys (instant) + Command buffer (extended features)
 - **Command Buffer** (prefix with `c`):
   - Presets: `c01-c99` (load preset)
@@ -413,6 +463,7 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
 - **Command history** with up/down arrow navigation
 
 #### 💾 Favorites System
+
 - Save current state (pattern + preset + theme) to slots 1-99
 - Persistent storage in config file
 - Quick recall with `0f#` commands
@@ -420,6 +471,7 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
 - Includes timestamps and optional notes
 
 #### 🔀 Shuffle Mode
+
 - **Auto-cycle presets** at regular intervals (1-300 seconds)
 - Two modes:
   - Preset shuffle (`0!`): Cycles presets of current pattern
@@ -428,6 +480,7 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
 - Perfect for ambient background animations
 
 #### ⚙️ Configuration System
+
 - **Config file**: `~/.config/ascii-splash/.splashrc.json`
 - **Merge priority**: CLI args > config file > defaults
 - **Global settings**: defaultPattern, quality, fps, theme, mouseEnabled
@@ -436,6 +489,7 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
 - **CLI arguments**: `--pattern`, `--quality`, `--fps`, `--theme`, `--no-mouse`
 
 #### 📊 Performance Monitoring
+
 - Real-time FPS display with 60-frame rolling average
 - Frame time breakdown (update, pattern render, terminal render)
 - Changed cell count tracking
@@ -445,6 +499,7 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
 - **Target**: <5% CPU idle, <50MB RAM
 
 #### 🎯 Performance Mode
+
 - **LOW**: 20 FPS - Battery saver mode
 - **MEDIUM**: 30 FPS - Balanced (default)
 - **HIGH**: 60 FPS - Smooth animations
@@ -452,6 +507,7 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
 - Set via `--quality` CLI flag or config file
 
 #### 🔧 Double-Buffering Renderer
+
 - Flicker-free rendering with dirty cell tracking
 - Only changed cells are redrawn each frame
 - Efficient terminal output with minimal writes
@@ -488,6 +544,7 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
 ### 🎮 Controls Reference
 
 **Direct Keys** (instant actions):
+
 - `1-9`: Switch to patterns 1-9
 - `n` / `b`: Next/Previous pattern
 - `.` / `,`: Next/Previous preset
@@ -503,6 +560,7 @@ The first public release of ascii-splash - a terminal ASCII animation app with v
 - `q` / `ESC` / `Ctrl+C`: Quit
 
 **Command Buffer** (prefix with `c`):
+
 - See command system features above
 
 ### 🛠️ Technical Details
@@ -525,6 +583,7 @@ Built with `terminal-kit` for terminal control and inspired by classic terminal 
 ## Future Releases
 
 **Potential future enhancements**:
+
 - Additional patterns and presets
 - Custom pattern creation API
 - Plugin system

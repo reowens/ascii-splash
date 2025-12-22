@@ -6,14 +6,14 @@
 
 **A terminal ASCII animation app that adds visual flow to your IDE workspace.**
 
-Transform your terminal into a mesmerizing visual experience with **17 interactive patterns**, **102 presets**, 5 color themes, and a powerful command system. Perfect as an ambient background for your coding sessions!
+Transform your terminal into a mesmerizing visual experience with **18 interactive patterns**, **108 presets**, 5 color themes, and a powerful command system. Perfect as an ambient background for your coding sessions!
 
 ---
 
 ## ✨ Features
 
-- 🎨 **17 Interactive Patterns** - Waves, Starfield, Matrix, Rain, Quicksilver, Particles, Spiral, Plasma, Tunnel, Lightning, Fireworks, Life, Maze, DNA, Lava Lamp, Smoke, Snow
-- 🎯 **102 Total Presets** - 6 carefully crafted variations for each pattern
+- 🎨 **18 Interactive Patterns** - Waves, Starfield, Matrix, Rain, Quicksilver, Particles, Spiral, Plasma, Tunnel, Lightning, Fireworks, Life, Maze, DNA, Lava Lamp, Smoke, Snow, Ocean Beach
+- 🎯 **108 Total Presets** - 6 carefully crafted variations for each pattern
 - 🌈 **5 Color Themes** - Ocean, Matrix, Starlight, Fire, Monochrome (all patterns adapt)
 - ⌨️ **Advanced Command System** - Multi-key commands for quick pattern/preset/theme switching
 - 💾 **Favorites System** - Save and recall your favorite combinations
@@ -79,7 +79,7 @@ Transform your terminal into a mesmerizing visual experience with **17 interacti
 </tr>
 </table>
 
-**See all 17 patterns in action!** Try them yourself with `ascii-splash` - press `1-9`, then `n` to cycle through all patterns.
+**See all 18 patterns in action!** Try them yourself with `ascii-splash` - press `1-9`, then `n` to cycle through all patterns, or press `o` for Ocean Beach.
 
 ---
 
@@ -95,6 +95,7 @@ splash
 ```
 
 **Local Development:**
+
 ```bash
 git clone https://github.com/reowens/ascii-splash.git
 cd ascii-splash
@@ -169,19 +170,20 @@ splash -h
 
 ### Available Options
 
-| Option | Short | Description | Values |
-|--------|-------|-------------|--------|
-| `--pattern` | `-p` | Starting pattern | waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, life, maze, dna, lavalamp, smoke, snow |
-| `--quality` | `-q` | Performance mode | low, medium (default), high |
-| `--fps` | `-f` | Custom FPS (10-60) | Number (overrides performance mode FPS) |
-| `--theme` | `-t` | Color theme | ocean (default), matrix, starlight, fire, monochrome |
-| `--no-mouse` | | Disable mouse | Flag (no value) |
-| `--version` | `-V` | Show version | |
-| `--help` | `-h` | Show help | |
+| Option       | Short | Description        | Values                                                                                                                                                   |
+| ------------ | ----- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--pattern`  | `-p`  | Starting pattern   | waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, life, maze, dna, lavalamp, smoke, snow, oceanbeach |
+| `--quality`  | `-q`  | Performance mode   | low, medium (default), high                                                                                                                              |
+| `--fps`      | `-f`  | Custom FPS (10-60) | Number (overrides performance mode FPS)                                                                                                                  |
+| `--theme`    | `-t`  | Color theme        | ocean (default), matrix, starlight, fire, monochrome                                                                                                     |
+| `--no-mouse` |       | Disable mouse      | Flag (no value)                                                                                                                                          |
+| `--version`  | `-V`  | Show version       |                                                                                                                                                          |
+| `--help`     | `-h`  | Show help          |                                                                                                                                                          |
 
 ## 📝 Configuration File
 
 ascii-splash supports persistent configuration via a JSON file at:
+
 - **Linux/macOS**: `~/.config/ascii-splash/.splashrc.json`
 - **Windows**: `%APPDATA%\ascii-splash\.splashrc.json`
 
@@ -199,7 +201,7 @@ See [examples/.splashrc.example](examples/.splashrc.example) for a complete exam
   "quality": "medium",
   "fps": 30,
   "mouseEnabled": true,
-  
+
   "patterns": {
     "waves": {
       "frequency": 0.1,
@@ -221,6 +223,7 @@ See [examples/.splashrc.example](examples/.splashrc.example) for a complete exam
 ### Available Settings
 
 **Global Settings:**
+
 - `defaultPattern` - Starting pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, life, maze, dna, lavalamp, smoke, snow)
 - `quality` - Quality preset (low, medium, high)
 - `fps` - Target frames per second (10-60)
@@ -230,6 +233,7 @@ See [examples/.splashrc.example](examples/.splashrc.example) for a complete exam
 **Pattern-Specific Settings:**
 
 Each pattern has its own configuration options. See [examples/.splashrc.example](examples/.splashrc.example) for details:
+
 - `waves` - frequency, amplitude, speed, layers, rippleDuration
 - `starfield` - starCount, speed, forceFieldRadius, forceFieldStrength
 - `matrix` - columnDensity, speed, fadeTime, distortionRadius
@@ -247,6 +251,7 @@ Each pattern has its own configuration options. See [examples/.splashrc.example]
 ### Creating Your Config
 
 1. Copy the example config:
+
    ```bash
    mkdir -p ~/.config/ascii-splash
    cp examples/.splashrc.example ~/.config/ascii-splash/.splashrc.json
@@ -259,6 +264,7 @@ Each pattern has its own configuration options. See [examples/.splashrc.example]
 ## 🎮 Controls
 
 ### ⌨️ Keyboard
+
 - **c**: Command mode (advanced multi-key commands - presets, favorites, search, shuffle)
 - **1-9**: Switch to pattern 1-9
 - **n/b**: Next/Previous pattern (cycles through all 17 patterns)
@@ -280,6 +286,7 @@ Each pattern has its own configuration options. See [examples/.splashrc.example]
 - **q/ESC/Ctrl+C**: Exit
 
 ### 🖱️ Mouse
+
 - **Move**: Interactive effects (ripples, repulsion, distortion, spawning)
 - **Click**: Special effects (big splash, explosion, spawn columns/drops)
 
@@ -288,26 +295,31 @@ Each pattern has its own configuration options. See [examples/.splashrc.example]
 Press `t` to cycle through 5 beautiful color themes:
 
 ### Ocean (Default)
+
 - Blues, cyans, and teals
 - Calm and soothing palette
 - Perfect for waves and water patterns
 
 ### Matrix
+
 - Classic green monochrome
 - Hacker aesthetic
 - Pairs perfectly with Matrix pattern
 
 ### Starlight
+
 - Deep blues, purples, and white
 - Cosmic space theme
 - Ideal for starfield effect
 
 ### Fire
+
 - Reds, oranges, and yellows
 - Warm and energetic
 - Great for high-energy patterns
 
 ### Monochrome
+
 - Grayscale gradient
 - Clean and minimal
 - Works with everything
@@ -319,7 +331,9 @@ Each theme uses color interpolation to provide smooth gradients. All patterns au
 ## 🎨 Patterns
 
 ### 1. Waves (Press 1)
+
 Smooth flowing sine waves with ripple effects
+
 - Multiple wave layers (1-5 depending on quality)
 - Mouse creates ripples
 - Click for big splashes
@@ -327,7 +341,9 @@ Smooth flowing sine waves with ripple effects
 - **Metrics**: Active ripples, wave layers
 
 ### 2. Starfield (Press 2)
+
 3D starfield with parallax depth
+
 - Stars move toward viewer (50-200 stars)
 - Mouse repels stars (force field)
 - Click creates explosion burst
@@ -335,7 +351,9 @@ Smooth flowing sine waves with ripple effects
 - **Metrics**: Star count, active explosions
 
 ### 3. Matrix (Press 3)
+
 Classic digital rain effect
+
 - Falling character columns
 - Katakana characters
 - Mouse distorts characters
@@ -343,7 +361,9 @@ Classic digital rain effect
 - **Metrics**: Column count, density
 
 ### 4. Rain (Press 4)
+
 Simple falling droplets
+
 - Drops bounce off mouse cursor
 - Mouse spawns extra drops
 - Click creates splash effects
@@ -351,7 +371,9 @@ Simple falling droplets
 - **Metrics**: Active drops, splashes
 
 ### 5. Quicksilver (Press 5)
+
 Flowing liquid mercury effect
+
 - Organic metallic liquid flow using Perlin noise
 - Silver/chrome color gradients
 - Mouse creates ripples in metal surface
@@ -360,7 +382,9 @@ Flowing liquid mercury effect
 - **Metrics**: Active droplets, ripples, flow intensity
 
 ### 6. Particles (Press 6)
+
 Physics-based particle system
+
 - Particles with gravity, velocity, and collision
 - Mouse attract/repel toggle (click to switch)
 - Click creates burst of 20 particles
@@ -369,7 +393,9 @@ Physics-based particle system
 - **Metrics**: Particle count, mode (attract/repel)
 
 ### 7. Spiral (Press 7)
+
 Rotating logarithmic spirals
+
 - Multiple spiral arms (3 default)
 - Continuous rotation animation
 - Mathematical spiral formula
@@ -378,7 +404,9 @@ Rotating logarithmic spirals
 - **Metrics**: Arm count, point count
 
 ### 8. Plasma (Press 8)
+
 Fluid plasma effect
+
 - Multiple sine wave combination
 - Smooth color transitions
 - Circular and diagonal wave patterns
@@ -388,7 +416,9 @@ Fluid plasma effect
 - **6 Presets**: Gentle Waves, Standard Plasma, Turbulent Energy, Lava Lamp, Electric Storm, Cosmic Nebula
 
 ### 9. Tunnel (Press 9)
+
 3D geometric tunnel with perspective
+
 - Multiple shape modes: circle, square, triangle, hexagon, star
 - Perspective projection with depth
 - Rotation animation for hypnotic effect
@@ -398,7 +428,9 @@ Fluid plasma effect
 - **6 Presets**: Circle Tunnel, Hyperspeed, Square Vortex, Triangle Warp, Hexagon Grid, Stargate
 
 ### 10. Lightning
+
 Electric bolts with recursive branching
+
 - Bresenham line algorithm for bolt segments
 - Recursive branching (probability-based)
 - Flash effect with fade-out
@@ -409,7 +441,9 @@ Electric bolts with recursive branching
 - **6 Presets**: Cloud Strike, Tesla Coil, Ball Lightning, Fork Lightning, Chain Lightning, Spider Lightning
 
 ### 11. Fireworks
+
 Particle explosions with physics
+
 - 3-phase lifecycle: launch → explode → fall
 - Particle trails with history tracking
 - Theme-based burst colors with fade
@@ -420,7 +454,9 @@ Particle explosions with physics
 - **6 Presets**: Sparklers, Grand Finale, Fountain, Roman Candle, Chrysanthemum, Strobe
 
 ### 12. Life (Press n from Pattern 11)
+
 Conway's Game of Life cellular automaton
+
 - Classic infinite cellular automaton simulation
 - Life/death rules with configurable birth/survival thresholds
 - Generates complex living patterns (gliders, oscillators, still lifes)
@@ -430,7 +466,9 @@ Conway's Game of Life cellular automaton
 - **6 Presets**: Still Life, Beehive, Gliders, Oscillators, Garden, Chaos
 
 ### 13. Maze (Press n from Pattern 12)
+
 Dynamic maze generation and solving
+
 - Multiple generation algorithms (Recursive Backtrack, Aldous-Broder, Prim, Hunt-Kill, Wilson, Braid)
 - Animated maze generation with visual pathfinding
 - Click to generate new maze with current algorithm
@@ -440,7 +478,9 @@ Dynamic maze generation and solving
 - **6 Presets**: Recursive Backtrack, Aldous-Broder, Prim, Hunt-Kill, Wilson, Braid
 
 ### 14. DNA (Press n from Pattern 13)
+
 Double helix DNA strand animation
+
 - Rotating double helix structure with base pairs
 - Smooth 3D perspective projection
 - Base pair connections with proper geometry
@@ -450,7 +490,9 @@ Double helix DNA strand animation
 - **6 Presets**: Classic, Fast Spin, Slow Motion, Rainbow, Unraveling, Pulse
 
 ### 15. Lava Lamp (Press n from Pattern 14)
+
 Metaball-based lava lamp simulation
+
 - Organic blob shapes using metaball algorithm
 - Physics simulation with buoyancy, drift, and turbulence
 - Perlin noise for natural flowing motion
@@ -461,7 +503,9 @@ Metaball-based lava lamp simulation
 - **6 Presets**: Classic, Turbulent, Gentle, Many Blobs, Giant Blob, Strobe
 
 ### 16. Smoke (Press n from Pattern 15)
+
 Physics-based smoke particle simulation
+
 - Rising smoke plumes with Perlin noise turbulence
 - Realistic particle opacity and dissipation
 - Height-based color gradient for natural smoke effect
@@ -472,7 +516,9 @@ Physics-based smoke particle simulation
 - **6 Presets**: Gentle Wisp, Campfire, Industrial, Incense, Fog, Steam
 
 ### 17. Snow (Press n from Pattern 16)
+
 Falling particles with seasonal effects
+
 - Realistic downward falling motion with gravity and wind drift
 - Perlin noise turbulence for natural movement
 - Particle rotation as they fall
@@ -483,24 +529,43 @@ Falling particles with seasonal effects
 - **Metrics**: Active particles, accumulated, average velocity
 - **6 Presets**: Light Flurries, Blizzard, Cherry Blossoms, Autumn Leaves, Confetti, Ash
 
+### 18. Ocean Beach (Press o)
+
+Serene beach scene with animated ocean waves
+
+- Multi-layered scene with sky, clouds, sun, ocean, beach, and seagulls
+- Animated wave system with realistic water motion
+- Footprints appear when clicking on the beach
+- Seagulls fly in the sky and react to mouse movement
+- Dynamic sun position changes with presets
+- Scene-based architecture with sprite and particle systems
+- **Metrics**: Layers, sprites, particles, emitters, footprints, water line
+- **6 Presets**: Calm Morning, Midday Sun, Stormy, Sunset, Night Beach, Tropical
+
 ## ⚡ Performance Modes
 
 Press `[` or `]` to cycle through performance modes:
 
 ### LOW (15 FPS)
+
 Optimized for low-end systems or minimal CPU usage
+
 - 50% particle count
 - Reduced visual layers
 - Target: <3% CPU usage
 
 ### MEDIUM (30 FPS) - Default
+
 Balanced performance and visual quality
+
 - Standard particle count
 - Full visual effects
 - Target: <5% CPU usage
 
 ### HIGH (60 FPS)
+
 Maximum quality for high-end systems
+
 - 200% particle count
 - Enhanced visual layers
 - Silky smooth animations
@@ -508,6 +573,7 @@ Maximum quality for high-end systems
 ## 📊 Performance Monitoring
 
 Press `d` to toggle the debug overlay showing:
+
 - Current pattern and theme
 - Real-time FPS (color-coded: green/yellow/red)
 - Current performance mode
@@ -521,6 +587,7 @@ Press `d` to toggle the debug overlay showing:
 ## 🚄 Performance Characteristics
 
 Optimized for low resource usage:
+
 - **CPU**: 2-6% (depending on FPS preset)
 - **Memory**: ~40-50MB
 - **Target**: 30 FPS stable (adjustable 15-60)
@@ -530,6 +597,7 @@ Optimized for low resource usage:
 ## 🏗️ Architecture
 
 ascii-splash uses a clean **3-layer architecture**:
+
 - **Renderer Layer**: Terminal control with double-buffering for flicker-free rendering
 - **Engine Layer**: Animation loop running at target FPS, commands, performance monitoring
 - **Pattern Layer**: 17 interactive patterns with themes and presets
@@ -551,17 +619,20 @@ For **detailed technical architecture**, see [docs/ARCHITECTURE.md](docs/ARCHITE
 Press **c** to enter command mode for advanced features:
 
 ### Quick Commands
+
 - `c1`, `c2`, etc. - Apply preset to current pattern
 - `cp3` - Switch to pattern 3
 - `ct2` - Switch to theme 2
 - `cp3+t2` - Switch pattern AND theme
 
 ### Favorites
+
 - `cF1` - Save current state to favorite slot 1
 - `cf1` - Load favorite slot 1
 - `cfl` - List all saved favorites
 
 ### Special Commands
+
 - `c*` - Random preset (current pattern)
 - `c**` - Random pattern + preset + theme
 - `c?` - List presets for current pattern
@@ -585,6 +656,7 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 ## 🙏 Acknowledgments
 
 Built with:
+
 - [terminal-kit](https://github.com/cronvel/terminal-kit) - Terminal control and rendering
 - [chalk](https://github.com/chalk/chalk) - Color output
 - [commander](https://github.com/tj/commander.js) - CLI argument parsing
