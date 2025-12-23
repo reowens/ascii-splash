@@ -34,6 +34,10 @@ import { getTheme, getNextThemeName } from './config/themes.js';
 import { CommandBuffer } from './engine/CommandBuffer.js';
 import { CommandParser } from './engine/CommandParser.js';
 import { CommandExecutor } from './engine/CommandExecutor.js';
+import { getStatusBar } from './ui/StatusBar.js';
+import { getToastManager } from './ui/ToastManager.js';
+import { getHelpOverlay } from './ui/HelpOverlay.js';
+import { getTransitionManager } from './renderer/TransitionManager.js';
 
 const term = terminalKit.terminal;
 
@@ -385,19 +389,38 @@ function main() {
     }
   }
 
-  let showingHelp = false;
   let debugMode = false;
 
-  // Overlay message state
-  let overlayMessage: string | null = null;
-  let overlayMessageTimeout: NodeJS.Timeout | null = null;
-  let isPatternSwitching = false; // Mutex to prevent overlay corruption during pattern switch
+  // Pattern switching mutex to prevent overlay corruption
+  let isPatternSwitching = false;
 
   // Determine initial FPS from config
   const initialFps = ConfigLoader.getFpsFromConfig(config);
 
   // Create animation engine with selected pattern and FPS
   const engine = new AnimationEngine(renderer, patterns[currentPatternIndex], initialFps);
+
+  // Initialize StatusBar with initial state
+  const statusBar = getStatusBar();
+  statusBar.update({
+    patternName:
+      patternDisplayNames[patternNames[currentPatternIndex]] || patternNames[currentPatternIndex],
+    presetNumber: 1,
+    themeName: currentTheme.displayName,
+    fps: initialFps,
+    shuffleMode: 'off',
+    paused: false,
+  });
+
+  // Initialize ToastManager
+  const toastManager = getToastManager();
+
+  // Initialize HelpOverlay
+  const helpOverlay = getHelpOverlay();
+
+  // Initialize TransitionManager for smooth pattern switching
+  const transitionManager = getTransitionManager();
+  transitionManager.setDefaultConfig({ type: 'crossfade', duration: 300 });
 
   // Initialize command system
   const commandBuffer = new CommandBuffer();
@@ -428,6 +451,8 @@ function main() {
     patterns = createPatternsFromConfig(config, currentTheme);
     engine.setPattern(patterns[currentPatternIndex]);
     commandExecutor.updateState(currentPatternIndex, currentThemeIndex);
+    // Update status bar
+    statusBar.update({ themeName: currentTheme.displayName });
   });
 
   // Command result message state (tracked for cleanup timing)
@@ -443,13 +468,28 @@ function main() {
   let currentPresetIndex = 1; // Default to preset 1 (1-6)
 
   function switchPattern(index: number) {
-    if (index >= 0 && index < patterns.length) {
+    if (index >= 0 && index < patterns.length && index !== currentPatternIndex) {
       isPatternSwitching = true; // Set flag to prevent overlay rendering during switch
+      const oldPattern = patterns[currentPatternIndex];
       currentPatternIndex = index;
       currentPresetIndex = 1; // Reset to preset 1 when switching patterns
-      engine.setPattern(patterns[currentPatternIndex]);
+      const newPattern = patterns[currentPatternIndex];
+
+      // Start smooth transition between patterns
+      const size = renderer.getSize();
+      transitionManager.start(oldPattern, newPattern, size);
+
+      engine.setPattern(newPattern);
       commandExecutor.updateState(currentPatternIndex, currentThemeIndex);
-      showPatternName(patterns[currentPatternIndex].name);
+
+      // Update status bar
+      const displayName =
+        patternDisplayNames[patternNames[currentPatternIndex]] || patternNames[currentPatternIndex];
+      statusBar.update({
+        patternName: displayName,
+        presetNumber: currentPresetIndex,
+      });
+      showPatternName(newPattern.name);
 
       // Clear flag after short delay to allow screen clear to complete
       setTimeout(() => {
@@ -467,6 +507,9 @@ function main() {
     engine.setFps(qualityFpsPresets[quality]);
     engine.setPattern(patterns[currentPatternIndex]);
 
+    // Update status bar with new FPS
+    statusBar.update({ fps: qualityFpsPresets[quality] });
+
     const qualityNames = { low: 'LOW (15 FPS)', medium: 'MEDIUM (30 FPS)', high: 'HIGH (60 FPS)' };
     showMessage(`Quality: ${qualityNames[quality]}`);
   }
@@ -483,66 +526,19 @@ function main() {
     engine.setPattern(patterns[currentPatternIndex]);
     commandExecutor.updateState(currentPatternIndex, currentThemeIndex);
 
+    // Update status bar with new theme
+    statusBar.update({ themeName: currentTheme.displayName });
+
     showMessage(`Theme: ${currentTheme.displayName}`);
   }
 
   function showPatternName(name: string) {
     const displayName = patternDisplayNames[name] || name;
-
-    // Clear existing timeout
-    if (overlayMessageTimeout) {
-      clearTimeout(overlayMessageTimeout);
-    }
-
-    // Set overlay message
-    overlayMessage = `Pattern: ${displayName}`;
-
-    // Message will be rendered by renderBottomOverlay in the next frame
-
-    // Clear after 2 seconds
-    overlayMessageTimeout = setTimeout(() => {
-      overlayMessage = null;
-      // Will be cleared by renderBottomOverlay in the next frame
-    }, 2000);
+    toastManager.info(`Pattern: ${displayName}`, 2000);
   }
 
   function toggleHelp() {
-    showingHelp = !showingHelp;
-    if (showingHelp) {
-      const helpLines = [
-        'KEYBOARD CONTROLS',
-        '─────────────────',
-        'c        Command mode (advanced)',
-        '1-9      Switch patterns (1-9)',
-        'n/b      Next/Previous pattern',
-        './,      Next/Previous preset',
-        'p        Pattern mode (p12, p3.5, pwaves)',
-        'r        Random (pattern+preset+theme)',
-        's        Save current config',
-        'SPACE    Pause/Resume',
-        '+/-      Speed up/down',
-        '[/]      Performance mode (low/high)',
-        't        Cycle themes',
-        '?        Toggle this help',
-        'd        Toggle debug info',
-        'q/ESC    Quit',
-        '',
-        'MOUSE',
-        '─────────────────',
-        'Move     Interactive effects',
-        'Click    Ripple/burst effect',
-      ];
-
-      const startY = Math.floor((renderer.getSize().height - helpLines.length) / 2);
-      const startX = 5;
-
-      helpLines.forEach((line, i) => {
-        term.moveTo(startX, startY + i);
-        term.bold.cyan(line);
-      });
-    } else {
-      term.clear();
-    }
+    helpOverlay.toggle();
   }
 
   function toggleDebug() {
@@ -686,24 +682,7 @@ function main() {
         return;
       }
 
-      // Priority 3: Message banner (pattern names, status messages)
-      if (overlayMessage) {
-        const theme = currentTheme;
-        const color = theme.getColor(0.8); // Bright color for visibility
-
-        term.moveTo(1, bottomRow);
-        term.eraseLine();
-        term.colorRgb(color.r, color.g, color.b, overlayMessage);
-        term.styleReset(); // CRITICAL: Reset style after colorRgb
-        term.defaultColor(); // Reset to default foreground
-        term.bgDefaultColor(); // Reset to default background
-        return;
-      }
-
-      // No overlay active - clear the line
-      term.moveTo(1, bottomRow);
-      term.eraseLine();
-      term.styleReset(); // Defensive reset even when clearing
+      // No overlay active - the status bar handles the bottom row via buffer rendering
     } catch {
       // Catch any terminal state errors during rapid operations
       // Terminal may be in inconsistent state, but don't crash the app
@@ -711,22 +690,22 @@ function main() {
   }
 
   function showCommandResult(message: string, success: boolean) {
-    // Clear any existing timeout
-    if (overlayMessageTimeout) {
-      clearTimeout(overlayMessageTimeout);
+    // Show toast notification
+    if (success) {
+      toastManager.success(message);
+    } else {
+      toastManager.error(message);
     }
 
-    // Format message with success/failure indicator
-    const formattedMessage = success ? `✓ ${message}` : `✗ ${message}`;
-    overlayMessage = formattedMessage;
-
-    // Will be rendered by renderBottomOverlay in the next frame
-
-    // Auto-clear after 2.5 seconds
-    overlayMessageTimeout = setTimeout(() => {
-      overlayMessage = null;
-      // Will be cleared by renderBottomOverlay in the next frame
-    }, 2500);
+    // Update status bar shuffle mode based on command executor state
+    const shuffleInfo = commandExecutor.getShuffleInfo();
+    if (shuffleInfo) {
+      // Parse shuffle mode from info string
+      const shuffleMode = shuffleInfo.includes('ALL') ? 'all' : 'preset';
+      statusBar.update({ shuffleMode });
+    } else {
+      statusBar.update({ shuffleMode: 'off' });
+    }
   }
 
   function activatePatternBuffer() {
@@ -830,6 +809,19 @@ function main() {
 
   // Handle input
   term.on('key', (name: string, _matches: any, data: any) => {
+    // Check if help overlay is visible - handle navigation and close
+    if (helpOverlay.isVisible()) {
+      if (name === 'ESCAPE' || name === '?') {
+        helpOverlay.hide();
+      } else if (name === 'TAB' || name === 'RIGHT') {
+        helpOverlay.nextTab();
+      } else if (name === 'LEFT') {
+        helpOverlay.prevTab();
+      }
+      // Block other input while help is visible
+      return;
+    }
+
     // Check if command buffer is active
     if (commandBuffer.isActive()) {
       // Command mode is active - route to command buffer
@@ -919,6 +911,7 @@ function main() {
     // Pause/Resume
     else if (name === 'SPACE') {
       engine.pause();
+      statusBar.update({ paused: engine.isPaused() });
     }
     // Pattern selection - direct
     else if (name === '1') {
@@ -961,6 +954,7 @@ function main() {
         const nextPreset = (currentPresetIndex % 6) + 1;
         if (currentPattern.applyPreset(nextPreset)) {
           currentPresetIndex = nextPreset;
+          statusBar.update({ presetNumber: nextPreset });
           const displayName =
             patternDisplayNames[patternNames[currentPatternIndex]] ||
             patternNames[currentPatternIndex];
@@ -974,6 +968,7 @@ function main() {
         const prevPreset = currentPresetIndex === 1 ? 6 : currentPresetIndex - 1;
         if (currentPattern.applyPreset(prevPreset)) {
           currentPresetIndex = prevPreset;
+          statusBar.update({ presetNumber: prevPreset });
           const displayName =
             patternDisplayNames[patternNames[currentPatternIndex]] ||
             patternNames[currentPatternIndex];
@@ -985,10 +980,12 @@ function main() {
     else if (name === '+' || name === '=') {
       const newFps = Math.min(60, engine.getFps() + 5);
       engine.setFps(newFps);
+      statusBar.update({ fps: newFps });
       showMessage(`Speed: ${newFps} FPS`);
     } else if (name === '-' || name === '_') {
       const newFps = Math.max(10, engine.getFps() - 5);
       engine.setFps(newFps);
+      statusBar.update({ fps: newFps });
       showMessage(`Speed: ${newFps} FPS`);
     }
     // Help toggle
@@ -1050,21 +1047,8 @@ function main() {
   });
 
   function showMessage(msg: string) {
-    // Clear existing timeout
-    if (overlayMessageTimeout) {
-      clearTimeout(overlayMessageTimeout);
-    }
-
-    // Set overlay message
-    overlayMessage = msg;
-
-    // Message will be rendered by renderBottomOverlay in the next frame
-
-    // Clear after 1.5 seconds
-    overlayMessageTimeout = setTimeout(() => {
-      overlayMessage = null;
-      // Will be cleared by renderBottomOverlay in the next frame
-    }, 1500);
+    // Show toast notification
+    toastManager.info(msg, 1500);
   }
 
   function cleanup() {
@@ -1075,6 +1059,33 @@ function main() {
 
   // Start animation
   engine.start();
+
+  // Set up buffer-based overlays (render to buffer before terminal write)
+  engine.setBeforeTerminalRenderCallback(() => {
+    const size = renderer.getSize();
+    const buffer = renderer.getBuffer();
+    const now = Date.now();
+
+    // Render transition if active (overwrites the pattern render with blended output)
+    if (transitionManager.isActive()) {
+      transitionManager.render(buffer.getBuffer(), now, size);
+    }
+
+    // Update and render toasts
+    toastManager.update(now);
+    toastManager.render(buffer.getBuffer(), size);
+
+    // Render help overlay if visible (covers most of the screen)
+    if (helpOverlay.isVisible()) {
+      helpOverlay.render(buffer.getBuffer(), size);
+    }
+
+    // Render status bar to the bottom row of the buffer
+    // Only if not in command/pattern mode (those use direct terminal writes)
+    if (!commandBuffer.isActive() && !patternBufferActive) {
+      statusBar.render(buffer.getBuffer(), size);
+    }
+  });
 
   // Set up terminal-based overlays (render after terminal write)
   // Unified bottom overlay system with priority: command > pattern > message > none
