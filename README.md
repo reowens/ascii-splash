@@ -6,14 +6,14 @@
 
 **A terminal ASCII animation app that adds visual flow to your IDE workspace.**
 
-Transform your terminal into a mesmerizing visual experience with **18 interactive patterns**, **108 presets**, 5 color themes, and a powerful command system. Perfect as an ambient background for your coding sessions!
+Transform your terminal into a mesmerizing visual experience with **23 interactive patterns**, **138 presets**, 5 color themes, and a powerful command system. Perfect as an ambient background for your coding sessions!
 
 ---
 
 ## ✨ Features
 
-- 🎨 **18 Interactive Patterns** - Waves, Starfield, Matrix, Rain, Quicksilver, Particles, Spiral, Plasma, Tunnel, Lightning, Fireworks, Life, Maze, DNA, Lava Lamp, Smoke, Snow, Ocean Beach
-- 🎯 **108 Total Presets** - 6 carefully crafted variations for each pattern
+- 🎨 **23 Interactive Patterns** - Waves, Starfield, Matrix, Rain, Quicksilver, Particles, Spiral, Plasma, Tunnel, Lightning, Fireworks, Life, Maze, DNA, Lava Lamp, Smoke, Snow, Ocean Beach, Campfire, Aquarium, Night Sky, Snowfall Park, Metaball Playground
+- 🎯 **138 Total Presets** - 6 carefully crafted variations for each pattern
 - 🌈 **5 Color Themes** - Ocean, Matrix, Starlight, Fire, Monochrome (all patterns adapt)
 - ⌨️ **Advanced Command System** - Multi-key commands for quick pattern/preset/theme switching
 - 💾 **Favorites System** - Save and recall your favorite combinations
@@ -79,7 +79,7 @@ Transform your terminal into a mesmerizing visual experience with **18 interacti
 </tr>
 </table>
 
-**See all 18 patterns in action!** Try them yourself with `ascii-splash` - press `1-9`, then `n` to cycle through all patterns, or press `o` for Ocean Beach.
+**See all 23 patterns in action!** Try them yourself with `ascii-splash` - press `1-9`, then `n` to cycle through all patterns.
 
 ---
 
@@ -170,15 +170,15 @@ splash -h
 
 ### Available Options
 
-| Option       | Short | Description        | Values                                                                                                                                                   |
-| ------------ | ----- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--pattern`  | `-p`  | Starting pattern   | waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, life, maze, dna, lavalamp, smoke, snow, oceanbeach |
-| `--quality`  | `-q`  | Performance mode   | low, medium (default), high                                                                                                                              |
-| `--fps`      | `-f`  | Custom FPS (10-60) | Number (overrides performance mode FPS)                                                                                                                  |
-| `--theme`    | `-t`  | Color theme        | ocean (default), matrix, starlight, fire, monochrome                                                                                                     |
-| `--no-mouse` |       | Disable mouse      | Flag (no value)                                                                                                                                          |
-| `--version`  | `-V`  | Show version       |                                                                                                                                                          |
-| `--help`     | `-h`  | Show help          |                                                                                                                                                          |
+| Option       | Short | Description        | Values                                                                                                                                                                                                         |
+| ------------ | ----- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--pattern`  | `-p`  | Starting pattern   | waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, life, maze, dna, lavalamp, smoke, snow, oceanbeach, campfire, aquarium, nightsky, snowfallpark, metaball |
+| `--quality`  | `-q`  | Performance mode   | low, medium (default), high                                                                                                                                                                                    |
+| `--fps`      | `-f`  | Custom FPS (10-60) | Number (overrides performance mode FPS)                                                                                                                                                                        |
+| `--theme`    | `-t`  | Color theme        | ocean (default), matrix, starlight, fire, monochrome                                                                                                                                                           |
+| `--no-mouse` |       | Disable mouse      | Flag (no value)                                                                                                                                                                                                |
+| `--version`  | `-V`  | Show version       |                                                                                                                                                                                                                |
+| `--help`     | `-h`  | Show help          |                                                                                                                                                                                                                |
 
 ## 📝 Configuration File
 
@@ -224,7 +224,7 @@ See [examples/.splashrc.example](examples/.splashrc.example) for a complete exam
 
 **Global Settings:**
 
-- `defaultPattern` - Starting pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, life, maze, dna, lavalamp, smoke, snow)
+- `defaultPattern` - Starting pattern (waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, life, maze, dna, lavalamp, smoke, snow, oceanbeach, campfire, aquarium, nightsky, snowfallpark, metaball)
 - `quality` - Quality preset (low, medium, high)
 - `fps` - Target frames per second (10-60)
 - `theme` - Color theme (ocean, matrix, starlight, fire, monochrome)
@@ -267,7 +267,7 @@ Each pattern has its own configuration options. See [examples/.splashrc.example]
 
 - **c**: Command mode (advanced multi-key commands - presets, favorites, search, shuffle)
 - **1-9**: Switch to pattern 1-9
-- **n/b**: Next/Previous pattern (cycles through all 17 patterns)
+- **n/b**: Next/Previous pattern (cycles through all 23 patterns)
 - **./,**: Next/Previous preset (cycles through 6 presets per pattern)
 - **p**: Pattern mode - Type pattern number, name, or pattern.preset combo:
   - `p` → `12` → Enter: Switch to pattern 12
@@ -542,6 +542,71 @@ Serene beach scene with animated ocean waves
 - **Metrics**: Layers, sprites, particles, emitters, footprints, water line
 - **6 Presets**: Calm Morning, Midday Sun, Stormy, Sunset, Night Beach, Tropical
 
+### 19. Campfire
+
+Cozy campfire scene with flickering flames
+
+- Scene-based rendering with layered forest background
+- Animated fire particles with realistic flame physics
+- Rising smoke plumes with Perlin noise turbulence
+- Floating embers that drift upward and fade
+- Starry night sky backdrop with twinkling stars
+- Mouse interaction affects flame direction
+- **Metrics**: Flame particles, embers, smoke density, star count
+- **6 Presets**: Gentle Ember, Roaring Fire, Dying Coals, Bonfire, Candlelight, Inferno
+
+### 20. Aquarium
+
+Underwater scene with swimming fish and bubbles
+
+- Multi-layered aquatic environment with corals and seaweed
+- AI-controlled fish with schooling behavior
+- Rising bubble particles from bottom
+- Animated seaweed swaying in current
+- Light rays filtering from surface
+- Click to spawn new fish, mouse attracts fish
+- **Metrics**: Fish count, bubble count, plant animations
+- **6 Presets**: Tropical Reef, Deep Sea, Koi Pond, Jellyfish, Shark Tank, Coral Garden
+
+### 21. Night Sky
+
+Starry night sky with celestial phenomena
+
+- Procedurally generated star field with variable brightness
+- Shooting stars with trails at random intervals
+- Optional moon phases and aurora effects
+- Constellation patterns with connecting lines
+- Parallax movement based on mouse position
+- Click to trigger shooting star
+- **Metrics**: Star count, shooting stars, aurora intensity
+- **6 Presets**: Clear Night, Meteor Shower, Aurora Borealis, Full Moon, Nebula, Galaxy
+
+### 22. Snowfall Park
+
+Winter park scene with falling snow
+
+- Layered winter landscape with trees and benches
+- Falling snow particles with wind physics
+- Ground accumulation that builds up over time
+- Streetlamp glow with light cone effects
+- Footprints appear when clicking on ground
+- Mouse creates wind gusts affecting snow
+- **Metrics**: Snowflakes, accumulation level, wind speed
+- **6 Presets**: Light Flurries, Heavy Snow, Blizzard, Peaceful Evening, Ice Storm, Christmas Eve
+
+### 23. Metaball Playground
+
+Interactive metaball physics simulation
+
+- Advanced metaball algorithm with smooth blob merging
+- Multiple physics modes: gravity, attraction, repulsion
+- Color blending where blobs intersect
+- Adjustable surface tension and viscosity
+- Mouse attracts/repels metaballs
+- Click to spawn new metaballs (max configurable)
+- **Metrics**: Blob count, merge events, physics mode
+- **6 Presets**: Lava Flow, Bubble Bath, Plasma Orbs, Mercury Drops, Cell Division, Cosmic Soup
+
 ## ⚡ Performance Modes
 
 Press `[` or `]` to cycle through performance modes:
@@ -600,14 +665,14 @@ ascii-splash uses a clean **3-layer architecture**:
 
 - **Renderer Layer**: Terminal control with double-buffering for flicker-free rendering
 - **Engine Layer**: Animation loop running at target FPS, commands, performance monitoring
-- **Pattern Layer**: 17 interactive patterns with themes and presets
+- **Pattern Layer**: 23 interactive patterns with themes and presets
 
 ```
 src/
 ├── types/          # Core interfaces and types
 ├── renderer/       # Terminal rendering with double-buffering
 ├── engine/         # Animation loop, commands, performance monitoring
-├── patterns/       # Pattern implementations (17 total)
+├── patterns/       # Pattern implementations (23 total)
 ├── config/         # Configuration system
 └── main.ts         # Entry point and input handling
 ```
