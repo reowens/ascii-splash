@@ -28,15 +28,15 @@ export interface Cell {
 
 export interface Pattern {
   name: string;
-  
+
   /**
    * Renders the pattern to the buffer.
-   * 
+   *
    * @param buffer - 2D array of cells to render into
    * @param time - Absolute timestamp in milliseconds (from Date.now())
    * @param size - Current terminal dimensions
    * @param mousePos - Optional mouse position (0-based coordinates)
-   * 
+   *
    * **Time Parameter Convention:**
    * - `time` is an absolute timestamp (milliseconds since epoch)
    * - For frame-rate independent animation, patterns should:
@@ -48,12 +48,29 @@ export interface Pattern {
    * - Patterns must reset `lastTime = 0` in their `reset()` method
    */
   render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void;
-  
+
+  // Mouse interaction
   onMouseMove?(pos: Point): void;
   onMouseClick?(pos: Point): void;
+
+  // Core lifecycle
   reset(): void;
+
+  // Preset system
   getMetrics?(): Record<string, number>;
   applyPreset?(presetId: number): boolean;
+
+  // Lifecycle hooks (v0.4.0+)
+  /** Called when this pattern becomes the active pattern */
+  onActivate?(): void;
+  /** Called when switching away from this pattern */
+  onDeactivate?(): void;
+  /** Called when the theme changes (allows hot-reload without pattern reset) */
+  onThemeChange?(theme: Theme): void;
+  /** Called when the terminal is resized */
+  onResize?(size: Size): void;
+  /** Called when FPS setting changes */
+  onFpsChange?(fps: number): void;
 }
 
 export interface AppState {
@@ -227,14 +244,79 @@ export interface SnowPatternConfig {
   accumulation?: boolean;
 }
 
+// Vector2 for 2D math operations
+export interface Vector2 {
+  x: number;
+  y: number;
+}
+
+// Scene graph layer interface for layered rendering
+export interface SceneLayer {
+  name: string;
+  zIndex: number;
+  visible: boolean;
+  update(deltaTime: number, size: Size): void;
+  render(buffer: Cell[][], size: Size): void;
+}
+
+// Sprite for animated characters/objects
+export interface Sprite {
+  position: Vector2;
+  velocity: Vector2;
+  frames: string[][]; // Animation frames (each frame is array of lines)
+  currentFrame: number;
+  frameTime: number; // Time accumulated for current frame (ms)
+  frameDuration: number; // Duration per frame (ms)
+  color: Color;
+  scale: number;
+  active: boolean;
+}
+
+// Particle for particle systems
+export interface Particle {
+  position: Vector2;
+  velocity: Vector2;
+  acceleration: Vector2;
+  life: number; // Remaining lifetime in seconds
+  maxLife: number; // Total lifetime for fade calculation
+  color: Color;
+  char: string;
+  active: boolean;
+}
+
+// Range types for particle emitters
+export interface Vector2Range {
+  min: Vector2;
+  max: Vector2;
+}
+
+export interface ColorRange {
+  start: Color;
+  end: Color;
+}
+
+// Particle emitter configuration
+export interface ParticleEmitter {
+  position: Vector2;
+  emissionRate: number; // Particles per second
+  particleLife: number; // Lifetime in seconds
+  initialVelocity: Vector2Range;
+  acceleration: Vector2; // Gravity, wind, etc.
+  colorRange: ColorRange;
+  characters: string[];
+  maxParticles?: number;
+  burstMode?: boolean; // Emit all at once vs continuous
+  burstCount?: number; // Number of particles in burst
+}
+
 // Favorite slot interface
 export interface FavoriteSlot {
-  pattern: string;           // Pattern name (e.g., "WavePattern")
-  preset?: number;            // Preset ID (if applicable)
-  theme: string;              // Theme name (e.g., "ocean")
-  config?: any;               // Custom pattern config (if any)
-  note?: string;              // Optional user note
-  savedAt: string;            // ISO timestamp
+  pattern: string; // Pattern name (e.g., "WavePattern")
+  preset?: number; // Preset ID (if applicable)
+  theme: string; // Theme name (e.g., "ocean")
+  config?: Record<string, unknown>; // Custom pattern config (if any)
+  note?: string; // Optional user note
+  savedAt: string; // ISO timestamp
 }
 
 // Main configuration schema
@@ -247,9 +329,7 @@ export interface ConfigSchema {
   mouseEnabled?: boolean;
 
   // Favorites storage (slot number → favorite data)
-  favorites?: {
-    [slot: number]: FavoriteSlot;
-  };
+  favorites?: Record<number, FavoriteSlot>;
 
   // Pattern-specific configurations
   patterns?: {

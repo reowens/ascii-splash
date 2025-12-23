@@ -1,7 +1,7 @@
 {
   "name": "ascii-splash",
-  "version": "0.2.0",
-  "description": "A lightweight terminal ASCII animation app with 17 interactive patterns, 102 presets, 5 themes, and mouse support. Perfect ambient visuals for your IDE workspace.",
+  "version": "0.3.0",
+  "description": "A lightweight terminal ASCII animation app with 23 interactive patterns, 138 presets, 5 themes, and mouse support. Perfect ambient visuals for your IDE workspace.",
   "type": "module",
   "main": "./dist/main.js",
   "exports": {
@@ -20,7 +20,23 @@
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch",
     "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage",
+    "test:integration": "NODE_OPTIONS='--experimental-vm-modules' jest tests/integration/",
+    "test:perf": "NODE_OPTIONS='--experimental-vm-modules' jest tests/performance/",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/ --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "prepare": "husky",
     "prepublishOnly": "npm run build && npm test"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   },
   "keywords": [
     "terminal",
@@ -60,22 +76,30 @@
     "LICENSE",
     "CHANGELOG.md"
   ],
-
   "engines": {
     "node": ">=20.0.0"
   },
   "dependencies": {
     "commander": "^14.0.2",
     "conf": "^15.0.2",
+    "simplex-noise": "^4.0.3",
     "terminal-kit": "^3.1.2"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.6.1",
+    "@commitlint/config-conventional": "^19.6.0",
+    "@eslint/js": "^9.17.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.10.0",
     "@types/terminal-kit": "^2.5.7",
+    "eslint": "^9.17.0",
+    "husky": "^9.1.7",
     "jest": "^30.2.0",
+    "lint-staged": "^15.3.0",
+    "prettier": "^3.4.2",
     "ts-jest": "^29.4.5",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.19.0"
   }
 }
