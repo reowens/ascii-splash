@@ -1,7 +1,7 @@
 {
   "name": "ascii-splash",
-  "version": "0.2.0",
-  "description": "A lightweight terminal ASCII animation app with 17 interactive patterns, 102 presets, 5 themes, and mouse support. Perfect ambient visuals for your IDE workspace.",
+  "version": "0.3.0",
+  "description": "A lightweight terminal ASCII animation app with 23 interactive patterns, 138 presets, 5 themes, and mouse support. Perfect ambient visuals for your IDE workspace.",
   "type": "module",
   "main": "./dist/main.js",
   "exports": {
