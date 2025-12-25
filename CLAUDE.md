@@ -3,6 +3,7 @@
 > ⚠️ **FOR AI ASSISTANTS ONLY**: This file provides project context for AI code assistants to navigate and understand the ascii-splash project. It is NOT user or developer documentation.
 >
 > **Human readers**:
+>
 > - 👤 **Users**: See [README.md](README.md) for installation and usage
 > - 👨‍💻 **Developers**: See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for technical details
 > - 🗺️ **Navigation**: See [docs/README.md](docs/README.md) for documentation index
@@ -14,14 +15,17 @@
 **ascii-splash** is a lightweight terminal ASCII animation application that displays interactive animated patterns in a terminal window. Designed for IDE workspaces as an ambient visual effect.
 
 **Key Stats**:
-- **17 interactive patterns** with full theme support
-- **102 total presets** (6 per pattern)
+
+- **23 interactive patterns** with full theme support (including 5 scene-based patterns)
+- **138 total presets** (6 per pattern)
 - **5 color themes** (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **40+ commands** via multi-key command system
+- **2097 tests** with 92%+ coverage
 - **Performance**: <5% CPU, ~40-50MB RAM
 - **Target**: Node.js 20+
 
 **Tech Stack**:
+
 - TypeScript/Node.js (ES2020, **ESM** - migrated in v0.2.0)
 - `terminal-kit` - Terminal control & input
 - `chalk` - Color output
@@ -71,18 +75,28 @@ splash/
 │   │   ├── ConfigLoader.ts      # Config merging & file management
 │   │   └── themes.ts            # 5 color themes with interpolation
 │   │
-│   ├── renderer/
-│   │   ├── TerminalRenderer.ts  # Terminal setup, input, resize handling
-│   │   └── Buffer.ts            # Double-buffering with dirty tracking
-│   │
 │   ├── engine/
 │   │   ├── AnimationEngine.ts   # Main loop, pattern switching
 │   │   ├── PerformanceMonitor.ts # FPS & timing metrics
 │   │   ├── CommandBuffer.ts     # Multi-key input accumulation
 │   │   ├── CommandParser.ts     # Parse command strings
-│   │   └── CommandExecutor.ts   # Execute parsed commands
+│   │   ├── CommandExecutor.ts   # Execute parsed commands
+│   │   ├── SceneGraph.ts        # Hierarchical scene management (v0.3.0)
+│   │   ├── SpriteManager.ts     # Sprite pooling & animation (v0.3.0)
+│   │   ├── ParticleSystem.ts    # Particle emitters & physics (v0.3.0)
+│   │   └── EventBus.ts          # Decoupled event system (v0.3.0)
 │   │
-│   └── patterns/                # 17 pattern implementations
+│   ├── ui/                      # UI components (v0.3.0)
+│   │   ├── StatusBar.ts         # Bottom status bar
+│   │   ├── ToastManager.ts      # Toast notifications
+│   │   └── HelpOverlay.ts       # Tabbed help system
+│   │
+│   ├── renderer/
+│   │   ├── TerminalRenderer.ts  # Terminal setup, input, resize
+│   │   ├── Buffer.ts            # Double-buffering with dirty tracking
+│   │   └── TransitionManager.ts # Pattern transitions (v0.3.0)
+│   │
+│   └── patterns/                # 23 pattern implementations
 │       ├── WavePattern.ts
 │       ├── StarfieldPattern.ts
 │       ├── MatrixPattern.ts
@@ -99,13 +113,19 @@ splash/
 │       ├── DNAPattern.ts
 │       ├── LavaLampPattern.ts
 │       ├── SmokePattern.ts
-│       └── SnowPattern.ts
+│       ├── SnowPattern.ts
+│       ├── OceanBeachPattern.ts   # Scene-based (v0.3.0)
+│       ├── CampfirePattern.ts     # Scene-based (v0.3.0)
+│       ├── AquariumPattern.ts     # Scene-based (v0.3.0)
+│       ├── NightSkyPattern.ts     # Scene-based (v0.3.0)
+│       ├── SnowfallParkPattern.ts # Scene-based (v0.3.0)
+│       └── MetaballPattern.ts     # Enhanced (v0.3.0)
 │
-├── tests/                        # Jest test suites
-│   └── unit/patterns/
-│       ├── wave.test.ts
-│       ├── starfield.test.ts
-│       └── ... (17 pattern tests + engine/config/renderer tests)
+├── tests/                        # Jest test suites (2097 tests)
+│   ├── unit/patterns/           # Pattern tests (23 patterns)
+│   ├── unit/engine/             # SceneGraph, SpriteManager, ParticleSystem
+│   ├── unit/ui/                 # StatusBar, ToastManager, HelpOverlay
+│   └── unit/renderer/           # Buffer, TransitionManager
 │
 ├── docs/                         # Developer documentation (reorganized Nov 4)
 │   ├── ARCHITECTURE.md          # ⭐ Technical architecture reference
@@ -159,6 +179,7 @@ splash/
 **Note**: Documentation reorganized Nov 4, 2025 for clarity and maintainability (see [docs/README.md](docs/README.md)).
 
 **Key Navigation**:
+
 - 👤 **User documentation**: [README.md](README.md)
 - 📚 **Developer quick start**: [docs/core/QUICK_START.md](docs/core/QUICK_START.md)
 - 👨‍💻 **Technical architecture**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
@@ -189,6 +210,7 @@ interface Pattern {
 ```
 
 **Key Implementation Rules**:
+
 1. **Buffer**: 2D array of `{char: string, color: Color}`
 2. **Coordinates**: 0-based (0,0 is top-left), `x < width`, `y < height`
 3. **Colors**: RGB objects `{r: 0-255, g: 0-255, b: 0-255}`
@@ -199,6 +221,7 @@ interface Pattern {
 8. **Performance**: Minimize sqrt/trig, use squared distances, limit elements
 
 **Performance Tips**:
+
 - Early rejection tests before expensive math
 - Preallocate arrays
 - Cache repeated calculations
@@ -212,13 +235,15 @@ interface Pattern {
 ## Configuration (AI Context)
 
 **Quick Overview**:
+
 - **Config file**: `~/.config/ascii-splash/.splashrc.json`
 - **Priority**: CLI args > Config file > Defaults
-- **Patterns**: 17 patterns, each with custom config options
+- **Patterns**: 23 patterns, each with custom config options
 - **Themes**: 5 themes (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **Favorites**: Save/load pattern+preset+theme combinations
 
 **For implementation details**, see:
+
 - [docs/ARCHITECTURE.md#configuration-system](docs/ARCHITECTURE.md#configuration-system)
 - [examples/.splashrc.example](examples/.splashrc.example) - Example config file
 
@@ -227,18 +252,20 @@ interface Pattern {
 ## Theme System (AI Context)
 
 **Quick Overview**:
+
 - **5 themes** provided (Ocean default)
 - **Color interpolation**: Linear interpolation based on intensity (0-1)
 - **Pattern integration**: Patterns receive Theme in constructor
 - **Cycling**: Press `t` to cycle, or set via CLI/config
 
 **Theme Interface**:
+
 ```typescript
 interface Theme {
   name: string;
   displayName: string;
   colors: Color[];
-  getColor(intensity: number): Color;  // Interpolate by intensity
+  getColor(intensity: number): Color; // Interpolate by intensity
 }
 ```
 
@@ -249,6 +276,7 @@ interface Theme {
 ## Command System (Brief Overview)
 
 **Multi-key command system** with `c` prefix:
+
 - `c01-c99`: Apply presets
 - `cp#`: Switch pattern
 - `ct#`: Switch theme
@@ -260,6 +288,7 @@ interface Theme {
 - `c!!`: Toggle shuffle all
 
 **Quick shortcuts** (no prefix needed):
+
 - `r`: Random pattern + preset + theme (same as `c**`)
 - `s`: Save configuration (same as `cs`)
 - `.` / `,`: Cycle presets
@@ -271,32 +300,41 @@ interface Theme {
 
 ## Current Status (AI Awareness)
 
-**Status**: v0.2.0 - ESM Migration Complete, Ready for npm Publication ✅
+**Status**: v0.3.0 - Next-Generation Terminal Graphics ✅ **STABLE RELEASE**
 
 **Completion**:
-- ✅ 17 Interactive patterns (11 core + Life + Maze + DNA + LavaLamp + Smoke + Snow)
-- ✅ 102 presets (6 per pattern)
+
+- ✅ 23 Interactive patterns (17 classic + 5 scene-based + enhanced Metaball)
+- ✅ 138 presets (6 per pattern)
 - ✅ 5 color themes
 - ✅ Configuration system
 - ✅ Favorites & shuffle mode
-- ✅ 1505 tests, **92.35% coverage** (improved from 82.34%!)
-- ✅ **ESM Migration** - Full migration to ESM modules
-- ✅ **conf v15.0.2** - Updated from v10.2.0
+- ✅ 2097 tests, **92%+ coverage**
+- ✅ **Scene-based Architecture** - SceneGraph, SpriteManager, ParticleSystem
+- ✅ **UI Components** - StatusBar, ToastManager, HelpOverlay, TransitionManager
 - ✅ Complete documentation
-- ✅ Published to npm (v0.1.0-v0.1.5: Nov 2-4, 2025)
-- 📦 **v0.2.0 Ready** - Merged to main, tagged, pushed to GitHub
+- ✅ Published to npm (v0.3.0: Dec 25, 2025)
 
-**Future Enhancements**:
-- Additional patterns (Constellation, Ripple Grid, Waveform, Mandelbrot, Kaleidoscope)
-- Demo GIFs/videos for README
-- Performance profiling and optimization
-- Community feedback integration
+**v0.3.0 Highlights**:
+
+- 5 new scene-based patterns: Ocean Beach, Campfire, Aquarium, Night Sky, Snowfall Park
+- Enhanced Metaball Playground with physics simulation modes
+- SceneGraph architecture for hierarchical rendering
+- New UI components integrated throughout
+
+**Future Opportunities** (see PROJECT_STATUS.md):
+
+- Pattern Composer (layer/combine patterns)
+- Audio Reactive Mode
+- Additional patterns (Rainy City, Space Station, Underwater Cave, etc.)
+- Plugin system for community patterns
 
 ---
 
 ## Testing & Debugging (AI Development)
 
 **Running Tests**:
+
 ```bash
 npm test              # Run all tests
 npm run test:watch   # Watch mode
@@ -304,10 +342,12 @@ npm run test:coverage # Coverage report
 ```
 
 **Debug Mode** (in app):
+
 - Press `d` to toggle debug overlay
 - Shows: FPS, frame timing, pattern metrics, dropped frames
 
 **Manual Testing Tips**:
+
 - Test each pattern individually (keys 1-9, then n)
 - Test mouse interaction (move, click)
 - Test command system (prefix with 0)
@@ -315,34 +355,40 @@ npm run test:coverage # Coverage report
 - Monitor CPU usage with `top` or Activity Monitor
 
 **Test Organization**:
-- `tests/unit/patterns/`: Pattern-specific tests (17 files)
-- `tests/unit/engine/`: Engine tests (AnimationEngine, PerformanceMonitor)
-- `tests/unit/config/`: Configuration tests (ConfigLoader, defaults)
-- `tests/unit/renderer/`: Renderer & Buffer tests
 
-**Coverage Target**: 83% (currently met)
+- `tests/unit/patterns/`: Pattern-specific tests (23 patterns)
+- `tests/unit/engine/`: Engine tests (AnimationEngine, PerformanceMonitor, SceneGraph, SpriteManager, ParticleSystem)
+- `tests/unit/config/`: Configuration tests (ConfigLoader, defaults)
+- `tests/unit/renderer/`: Renderer, Buffer & TransitionManager tests
+- `tests/unit/ui/`: UI component tests (StatusBar, ToastManager, HelpOverlay)
+
+**Coverage**: 92%+ (2097 tests)
 
 ---
 
 ## Known Constraints (AI Pitfalls)
 
 **Terminal Limitations**:
+
 - RGB color support varies by emulator (some only 256-color or 16-color)
 - Mouse support depends on terminal capabilities
 - Very small terminal windows (<20 cols) may have rendering issues
 - Not suitable for piped/redirected output (needs TTY)
 
 **Performance Targets**:
+
 - Keep CPU usage <5% idle, <6% at 60 FPS
 - Memory: ~40-50 MB
 - Frame drops OK at <5% occurrence
 
 **Coordinate Systems**:
+
 - ⚠️ **CRITICAL**: Terminal-kit uses 1-based (1,1 is top-left)
 - ⚠️ **CRITICAL**: Internal APIs use 0-based (0,0 is top-left)
 - Convert when calling terminal-kit functions
 
 **No External Side Effects**:
+
 - Patterns should not do file I/O, network calls, or subprocess spawning
 - All state should be encapsulated in pattern instance
 - No global variables outside of main.ts
@@ -352,6 +398,7 @@ npm run test:coverage # Coverage report
 ## Symlinks (Developer Notes)
 
 **AGENTS.md** and **WARP.md** are symlinks to this file. This allows:
+
 - Multiple entry points for different users/contexts
 - Single source of truth (CLAUDE.md content updates both)
 - No duplication to maintain
@@ -363,6 +410,7 @@ npm run test:coverage # Coverage report
 ## References
 
 ### Documentation
+
 - 👤 **User Guide**: [README.md](README.md) - Installation, features, controls
 - 📍 **Documentation Index**: [docs/README.md](docs/README.md) - Full documentation navigation
 - 👨‍💻 **Technical Architecture**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - System design and deep dive
@@ -378,6 +426,7 @@ npm run test:coverage # Coverage report
 - 📦 **Archive**: [docs/archive/](docs/archive/) - Historical reference and completed work
 
 ### External Resources
+
 - [terminal-kit docs](https://github.com/cronvel/terminal-kit)
 - [chalk docs](https://github.com/chalk/chalk)
 - [commander.js docs](https://github.com/tj/commander.js)
@@ -399,6 +448,6 @@ npm run test:coverage # Coverage report
 
 ---
 
-**Last Updated**: November 4, 2025
+**Last Updated**: December 25, 2025
 **For**: AI Assistant navigation and project context
 **Human Readers**: Please see [README.md](README.md) instead
