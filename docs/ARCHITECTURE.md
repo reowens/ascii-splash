@@ -3,6 +3,7 @@
 **For Developers**: Complete technical architecture and implementation details.
 
 **Quick Links**:
+
 - 📊 [Current metrics & status](PROJECT_STATUS.md)
 - 🧪 [Testing strategy](guides/TESTING.md)
 - 👤 [User guide](../README.md)
@@ -19,12 +20,14 @@ The app follows a clean separation of concerns with three distinct layers:
 Manages all terminal I/O and rendering:
 
 **TerminalRenderer**
+
 - Initializes terminal and sets up input handling
 - Manages terminal state (cursor visibility, colors, dimensions)
 - Handles window resize events and terminal capability detection
 - Orchestrates rendering cycle: gets changes from buffer, writes to terminal
 
 **Buffer** (Double-Buffering Implementation)
+
 - Maintains two frame buffers: current and previous
 - `Cell` interface: `{char: string, color: Color}`
 - `render(changes)`: Only writes changed cells to terminal (optimization)
@@ -39,6 +42,7 @@ Manages all terminal I/O and rendering:
 Orchestrates the animation loop and system control:
 
 **AnimationEngine**
+
 - Main loop running at configurable target FPS (default: 30)
 - Uses `setTimeout(1)` instead of `requestAnimationFrame` (unavailable in Node.js)
 - Implements frame timing: measures actual frame time, drops frames if needed
@@ -46,6 +50,7 @@ Orchestrates the animation loop and system control:
 - Handles pattern switching with state reset
 
 **PerformanceMonitor**
+
 - Real-time FPS tracking with 60-frame rolling average
 - Frame time breakdown:
   - Pattern render time (computation only)
@@ -56,11 +61,13 @@ Orchestrates the animation loop and system control:
 - Pattern-specific metrics collection
 
 **CommandBuffer** (Multi-Key Input System)
+
 - Accumulates keystrokes with `c` prefix
 - 10-second timeout before clearing buffer
 - Command history for up/down arrow navigation
 
 **CommandParser**
+
 - Parses accumulated commands: presets, patterns, themes, favorites
 - Pattern matching for:
   - Presets: `c01`, `c02-c99`
@@ -70,16 +77,78 @@ Orchestrates the animation loop and system control:
   - Special: `c*`, `c**`, `c?`, `c??`, `c!`, `c!!`, `cs`
 
 **CommandExecutor**
+
 - Executes parsed commands
 - Updates app state (pattern, theme, FPS, favorites)
 - Manages shuffle mode with configurable intervals
 - Shows success/error feedback messages
 
-### 3. Pattern Layer (`src/patterns/`)
+**SceneGraph** (v0.3.0)
+
+- Hierarchical scene management with layers and transforms
+- Layer management with z-ordering (background, midground, foreground, UI)
+- Per-layer update/render cycles
+- Proper depth rendering for complex scene-based patterns
+
+**SpriteManager** (v0.3.0)
+
+- Sprite class with position, animation frames, physics
+- Batch updates for performance
+- Collision detection helpers
+- Used by scene-based patterns for animated elements (birds, fish, etc.)
+
+**ParticleSystem** (v0.3.0)
+
+- Configurable particle emitters with physics simulation
+- Emitter patterns: point, line, area
+- Force fields: gravity, wind, vortex
+- Particle pooling for performance
+- Used for sparks, bubbles, snow, smoke effects
+
+**EventBus** (v0.3.0)
+
+- Decoupled event system for inter-component communication
+- Supports one-time and persistent listeners
+- Auto-cleanup to prevent memory leaks
+
+### 4. UI Layer (`src/ui/`) - v0.3.0
+
+Provides overlay components for user feedback:
+
+**StatusBar**
+
+- Persistent bottom-row display
+- Shows: Pattern.Preset | Theme | FPS (color-coded) | Shuffle status | Help hint
+- FPS color coding: green (≥25), yellow (15-24), red (<15)
+
+**ToastManager**
+
+- Notification toasts in top-right corner
+- Types: success (green), error (red), info (blue), warning (yellow)
+- Auto-dismiss after configurable duration
+- Stacked display (max 3 visible)
+
+**HelpOverlay**
+
+- Tabbed interface: Controls, Commands, Patterns, Themes
+- Tab navigation with TAB/LEFT/RIGHT keys
+- Centered modal with border and styling
+
+### 5. Transition Layer (`src/renderer/`) - v0.3.0
+
+**TransitionManager**
+
+- Smooth transitions between pattern switches
+- Effects: crossfade, dissolve, wipe-left, wipe-right, instant
+- Configurable duration and easing functions
+- Built-in easing: linear, easeInQuad, easeOutQuad, easeInOutQuad, easeInCubic, easeOutCubic
+
+### 6. Pattern Layer (`src/patterns/`)
 
 Encapsulates visual effects with consistent interface:
 
 **Pattern Interface** (`src/types/index.ts`):
+
 ```typescript
 interface Pattern {
   name: string;
@@ -94,6 +163,7 @@ interface Pattern {
 ```
 
 **Pattern Responsibilities**:
+
 - Render animation frame into provided buffer (2D array of cells)
 - Respond to mouse events (movement, clicks)
 - Maintain interactive state (particles, ripples, etc.)
@@ -101,7 +171,14 @@ interface Pattern {
 - Support 6 presets with unique visual variations
 - Adapt to theme colors via `getColor(intensity)` method
 
+**Pattern Categories** (23 patterns total):
+
+- **Classic Patterns** (17): Wave, Starfield, Matrix, Rain, Quicksilver, Particle, Spiral, Plasma, Tunnel, Lightning, Fireworks, Life, Maze, DNA, LavaLamp, Smoke, Snow
+- **Scene-Based Patterns** (5, v0.3.0): Ocean Beach, Campfire, Aquarium, Night Sky, Snowfall Park
+- **Enhanced Patterns** (1, v0.3.0): Metaball Playground with physics simulation modes
+
 **Pattern Implementation Constraints**:
+
 - Buffer bounds: `0 <= x < size.width`, `0 <= y < size.height`
 - Colors: RGB objects `{r: 0-255, g: 0-255, b: 0-255}`
 - Mouse coordinates: 0-based (pre-converted from terminal-kit's 1-based)
@@ -173,6 +250,7 @@ interface Pattern {
 **Problem**: Terminal writes are expensive; updating entire screen every frame causes flicker.
 
 **Solution**:
+
 ```typescript
 class Buffer {
   current: Cell[][];   // Working buffer for current frame
@@ -208,6 +286,7 @@ class Buffer {
 ```
 
 **Benefits**:
+
 - Prevents flicker (two-phase: compute then display)
 - 90% reduction in terminal writes (only changed cells)
 - CPU-friendly: minimal data movement
@@ -215,9 +294,10 @@ class Buffer {
 ### Performance Monitoring with Rolling Averages
 
 **Implementation**:
+
 ```typescript
 class PerformanceMonitor {
-  fpsHistory: number[] = [];  // 60-frame rolling window
+  fpsHistory: number[] = []; // 60-frame rolling window
 
   recordFrame(time: number) {
     const fps = 1000 / time;
@@ -237,6 +317,7 @@ class PerformanceMonitor {
 ```
 
 **Benefits**:
+
 - Smooth FPS reporting (not jittery)
 - Detects frame drops vs normal variance
 - Guides performance optimization efforts
@@ -246,11 +327,12 @@ class PerformanceMonitor {
 **Problem**: Mouse motion events fire at ~200 Hz, overwhelming pattern rendering.
 
 **Solution** (in `src/main.ts`):
+
 ```typescript
 let lastMouseTime = 0;
 const MOUSE_THROTTLE = 16; // ~60 FPS
 
-terminal.on('mouse', (event) => {
+terminal.on('mouse', event => {
   const now = Date.now();
   if (now - lastMouseTime > MOUSE_THROTTLE) {
     pattern.onMouseMove?.(event.pos);
@@ -266,6 +348,7 @@ terminal.on('mouse', (event) => {
 **Problem**: Need to accept multi-key sequences (e.g., `cp3t2`) as single commands.
 
 **Solution**:
+
 ```typescript
 class CommandBuffer {
   buffer: string = '';
@@ -314,11 +397,12 @@ class CommandBuffer {
 ### ConfigLoader Implementation
 
 **Class Structure** (`src/config/ConfigLoader.ts`):
+
 ```typescript
 class ConfigLoader {
   load(cliOptions: any): Config {
     // 1. Load defaults
-    const config = {...DEFAULT_CONFIG};
+    const config = { ...DEFAULT_CONFIG };
 
     // 2. Merge config file if exists
     const fileConfig = this.conf.store;
@@ -333,19 +417,20 @@ class ConfigLoader {
   }
 
   save(config: Config): void {
-    this.conf.store = config;  // Cross-platform file storage
+    this.conf.store = config; // Cross-platform file storage
   }
 }
 ```
 
 **Config Schema** (`src/types/index.ts`):
+
 ```typescript
 interface ConfigSchema {
   // Global settings
-  defaultPattern?: string;           // waves, starfield, matrix, etc.
+  defaultPattern?: string; // waves, starfield, matrix, etc.
   quality?: 'low' | 'medium' | 'high';
-  fps?: number;                      // 10-60
-  theme?: string;                    // ocean, matrix, starlight, fire, monochrome
+  fps?: number; // 10-60
+  theme?: string; // ocean, matrix, starlight, fire, monochrome
   mouseEnabled?: boolean;
 
   // Favorites (slot → favorite data)
@@ -362,12 +447,12 @@ interface ConfigSchema {
 }
 
 interface FavoriteSlot {
-  pattern: string;          // e.g., "WavePattern"
-  preset?: number;          // Preset ID
-  theme: string;            // e.g., "fire"
-  config?: any;             // Custom pattern config
-  note?: string;            // User annotation
-  savedAt: string;          // ISO timestamp
+  pattern: string; // e.g., "WavePattern"
+  preset?: number; // Preset ID
+  theme: string; // e.g., "fire"
+  config?: any; // Custom pattern config
+  note?: string; // User annotation
+  savedAt: string; // ISO timestamp
 }
 ```
 
@@ -406,12 +491,13 @@ Each pattern can be customized independently:
 ### Architecture
 
 **Theme Interface** (`src/types/index.ts`):
+
 ```typescript
 interface Theme {
-  name: string;              // Unique identifier (ocean, matrix, etc.)
-  displayName: string;       // User-facing name
-  colors: Color[];           // Array of RGB colors for interpolation
-  getColor(intensity: number): Color;  // Interpolate color by intensity (0-1)
+  name: string; // Unique identifier (ocean, matrix, etc.)
+  displayName: string; // User-facing name
+  colors: Color[]; // Array of RGB colors for interpolation
+  getColor(intensity: number): Color; // Interpolate color by intensity (0-1)
 }
 ```
 
@@ -450,9 +536,9 @@ interface Theme {
 
 ```typescript
 interface Color {
-  r: number;  // 0-255
-  g: number;  // 0-255
-  b: number;  // 0-255
+  r: number; // 0-255
+  g: number; // 0-255
+  b: number; // 0-255
 }
 
 function lerp(a: Color, b: Color, t: number): Color {
@@ -484,7 +570,7 @@ export class WavePattern implements Pattern {
     for (let x = 0; x < size.width; x++) {
       const intensity = (this.waveHeight[x] + 1) / 2; // Normalize to 0-1
       const color = this.theme.getColor(intensity);
-      buffer[y][x] = {char: '≈', color};
+      buffer[y][x] = { char: '≈', color };
     }
   }
 }
@@ -493,6 +579,7 @@ export class WavePattern implements Pattern {
 ### Theme Cycling
 
 **User control**: Press `t` to cycle through themes
+
 - Real-time update: Recreates all patterns with new theme
 - Persisted: Stored in config file
 - CLI override: `--theme fire`
@@ -575,19 +662,23 @@ class CommandExecutor {
 **Critical difference** between terminal-kit and internal coordinates:
 
 **terminal-kit** (external): 1-based indexing
+
 - Top-left: (1, 1)
 - Used in: `term.moveTo(x, y)`, mouse events
 
 **ascii-splash** (internal): 0-based indexing
+
 - Top-left: (0, 0)
 - Used in: Buffer, Pattern API, mouse handling
 
 ### Conversion
 
 **When calling terminal-kit**:
+
 ```typescript
 // Buffer uses 0-based: (0, 0) to (width-1, height-1)
-const bufferX = 0, bufferY = 0;
+const bufferX = 0,
+  bufferY = 0;
 
 // Convert to 1-based for terminal-kit
 const terminalX = bufferX + 1;
@@ -596,16 +687,18 @@ term.moveTo(terminalX, terminalY);
 ```
 
 **When receiving mouse events**:
+
 ```typescript
 // terminal-kit provides 1-based coordinates
-const event = {x: 1, y: 1};  // Top-left in terminal-kit
+const event = { x: 1, y: 1 }; // Top-left in terminal-kit
 
 // Convert to 0-based for patterns
-const patternPos = {x: event.x - 1, y: event.y - 1};  // (0, 0)
+const patternPos = { x: event.x - 1, y: event.y - 1 }; // (0, 0)
 pattern.onMouseMove?.(patternPos);
 ```
 
 **In pattern render**:
+
 ```typescript
 render(buffer: Cell[][], time: number, size: Size, mousePos?: Point) {
   // mousePos already in 0-based coordinates!
@@ -627,24 +720,29 @@ render(buffer: Cell[][], time: number, size: Size, mousePos?: Point) {
 ### Optimization Techniques
 
 **1. Dirty-Cell Tracking**
+
 - Only update changed cells (~10-15% per frame)
 - Reduces terminal writes by 90%
 
 **2. Pattern-Specific Optimizations**
+
 - Early rejection tests before expensive calculations
 - Squared distance for proximity (avoid sqrt)
 - Limit interactive elements (particles, ripples, etc.)
 - Cache repeated calculations
 
 **3. Mouse Throttling**
+
 - Limit mouse events to ~60 FPS
 - Prevent event queue overflow
 
 **4. Frame Skipping**
+
 - Drop frames gracefully if rendering too slow
 - Maintain smooth visual appearance
 
 **5. Memory Management**
+
 - Clean up old effects in pattern `render()`
 - No unbounded arrays or memory leaks
 - Preallocate buffers where possible
@@ -660,6 +758,7 @@ render(buffer: Cell[][], time: number, size: Size, mousePos?: Point) {
 ### Adding New Patterns
 
 **Step 1**: Create `src/patterns/YourPattern.ts`
+
 ```typescript
 export class YourPattern implements Pattern {
   name = 'YourPattern';
@@ -683,7 +782,9 @@ export class YourPattern implements Pattern {
   }
 
   getPresets?(): PatternPreset[] {
-    return [/* 6 presets */];
+    return [
+      /* 6 presets */
+    ];
   }
 
   applyPreset?(presetId: number): boolean {
@@ -693,6 +794,7 @@ export class YourPattern implements Pattern {
 ```
 
 **Step 2**: Register in `src/main.ts`
+
 ```typescript
 const patterns = [
   // ... existing patterns
@@ -705,6 +807,7 @@ const patterns = [
 ### Configuration Extension
 
 Add pattern config to `src/config/defaults.ts`:
+
 ```typescript
 patterns: {
   yourPattern: {
@@ -714,6 +817,7 @@ patterns: {
 ```
 
 Add type to `src/types/index.ts`:
+
 ```typescript
 interface YourPatternConfig {
   // Your configuration interface
@@ -731,5 +835,5 @@ interface YourPatternConfig {
 
 ---
 
-**Last Updated**: November 5, 2025
+**Last Updated**: January 22, 2026
 **For**: Developer contributions and deep technical understanding

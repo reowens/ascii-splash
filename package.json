@@ -1,6 +1,6 @@
 {
   "name": "ascii-splash",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A lightweight terminal ASCII animation app with 23 interactive patterns, 138 presets, 5 themes, and mouse support. Perfect ambient visuals for your IDE workspace.",
   "type": "module",
   "main": "./dist/main.js",
@@ -86,16 +86,16 @@
     "terminal-kit": "^3.1.2"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.6.1",
-    "@commitlint/config-conventional": "^19.6.0",
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
     "@eslint/js": "^9.17.0",
     "@types/jest": "^30.0.0",
-    "@types/node": "^24.10.0",
+    "@types/node": "^25.0.10",
     "@types/terminal-kit": "^2.5.7",
     "eslint": "^9.17.0",
     "husky": "^9.1.7",
     "jest": "^30.2.0",
-    "lint-staged": "^15.3.0",
+    "lint-staged": "^16.2.7",
     "prettier": "^3.4.2",
     "ts-jest": "^29.4.5",
     "tsx": "^4.20.6",

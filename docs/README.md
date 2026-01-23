@@ -1,8 +1,8 @@
 # Documentation Index
 
-> **📦 Version v0.2.0 - ESM Migration Complete, Published to npm** ✅
+> **📦 Version v0.3.0 - Next-Generation Terminal Graphics, Published to npm** ✅
 >
-> The project has completed ESM migration with conf v15.0.2, all 1505 tests passing (92.35% coverage), and is published on npm.
+> The project features 23 patterns with scene-based architecture, 2098 tests passing (92%+ coverage), and is published on npm.
 
 Welcome to **ascii-splash** documentation. Choose your path based on your role:
 
@@ -11,10 +11,12 @@ Welcome to **ascii-splash** documentation. Choose your path based on your role:
 ## Quick Navigation
 
 ### For Everyone
+
 - 📊 **[Project Status](PROJECT_STATUS.md)** - Current metrics, features, and statistics
 - 👤 **[User Guide](../README.md)** - Installation, features, usage, controls
 
 ### For Developers
+
 - 🏗️ **[Architecture Guide](ARCHITECTURE.md)** - System design, technical deep dive, patterns interface
 - 📚 **[Core Documentation](core/)** - Developer essentials
   - **[Quick Start](core/QUICK_START.md)** - Get running in 5 minutes
@@ -25,12 +27,14 @@ Welcome to **ascii-splash** documentation. Choose your path based on your role:
   - **[Configuration Guide](guides/CONFIGURATION.md)** - All configuration options
 
 ### For Maintainers
+
 - 🔧 **[Issue Tracking](issues/README.md)** - Bug reports, testing checklists, issue organization
 - 📈 **[Planning & Roadmap](planning/)** - Enhancement proposals, future features
   - **[Enhancement Proposals](planning/enhancement-proposals/)** - Fireworks, visual media, etc.
   - **[Roadmap](planning/README.md)** - v0.3.0+ planned features
 
 ### Historical Reference
+
 - 📦 **[Archive](archive/)** - Previous work, completed enhancements, session notes
   - **[Lightning Enhancement](archive/lightning-evolution/)** - V1 & V2 refactoring
   - **[Crash Analysis](archive/crash-analysis/)** - Terminal issue investigations
@@ -40,55 +44,69 @@ Welcome to **ascii-splash** documentation. Choose your path based on your role:
 
 ## Getting Started by Role
 
-| I want to... | Start here |
-|---|---|
-| **Use the app** | [User Guide](../README.md) → [Configuration Guide](guides/CONFIGURATION.md) |
-| **Understand the project** | [Project Status](PROJECT_STATUS.md) → [Architecture Guide](ARCHITECTURE.md) |
-| **Start developing** | [Quick Start](core/QUICK_START.md) → [Contributing Guide](core/CONTRIBUTING.md) |
-| **Add a new pattern** | [Contributing: Pattern Development](core/CONTRIBUTING.md#pattern-development-most-common-contribution) → [Examples](../src/patterns/) |
-| **Write tests** | [Testing Guide](guides/TESTING.md) → [Examples](../tests/unit/) |
-| **Report/track issues** | [Issue Tracking](issues/README.md) |
-| **See what's planned** | [Planning & Roadmap](planning/README.md) |
+| I want to...               | Start here                                                                                                                            |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **Use the app**            | [User Guide](../README.md) → [Configuration Guide](guides/CONFIGURATION.md)                                                           |
+| **Understand the project** | [Project Status](PROJECT_STATUS.md) → [Architecture Guide](ARCHITECTURE.md)                                                           |
+| **Start developing**       | [Quick Start](core/QUICK_START.md) → [Contributing Guide](core/CONTRIBUTING.md)                                                       |
+| **Add a new pattern**      | [Contributing: Pattern Development](core/CONTRIBUTING.md#pattern-development-most-common-contribution) → [Examples](../src/patterns/) |
+| **Write tests**            | [Testing Guide](guides/TESTING.md) → [Examples](../tests/unit/)                                                                       |
+| **Report/track issues**    | [Issue Tracking](issues/README.md)                                                                                                    |
+| **See what's planned**     | [Planning & Roadmap](planning/README.md)                                                                                              |
 
 ---
 
 ## Documentation Structure
 
 ### Root Level (3 essential files)
+
 **Primary entry points for all audiences**
+
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - Technical architecture, system design, deep dive
 - **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - Current metrics, status, quick reference
 - **[README.md](README.md)** - This index and navigation
 
 ### Core Documentation (`core/`)
+
 **For developers getting started**
+
 - **[QUICK_START.md](core/QUICK_START.md)** - 5-minute dev setup
 - **[CONTRIBUTING.md](core/CONTRIBUTING.md)** - Pattern development, contribution guidelines
 
 ### Implementation Guides (`guides/`)
+
 **How-to and operational reference**
+
 - **[TESTING.md](guides/TESTING.md)** - Test strategy, coverage targets, manual testing
 - **[RELEASE.md](guides/RELEASE.md)** - Release procedures, publishing to npm
 - **[CONFIGURATION.md](guides/CONFIGURATION.md)** - All config options, examples, per-pattern settings
 
 ### Planning (`planning/`)
+
 **Enhancement proposals and roadmap**
+
 - **[README.md](planning/README.md)** - Overview of active proposals and future features
 - **[enhancement-proposals/](planning/enhancement-proposals/)** - Fireworks, visual media, pattern audit
 - **[roadmap/](planning/roadmap/)** - v0.3.0+ planned features
 
 ### Status Reports (`status/`)
+
 **Project metrics and version snapshots**
+
 - **[reports/](status/reports/)** - Versioned reports (e.g., ESM migration, audit findings)
 
 ### Issue Tracking (`issues/`)
+
 **Bug tracking, testing checklists, maintainer reference**
+
 - **[README.md](issues/README.md)** - Issue organization overview
 - **[checklists/](issues/checklists/)** - Testing and verification checklists
 - **[completed/](issues/completed/)** - Resolved issues for reference
 
 ### Archive (`archive/`)
+
 **Historical documentation and completed work**
+
 - **[README.md](archive/README.md)** - Archive index and organization
 - **[lightning-evolution/](archive/lightning-evolution/)** - Lightning pattern V1 & V2 refactoring
 - **[crash-analysis/](archive/crash-analysis/)** - Terminal crash investigations and fixes
@@ -98,18 +116,18 @@ Welcome to **ascii-splash** documentation. Choose your path based on your role:
 
 ## Key Documentation Files
 
-| File | Purpose | Audience |
-|------|---------|----------|
-| [../README.md](../README.md) | User guide & features | End users |
-| [PROJECT_STATUS.md](PROJECT_STATUS.md) | Current metrics & status | Everyone |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System design & internals | Developers |
-| [core/QUICK_START.md](core/QUICK_START.md) | Dev setup & first contribution | New developers |
-| [core/CONTRIBUTING.md](core/CONTRIBUTING.md) | Pattern development guide | Contributors |
-| [guides/TESTING.md](guides/TESTING.md) | Test strategy & coverage | Developers & QA |
-| [guides/RELEASE.md](guides/RELEASE.md) | Release procedures | Release manager |
-| [guides/CONFIGURATION.md](guides/CONFIGURATION.md) | Config reference | Users & developers |
-| [planning/README.md](planning/README.md) | Enhancement roadmap | Everyone |
-| [issues/README.md](issues/README.md) | Issue tracking & testing | Maintainers |
+| File                                               | Purpose                        | Audience           |
+| -------------------------------------------------- | ------------------------------ | ------------------ |
+| [../README.md](../README.md)                       | User guide & features          | End users          |
+| [PROJECT_STATUS.md](PROJECT_STATUS.md)             | Current metrics & status       | Everyone           |
+| [ARCHITECTURE.md](ARCHITECTURE.md)                 | System design & internals      | Developers         |
+| [core/QUICK_START.md](core/QUICK_START.md)         | Dev setup & first contribution | New developers     |
+| [core/CONTRIBUTING.md](core/CONTRIBUTING.md)       | Pattern development guide      | Contributors       |
+| [guides/TESTING.md](guides/TESTING.md)             | Test strategy & coverage       | Developers & QA    |
+| [guides/RELEASE.md](guides/RELEASE.md)             | Release procedures             | Release manager    |
+| [guides/CONFIGURATION.md](guides/CONFIGURATION.md) | Config reference               | Users & developers |
+| [planning/README.md](planning/README.md)           | Enhancement roadmap            | Everyone           |
+| [issues/README.md](issues/README.md)               | Issue tracking & testing       | Maintainers        |
 
 ---
 
@@ -117,7 +135,7 @@ Welcome to **ascii-splash** documentation. Choose your path based on your role:
 
 - **[../examples/.splashrc.example](../examples/.splashrc.example)** - Configuration file example
 - **[../src/types/index.ts](../src/types/index.ts)** - TypeScript interface definitions
-- **[../src/patterns/](../src/patterns/)** - Pattern implementations (17 files)
+- **[../src/patterns/](../src/patterns/)** - Pattern implementations (23 files)
 - **[../tests/unit/](../tests/unit/)** - Test suite and examples
 
 ---
@@ -125,6 +143,7 @@ Welcome to **ascii-splash** documentation. Choose your path based on your role:
 ## Quick References
 
 ### Development Commands
+
 ```bash
 npm install        # Install dependencies
 npm run build      # Build TypeScript
@@ -135,13 +154,16 @@ npm run test:coverage  # Coverage report
 ```
 
 ### Key Patterns
+
 - Wave, Starfield, Matrix, Rain - Core patterns
 - Lightning, Fireworks, Plasma - Visual effects
 - Life, Maze, DNA - Algorithmic
-- Quicksilver, Particle - Interactive
+- Quicksilver, Particle, Metaball - Interactive
 - LavaLamp, Smoke, Snow - Ambient
+- Ocean Beach, Campfire, Aquarium, Night Sky, Snowfall Park - Scene-based (v0.3.0)
 
 ### Commands (in-app)
+
 - `cp#` - Switch pattern (1-9, then n)
 - `ct#` - Switch theme (1-5)
 - `c*` - Random preset
@@ -165,12 +187,14 @@ npm run test:coverage  # Coverage report
 ## Document Organization (Nov 4, 2025)
 
 ✅ **Reorganized** - Documentation structure optimized for clarity:
+
 - Separated active docs from proposals
 - Moved completed work to archive with context folders
 - Created core guides for developers
 - Clearer navigation for different audiences
 
 **Results**:
+
 - Reduced cognitive load: 10 files → organized structure with clear sections
 - Better discovery: Planning section showcases upcoming features
 - Easier maintenance: Historical content clearly separated
@@ -178,5 +202,5 @@ npm run test:coverage  # Coverage report
 
 ---
 
-**Last Updated**: November 5, 2025 (v0.2.0 Published to npm)
+**Last Updated**: January 22, 2026 (v0.3.0 Published to npm)
 **Organization Status**: ✅ Consolidated, Reorganized, and Ready
