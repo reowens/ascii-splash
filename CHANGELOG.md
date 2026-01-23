@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-01-22
+
+### Fixed
+
+- **CI/CD**: Skip tests in release workflow for faster deploys
+- **Tests**: Lower threshold for matrix visual test on CI
+- **Tests**: Increase tolerance for performance benchmark test on CI
+
+### Changed
+
+- Updated dependencies and documentation for v0.3.1
+
 ## [0.3.0] - 2025-12-23
 
 ### 🎯 Theme: "Next-Generation Terminal Graphics"
@@ -392,11 +404,10 @@ import { AnimationEngine } from 'ascii-splash';
     - TypeScript compilation checks
     - Build verification and package validation
     - Coverage upload to Codecov
-  - **Release Workflow**: Automated npm publishing on git tag push (v*.*.\*)
-    - Full test suite execution
+  - **Release Workflow**: Automated GitHub Release creation on git tag push (v*.*.\*)
     - Version/tag verification
-    - Automated npm publish (requires NPM_TOKEN secret)
     - GitHub Release creation with changelog notes
+    - Note: npm publishing is done manually via `npm publish`
   - **Dependency Review**: Security scanning for pull requests
     - Vulnerability checks for new dependencies
     - Automated PR comments with security findings
@@ -717,7 +728,8 @@ Built with `terminal-kit` for terminal control and inspired by classic terminal 
 - Performance optimizations
 - Extended terminal emulator support
 
-[Unreleased]: https://github.com/reowens/ascii-splash/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/reowens/ascii-splash/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/reowens/ascii-splash/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/reowens/ascii-splash/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/reowens/ascii-splash/compare/v0.1.5...v0.2.0
 [0.1.5]: https://github.com/reowens/ascii-splash/compare/v0.1.4...v0.1.5
