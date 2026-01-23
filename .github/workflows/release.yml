@@ -1,4 +1,4 @@
-name: Release & Publish
+name: Release
 
 on:
   push:
@@ -9,64 +9,25 @@ permissions:
   contents: write
 
 jobs:
-  publish-npm:
-    name: Publish to npm
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        registry-url: 'https://registry.npmjs.org'
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Build
-      run: npm run build
-    
-    - name: Verify package version matches tag
-      run: |
-        TAG_VERSION=${GITHUB_REF#refs/tags/v}
-        PACKAGE_VERSION=$(jq -r '.version' package.json)
-        
-        if [ "$TAG_VERSION" != "$PACKAGE_VERSION" ]; then
-          echo "Error: Tag version ($TAG_VERSION) does not match package.json version ($PACKAGE_VERSION)"
-          exit 1
-        fi
-        
-        echo "Version check passed: $TAG_VERSION"
-    
-    - name: Publish to npm
-      run: npm publish
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
   create-github-release:
     name: Create GitHub Release
-    needs: publish-npm
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    
+
     - name: Extract version from tag
       id: version
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-    
+
     - name: Extract changelog for this version
       id: changelog
       run: |
         VERSION=${{ steps.version.outputs.VERSION }}
-        
+
         # Try to extract changelog section for this version
         if grep -q "## \[$VERSION\]" CHANGELOG.md 2>/dev/null; then
           awk "/## \[$VERSION\]/{flag=1; next} /## \[/{flag=0} flag" CHANGELOG.md > release_notes.md
@@ -77,14 +38,14 @@ jobs:
           echo "" >> release_notes.md
           echo "See [CHANGELOG.md](CHANGELOG.md) for details." >> release_notes.md
         fi
-        
+
         # If release notes are empty, add default message
         if [ ! -s release_notes.md ]; then
           echo "Release $VERSION" > release_notes.md
           echo "" >> release_notes.md
           echo "See [CHANGELOG.md](CHANGELOG.md) for details." >> release_notes.md
         fi
-    
+
     - name: Create GitHub Release
       uses: actions/create-release@v1
       env:
