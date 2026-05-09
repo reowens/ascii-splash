@@ -1,6 +1,6 @@
 import terminalKit from 'terminal-kit';
 import { Buffer } from './Buffer.js';
-  import { Size } from '../types/index.js';
+import { Size } from '../types/index.js';
 
 const term = terminalKit.terminal;
 
@@ -10,23 +10,23 @@ export class TerminalRenderer {
   private mouseEnabled: boolean;
   private readonly MAX_CHANGES_PER_FRAME = 500; // Limit to prevent terminal overload
 
-  constructor(mouseEnabled: boolean = true) {
+  constructor(mouseEnabled = true) {
     this.mouseEnabled = mouseEnabled;
     this.size = { width: term.width, height: term.height };
     this.buffer = new Buffer(this.size);
-    
+
     // Setup terminal
     term.fullscreen(true);
     term.clear();
     term.hideCursor();
-    
+
     // Enable input (with or without mouse)
     if (this.mouseEnabled) {
       term.grabInput({ mouse: 'motion' });
     } else {
       term.grabInput({});
     }
-    
+
     // Handle resize
     term.on('resize', (width: number, height: number) => {
       this.handleResize(width, height);
@@ -60,48 +60,56 @@ export class TerminalRenderer {
 
   render(): number {
     const changes = this.buffer.getChanges();
-    
+
     // CRITICAL: Batch all writes into a single string to prevent
     // incomplete ANSI escape sequences from corrupting the terminal.
     // This is essential for high-frequency rendering (30-60 FPS).
-    
+
     if (changes.length === 0) {
       this.buffer.swap();
       return 0;
     }
-    
+
     // Build complete output string with all escape sequences
     // This ensures atomic writes and prevents terminal corruption
     let outputBuffer = '';
-    
+
     for (const change of changes) {
       // Add cursor position (terminal-kit uses 1-based indexing)
-      outputBuffer += `\x1b[${change.y + 1};${change.x + 1}H`;
-      
-      // Add color if present
+      outputBuffer += `\x1b[${String(change.y + 1)};${String(change.x + 1)}H`;
+
+      // Add foreground color if present
       if (change.cell.color) {
         const r = Math.max(0, Math.min(255, change.cell.color.r));
         const g = Math.max(0, Math.min(255, change.cell.color.g));
         const b = Math.max(0, Math.min(255, change.cell.color.b));
-        outputBuffer += `\x1b[38;2;${r};${g};${b}m`;
+        outputBuffer += `\x1b[38;2;${String(r)};${String(g)};${String(b)}m`;
       } else {
         outputBuffer += '\x1b[39m'; // Default foreground color
       }
-      
+
+      // Add background color if present (used by half-block / symbol renderers)
+      if (change.cell.bg) {
+        const br = Math.max(0, Math.min(255, change.cell.bg.r));
+        const bgg = Math.max(0, Math.min(255, change.cell.bg.g));
+        const bb = Math.max(0, Math.min(255, change.cell.bg.b));
+        outputBuffer += `\x1b[48;2;${String(br)};${String(bgg)};${String(bb)}m`;
+      }
+
       // Add character (escape special characters if needed)
       outputBuffer += change.cell.char;
-      
+
       // Reset style after each character to prevent style bleed
       outputBuffer += '\x1b[0m';
     }
-    
+
     // Write entire frame as single atomic operation
     // This prevents incomplete escape sequences from reaching the terminal
     process.stdout.write(outputBuffer);
-    
+
     // Swap buffers
     this.buffer.swap();
-    
+
     return changes.length;
   }
 
@@ -115,7 +123,12 @@ export class TerminalRenderer {
 
   // Overlay management (delegates to Buffer)
 
-  setOverlayText(x: number, y: number, text: string, color?: { r: number; g: number; b: number }): void {
+  setOverlayText(
+    x: number,
+    y: number,
+    text: string,
+    color?: { r: number; g: number; b: number }
+  ): void {
     this.buffer.setOverlayText(x, y, text, color);
   }
 

@@ -80,10 +80,24 @@ export class Buffer {
         const prevG = prev.color?.g ?? 0;
         const prevB = prev.color?.b ?? 0;
 
-        if (curr.char !== prev.char ||
-            currR !== prevR ||
-            currG !== prevG ||
-            currB !== prevB) {
+        // Use -1 sentinel so undefined → undefined transitions do not
+        // register as changes, but undefined → defined (and vice versa) do.
+        const currBgR = curr.bg?.r ?? -1;
+        const currBgG = curr.bg?.g ?? -1;
+        const currBgB = curr.bg?.b ?? -1;
+        const prevBgR = prev.bg?.r ?? -1;
+        const prevBgG = prev.bg?.g ?? -1;
+        const prevBgB = prev.bg?.b ?? -1;
+
+        if (
+          curr.char !== prev.char ||
+          currR !== prevR ||
+          currG !== prevG ||
+          currB !== prevB ||
+          currBgR !== prevBgR ||
+          currBgG !== prevBgG ||
+          currBgB !== prevBgB
+        ) {
           rowsToCheck.add(y);
         }
       }
@@ -96,7 +110,7 @@ export class Buffer {
     for (const y of rowsToCheck) {
       for (let x = 0; x < this.size.width; x++) {
         const animCell = this.buffer[y][x];
-        const key = `${x},${y}`;
+        const key = `${String(x)},${String(y)}`;
         const overlayCell = this.overlayBuffer.get(key);
 
         // If overlay exists at this position, use it; otherwise use animation cell
@@ -111,10 +125,22 @@ export class Buffer {
         const prevG = prev.color?.g ?? 0;
         const prevB = prev.color?.b ?? 0;
 
-        if (finalCell.char !== prev.char ||
-            finalR !== prevR ||
-            finalG !== prevG ||
-            finalB !== prevB) {
+        const finalBgR = finalCell.bg?.r ?? -1;
+        const finalBgG = finalCell.bg?.g ?? -1;
+        const finalBgB = finalCell.bg?.b ?? -1;
+        const prevBgR = prev.bg?.r ?? -1;
+        const prevBgG = prev.bg?.g ?? -1;
+        const prevBgB = prev.bg?.b ?? -1;
+
+        if (
+          finalCell.char !== prev.char ||
+          finalR !== prevR ||
+          finalG !== prevG ||
+          finalB !== prevB ||
+          finalBgR !== prevBgR ||
+          finalBgG !== prevBgG ||
+          finalBgB !== prevBgB
+        ) {
           changes.push({ x, y, cell: finalCell });
         }
       }
@@ -147,7 +173,7 @@ export class Buffer {
    */
   setOverlay(x: number, y: number, cell: Cell): void {
     if (x >= 0 && x < this.size.width && y >= 0 && y < this.size.height) {
-      const key = `${x},${y}`;
+      const key = `${String(x)},${String(y)}`;
       this.overlayBuffer.set(key, cell);
       this.overlayDirtyRows.add(y);
     }
@@ -156,7 +182,12 @@ export class Buffer {
   /**
    * Set overlay text at the specified position with optional color.
    */
-  setOverlayText(x: number, y: number, text: string, color?: { r: number; g: number; b: number }): void {
+  setOverlayText(
+    x: number,
+    y: number,
+    text: string,
+    color?: { r: number; g: number; b: number }
+  ): void {
     for (let i = 0; i < text.length; i++) {
       const char = text[i];
       const cell: Cell = { char, color };
@@ -168,7 +199,7 @@ export class Buffer {
    * Clear overlay at a specific position.
    */
   clearOverlayCell(x: number, y: number): void {
-    const key = `${x},${y}`;
+    const key = `${String(x)},${String(y)}`;
     if (this.overlayBuffer.has(key)) {
       this.overlayBuffer.delete(key);
       this.overlayDirtyRows.add(y);
@@ -183,7 +214,7 @@ export class Buffer {
 
     let hasOverlays = false;
     for (let x = 0; x < this.size.width; x++) {
-      const key = `${x},${y}`;
+      const key = `${String(x)},${String(y)}`;
       if (this.overlayBuffer.has(key)) {
         this.overlayBuffer.delete(key);
         hasOverlays = true;
