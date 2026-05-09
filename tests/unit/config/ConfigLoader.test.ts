@@ -1,11 +1,11 @@
 /**
  * Unit tests for ConfigLoader
  * Target: 85%+ coverage
- * 
+ *
  * Note: We mock the Conf library since it interacts with the filesystem
  */
 
-import { jest, describe, it, expect, beforeEach, afterEach, test } from '@jest/globals';
+import { jest, describe, expect, beforeEach, afterEach, test } from '@jest/globals';
 import { ConfigSchema, CliOptions, FavoriteSlot } from '../../../src/types/index.js';
 import { defaultConfig, qualityPresets } from '../../../src/config/defaults.js';
 
@@ -15,7 +15,7 @@ const mockStore = {
   get: jest.fn(),
   set: jest.fn(),
   clear: jest.fn(),
-  path: '/mock/path/.splashrc.json'
+  path: '/mock/path/.splashrc.json',
 };
 
 // Create mock Conf constructor
@@ -23,7 +23,7 @@ const MockConf = jest.fn().mockImplementation(() => mockStore);
 
 // Mock the Conf library with ESM-compatible approach
 jest.unstable_mockModule('conf', () => ({
-  default: MockConf
+  default: MockConf,
 }));
 
 // Import ConfigLoader after mocking
@@ -53,7 +53,7 @@ describe('ConfigLoader', () => {
       expect(MockConf).toHaveBeenCalledWith({
         projectName: 'ascii-splash',
         defaults: defaultConfig,
-        configName: '.splashrc'
+        configName: '.splashrc',
       });
     });
   });
@@ -73,7 +73,7 @@ describe('ConfigLoader', () => {
       const cliOptions: CliOptions = {
         pattern: 'starfield',
         fps: 60,
-        theme: 'fire'
+        theme: 'fire',
       };
 
       const config = configLoader.load(cliOptions);
@@ -91,7 +91,7 @@ describe('ConfigLoader', () => {
       });
 
       const cliOptions: CliOptions = {
-        pattern: 'starfield'
+        pattern: 'starfield',
       };
 
       const config = configLoader.load(cliOptions);
@@ -109,11 +109,11 @@ describe('ConfigLoader', () => {
           theme: 'starlight',
           mouseEnabled: false,
           patterns: {
-            waves: { frequency: 0.2 }
+            waves: { frequency: 0.2 },
           },
           favorites: {
-            1: { pattern: 'WavePattern', theme: 'ocean' }
-          }
+            1: { pattern: 'WavePattern', theme: 'ocean' },
+          },
         };
         return fileConfig[key];
       });
@@ -133,7 +133,7 @@ describe('ConfigLoader', () => {
       mockStore.has.mockReturnValue(false);
 
       const cliOptions: CliOptions = {
-        quality: 'high'
+        quality: 'high',
       };
 
       const config = configLoader.load(cliOptions);
@@ -145,7 +145,7 @@ describe('ConfigLoader', () => {
       mockStore.has.mockReturnValue(false);
 
       const cliOptions: CliOptions = {
-        mouse: false
+        mouse: false,
       };
 
       const config = configLoader.load(cliOptions);
@@ -159,7 +159,7 @@ describe('ConfigLoader', () => {
       mockStore.get.mockImplementation((key: any) => {
         if (key === 'patterns') {
           return {
-            waves: { frequency: 0.5 } // Only override frequency
+            waves: { frequency: 0.5 }, // Only override frequency
           };
         }
       });
@@ -178,7 +178,7 @@ describe('ConfigLoader', () => {
       const config: ConfigSchema = {
         defaultPattern: 'starfield',
         fps: 60,
-        theme: 'fire'
+        theme: 'fire',
       };
 
       configLoader.save(config);
@@ -221,7 +221,7 @@ describe('ConfigLoader', () => {
     test('returns explicit fps when set', () => {
       const config: ConfigSchema = {
         fps: 45,
-        quality: 'high'
+        quality: 'high',
       };
 
       const fps = ConfigLoader.getFpsFromConfig(config);
@@ -230,7 +230,7 @@ describe('ConfigLoader', () => {
 
     test('returns quality preset fps when no explicit fps', () => {
       const config: ConfigSchema = {
-        quality: 'high'
+        quality: 'high',
       };
 
       const fps = ConfigLoader.getFpsFromConfig(config);
@@ -246,7 +246,7 @@ describe('ConfigLoader', () => {
 
     test('respects low quality preset', () => {
       const config: ConfigSchema = {
-        quality: 'low'
+        quality: 'low',
       };
 
       const fps = ConfigLoader.getFpsFromConfig(config);
@@ -260,11 +260,11 @@ describe('ConfigLoader', () => {
         pattern: 'WavePattern',
         preset: 3,
         theme: 'ocean',
-        savedAt: '2025-01-01T00:00:00.000Z'
+        savedAt: '2025-01-01T00:00:00.000Z',
       };
 
       mockStore.get.mockReturnValue({
-        1: favorite
+        1: favorite,
       });
 
       const result = configLoader.getFavorite(1);
@@ -292,13 +292,13 @@ describe('ConfigLoader', () => {
         pattern: 'StarfieldPattern',
         preset: 5,
         theme: 'starlight',
-        savedAt: '2025-01-01T00:00:00.000Z'
+        savedAt: '2025-01-01T00:00:00.000Z',
       };
 
       configLoader.saveFavorite(1, favorite);
 
       expect(mockStore.set).toHaveBeenCalledWith('favorites', {
-        1: favorite
+        1: favorite,
       });
     });
 
@@ -306,32 +306,32 @@ describe('ConfigLoader', () => {
       const oldFavorite: FavoriteSlot = {
         pattern: 'WavePattern',
         theme: 'ocean',
-        savedAt: '2025-01-01T00:00:00.000Z'
+        savedAt: '2025-01-01T00:00:00.000Z',
       };
 
       mockStore.get.mockReturnValue({
         1: oldFavorite,
-        2: { pattern: 'MatrixPattern', theme: 'matrix', savedAt: '2025-01-01' }
+        2: { pattern: 'MatrixPattern', theme: 'matrix', savedAt: '2025-01-01' },
       });
 
       const newFavorite: FavoriteSlot = {
         pattern: 'StarfieldPattern',
         theme: 'starlight',
-        savedAt: '2025-01-02T00:00:00.000Z'
+        savedAt: '2025-01-02T00:00:00.000Z',
       };
 
       configLoader.saveFavorite(1, newFavorite);
 
       expect(mockStore.set).toHaveBeenCalledWith('favorites', {
         1: newFavorite,
-        2: { pattern: 'MatrixPattern', theme: 'matrix', savedAt: '2025-01-01' }
+        2: { pattern: 'MatrixPattern', theme: 'matrix', savedAt: '2025-01-01' },
       });
     });
 
     test('getAllFavorites returns all favorites', () => {
       const favorites = {
         1: { pattern: 'WavePattern', theme: 'ocean', savedAt: '2025-01-01' },
-        2: { pattern: 'StarfieldPattern', theme: 'starlight', savedAt: '2025-01-02' }
+        2: { pattern: 'StarfieldPattern', theme: 'starlight', savedAt: '2025-01-02' },
       };
 
       mockStore.get.mockReturnValue(favorites);
@@ -350,25 +350,25 @@ describe('ConfigLoader', () => {
     test('deleteFavorite removes a favorite', () => {
       mockStore.get.mockReturnValue({
         1: { pattern: 'WavePattern', theme: 'ocean', savedAt: '2025-01-01' },
-        2: { pattern: 'StarfieldPattern', theme: 'starlight', savedAt: '2025-01-02' }
+        2: { pattern: 'StarfieldPattern', theme: 'starlight', savedAt: '2025-01-02' },
       });
 
       configLoader.deleteFavorite(1);
 
       expect(mockStore.set).toHaveBeenCalledWith('favorites', {
-        2: { pattern: 'StarfieldPattern', theme: 'starlight', savedAt: '2025-01-02' }
+        2: { pattern: 'StarfieldPattern', theme: 'starlight', savedAt: '2025-01-02' },
       });
     });
 
     test('deleteFavorite handles non-existent slot', () => {
       mockStore.get.mockReturnValue({
-        1: { pattern: 'WavePattern', theme: 'ocean', savedAt: '2025-01-01' }
+        1: { pattern: 'WavePattern', theme: 'ocean', savedAt: '2025-01-01' },
       });
 
       configLoader.deleteFavorite(99);
 
       expect(mockStore.set).toHaveBeenCalledWith('favorites', {
-        1: { pattern: 'WavePattern', theme: 'ocean', savedAt: '2025-01-01' }
+        1: { pattern: 'WavePattern', theme: 'ocean', savedAt: '2025-01-01' },
       });
     });
   });
@@ -376,7 +376,7 @@ describe('ConfigLoader', () => {
   describe('Error Handling', () => {
     test('handles config file read errors', () => {
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-      
+
       mockStore.has.mockImplementation(() => {
         throw new Error('File system error');
       });

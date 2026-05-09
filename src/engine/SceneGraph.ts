@@ -2,18 +2,18 @@ import { SceneLayer, Cell, Size } from '../types/index.js';
 
 /**
  * SceneGraph - Manages layered rendering for scene-based patterns
- * 
+ *
  * Provides:
  * - Layer management (add/remove/get)
  * - Z-ordering (automatic sorting by zIndex)
  * - Update cycle (propagates deltaTime to all visible layers)
  * - Render cycle (renders bottom-to-top, respecting z-order)
- * 
+ *
  * Used by v0.3.0 scene-based patterns (Ocean Beach, Campfire, etc.)
  * to manage multiple animated layers (sky, clouds, ocean, beach, etc.)
  */
 export class SceneGraph {
-  private layers: Map<string, SceneLayer> = new Map();
+  private layers = new Map<string, SceneLayer>();
 
   /**
    * Add a layer to the scene

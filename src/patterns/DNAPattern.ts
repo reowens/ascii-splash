@@ -2,11 +2,11 @@ import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
 import { Point3D, projectTo2D, inBounds, clamp } from '../utils/math.js';
 
 interface DNAConfig {
-  rotationSpeed: number;      // radians per second
-  helixRadius: number;        // width of helix
-  basePairDensity: number;    // pairs per screen height
-  twistRate: number;          // full rotations per screen height
-  showLabels: boolean;        // show A-T, G-C labels
+  rotationSpeed: number; // radians per second
+  helixRadius: number; // width of helix
+  basePairDensity: number; // pairs per screen height
+  twistRate: number; // full rotations per screen height
+  showLabels: boolean; // show A-T, G-C labels
 }
 
 interface DNAPreset {
@@ -28,9 +28,9 @@ export class DNAPattern implements Pattern {
   private config: DNAConfig;
   private theme: Theme;
   private basePairs: BasePair[] = [];
-  private mutationCenters: Array<{ y: number; time: number; radius: number }> = [];
+  private mutationCenters: { y: number; time: number; radius: number }[] = [];
   private twistOffset = 0;
-  private currentTime: number = 0;
+  private currentTime = 0;
 
   // Character sets for different elements
   private strandChars = ['│', '║', '┃'];
@@ -42,38 +42,74 @@ export class DNAPattern implements Pattern {
       id: 1,
       name: 'Slow Helix',
       description: 'Gentle rotation, clearly visible structure',
-      config: { rotationSpeed: 0.3, helixRadius: 8, basePairDensity: 0.3, twistRate: 2, showLabels: true }
+      config: {
+        rotationSpeed: 0.3,
+        helixRadius: 8,
+        basePairDensity: 0.3,
+        twistRate: 2,
+        showLabels: true,
+      },
     },
     {
       id: 2,
       name: 'Fast Spin',
       description: 'Rapid rotation blur effect',
-      config: { rotationSpeed: 1.5, helixRadius: 10, basePairDensity: 0.4, twistRate: 3, showLabels: false }
+      config: {
+        rotationSpeed: 1.5,
+        helixRadius: 10,
+        basePairDensity: 0.4,
+        twistRate: 3,
+        showLabels: false,
+      },
     },
     {
       id: 3,
       name: 'Unwinding',
       description: 'Strands separate and reconnect',
-      config: { rotationSpeed: 0.5, helixRadius: 15, basePairDensity: 0.25, twistRate: 1.5, showLabels: false }
+      config: {
+        rotationSpeed: 0.5,
+        helixRadius: 15,
+        basePairDensity: 0.25,
+        twistRate: 1.5,
+        showLabels: false,
+      },
     },
     {
       id: 4,
       name: 'Replication',
       description: 'Two helixes side by side',
-      config: { rotationSpeed: 0.4, helixRadius: 6, basePairDensity: 0.5, twistRate: 2.5, showLabels: true }
+      config: {
+        rotationSpeed: 0.4,
+        helixRadius: 6,
+        basePairDensity: 0.5,
+        twistRate: 2.5,
+        showLabels: true,
+      },
     },
     {
       id: 5,
       name: 'Mutation',
       description: 'Random base pair changes with flash',
-      config: { rotationSpeed: 0.6, helixRadius: 9, basePairDensity: 0.35, twistRate: 2, showLabels: true }
+      config: {
+        rotationSpeed: 0.6,
+        helixRadius: 9,
+        basePairDensity: 0.35,
+        twistRate: 2,
+        showLabels: true,
+      },
     },
     {
       id: 6,
       name: 'Rainbow',
       description: 'Multi-color base pairs cycling',
-      config: { rotationSpeed: 0.8, helixRadius: 10, basePairDensity: 0.4, twistRate: 2, showLabels: false }
-    }
+      config: {
+        rotationSpeed: 0.8,
+        helixRadius: 10,
+        basePairDensity: 0.4,
+        twistRate: 2,
+        showLabels: false,
+      },
+    },
   ];
 
   constructor(theme: Theme, config?: Partial<DNAConfig>) {
@@ -84,7 +120,7 @@ export class DNAPattern implements Pattern {
       basePairDensity: 0.3,
       twistRate: 2,
       showLabels: true,
-      ...config
+      ...config,
     };
     this.initializeBasePairs(50); // Start with some base pairs
   }
@@ -92,14 +128,14 @@ export class DNAPattern implements Pattern {
   private initializeBasePairs(height: number): void {
     this.basePairs = [];
     const pairCount = Math.floor(height * this.config.basePairDensity);
-    
+
     for (let i = 0; i < pairCount; i++) {
       const y = (i / pairCount) * height;
       this.basePairs.push({
         y,
         type: this.randomBasePairType(),
         flash: 0,
-        pulsePhase: Math.random() * Math.PI * 2
+        pulsePhase: Math.random() * Math.PI * 2,
       });
     }
   }
@@ -118,10 +154,13 @@ export class DNAPattern implements Pattern {
     this.twistOffset = (time * rotationSpeed * 0.001) % (Math.PI * 2);
 
     // Ensure we have base pairs for current height
-    if (this.basePairs.length === 0 || Math.abs(this.basePairs[this.basePairs.length - 1].y - height) > 10) {
+    if (
+      this.basePairs.length === 0 ||
+      Math.abs(this.basePairs[this.basePairs.length - 1].y - height) > 10
+    ) {
       this.initializeBasePairs(height);
-    // Track current time for mutations
-    this.currentTime = time;
+      // Track current time for mutations
+      this.currentTime = time;
     }
 
     // Apply mouse twist effect
@@ -135,26 +174,27 @@ export class DNAPattern implements Pattern {
       if (pair.y < 0 || pair.y >= height) continue;
 
       const y = Math.floor(pair.y);
-      
+
       // Update pulse phase for breathing effect
       pair.pulsePhase += 0.02;
       if (pair.pulsePhase > Math.PI * 2) pair.pulsePhase -= Math.PI * 2;
-      
+
       // Calculate twist angle for this height
       const heightRatio = pair.y / height;
-      const twistAngle = this.twistOffset + heightRatio * twistRate * Math.PI * 2 + mouseTwistInfluence;
+      const twistAngle =
+        this.twistOffset + heightRatio * twistRate * Math.PI * 2 + mouseTwistInfluence;
 
       // Calculate 3D positions for both strands
       const strand1: Point3D = {
         x: Math.cos(twistAngle) * helixRadius,
         y: pair.y - height / 2,
-        z: Math.sin(twistAngle) * helixRadius
+        z: Math.sin(twistAngle) * helixRadius,
       };
 
       const strand2: Point3D = {
         x: Math.cos(twistAngle + Math.PI) * helixRadius,
         y: pair.y - height / 2,
-        z: Math.sin(twistAngle + Math.PI) * helixRadius
+        z: Math.sin(twistAngle + Math.PI) * helixRadius,
       };
 
       // Project to 2D
@@ -182,13 +222,13 @@ export class DNAPattern implements Pattern {
       // Draw base pair connecting line
       const minX = Math.min(x1, x2);
       const maxX = Math.max(x1, x2);
-      
+
       for (let x = minX; x <= maxX; x++) {
         if (inBounds(x, y, width, height)) {
           const progress = (x - minX) / (maxX - minX || 1);
           const pulseFactor = 0.9 + Math.sin(pair.pulsePhase) * 0.1; // 0.8-1.0 range
           const intensity = clamp((0.4 + mutationIntensity * 0.6 + pair.flash) * pulseFactor, 0, 1);
-          
+
           let char = this.pairChars[1];
           if (x === minX || x === maxX) {
             char = progress < 0.5 ? this.strandChars[1] : this.strandChars[1];
@@ -196,28 +236,31 @@ export class DNAPattern implements Pattern {
 
           buffer[y][x] = {
             char,
-            color: this.theme.getColor(intensity)
+            color: this.theme.getColor(intensity),
           };
         }
       }
 
       // Draw base labels
       if (showLabels && y % 2 === 0) {
-        const [base1, base2] = pair.type.split('') as ['A' | 'T' | 'G' | 'C', 'A' | 'T' | 'G' | 'C'];
-        
+        const [base1, base2] = pair.type.split('') as [
+          'A' | 'T' | 'G' | 'C',
+          'A' | 'T' | 'G' | 'C',
+        ];
+
         const pulseFactor = 0.9 + Math.sin(pair.pulsePhase) * 0.1;
-        
+
         if (inBounds(x1, y, width, height) && depth1 > 0.3) {
           buffer[y][x1] = {
             char: this.baseChars[base1],
-            color: this.theme.getColor(clamp((depth1 + mutationIntensity) * pulseFactor, 0, 1))
+            color: this.theme.getColor(clamp((depth1 + mutationIntensity) * pulseFactor, 0, 1)),
           };
         }
-        
+
         if (inBounds(x2, y, width, height) && depth2 > 0.3) {
           buffer[y][x2] = {
             char: this.baseChars[base2],
-            color: this.theme.getColor(clamp((depth2 + mutationIntensity) * pulseFactor, 0, 1))
+            color: this.theme.getColor(clamp((depth2 + mutationIntensity) * pulseFactor, 0, 1)),
           };
         }
       }
@@ -242,7 +285,7 @@ export class DNAPattern implements Pattern {
     this.mutationCenters.push({
       y: pos.y,
       time: this.currentTime,
-      radius: 15
+      radius: 15,
     });
 
     // Mutate nearby base pairs
@@ -266,14 +309,14 @@ export class DNAPattern implements Pattern {
   getMetrics(): Record<string, number> {
     return {
       basePairs: this.basePairs.length,
-      mutations: this.mutationCenters.length
+      mutations: this.mutationCenters.length,
     };
   }
 
   applyPreset(presetId: number): boolean {
     const preset = DNAPattern.PRESETS.find(p => p.id === presetId);
     if (!preset) return false;
-    
+
     this.config = { ...preset.config };
     this.reset();
     return true;

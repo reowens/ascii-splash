@@ -6,7 +6,7 @@ export class PerlinNoise {
   private permutation: number[];
   private p: number[];
 
-  constructor(seed: number = 0) {
+  constructor(seed = 0) {
     // Generate permutation table based on seed
     this.permutation = [];
     for (let i = 0; i < 256; i++) {
@@ -78,7 +78,7 @@ export class PerlinNoise {
    * @param persistence Amplitude decrease per octave
    * @returns Noise value between -1 and 1
    */
-  octaveNoise2D(x: number, y: number, octaves: number = 4, persistence: number = 0.5): number {
+  octaveNoise2D(x: number, y: number, octaves = 4, persistence = 0.5): number {
     let total = 0;
     let frequency = 1;
     let amplitude = 1;
@@ -108,10 +108,10 @@ export function getGlobalNoise(seed?: number): PerlinNoise {
 /**
  * Simple turbulence function (absolute noise)
  */
-export function turbulence(x: number, y: number, size: number = 32): number {
+export function turbulence(x: number, y: number, size = 32): number {
   const noise = getGlobalNoise();
   let value = 0;
-  let initialSize = size;
+  const initialSize = size;
 
   while (size >= 1) {
     value += Math.abs(noise.noise2D(x / size, y / size)) * size;

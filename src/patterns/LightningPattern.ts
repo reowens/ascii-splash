@@ -39,47 +39,95 @@ export class LightningPattern implements Pattern {
   private config: LightningConfig;
   private theme: Theme;
   private bolts: LightningBolt[] = [];
-  private lastStrike: number = 0;
+  private lastStrike = 0;
   private chargeParticles: Point[] = [];
-  private currentTime: number = 0;
+  private currentTime = 0;
 
   private static readonly PRESETS: LightningPreset[] = [
     {
       id: 1,
       name: 'Cloud Strike',
       description: 'Natural cloud-to-ground lightning',
-      config: { branchProbability: 0.25, fadeTime: 25, strikeInterval: 2000, mainPathJaggedness: 8, branchSpread: 10, thickness: 3, maxBranchDepth: 2 }
+      config: {
+        branchProbability: 0.25,
+        fadeTime: 25,
+        strikeInterval: 2000,
+        mainPathJaggedness: 8,
+        branchSpread: 10,
+        thickness: 3,
+        maxBranchDepth: 2,
+      },
     },
     {
       id: 2,
       name: 'Tesla Coil',
       description: 'Erratic, highly branched arcs',
-      config: { branchProbability: 0.45, fadeTime: 20, strikeInterval: 800, mainPathJaggedness: 12, branchSpread: 15, thickness: 2, maxBranchDepth: 3 }
+      config: {
+        branchProbability: 0.45,
+        fadeTime: 20,
+        strikeInterval: 800,
+        mainPathJaggedness: 12,
+        branchSpread: 15,
+        thickness: 2,
+        maxBranchDepth: 3,
+      },
     },
     {
       id: 3,
       name: 'Ball Lightning',
       description: 'Spherical discharge, radial bolts',
-      config: { branchProbability: 0.35, fadeTime: 30, strikeInterval: 1500, mainPathJaggedness: 6, branchSpread: 12, thickness: 2, maxBranchDepth: 2 }
+      config: {
+        branchProbability: 0.35,
+        fadeTime: 30,
+        strikeInterval: 1500,
+        mainPathJaggedness: 6,
+        branchSpread: 12,
+        thickness: 2,
+        maxBranchDepth: 2,
+      },
     },
     {
       id: 4,
       name: 'Fork Lightning',
       description: 'Multiple distinct branches',
-      config: { branchProbability: 0.4, fadeTime: 28, strikeInterval: 2500, mainPathJaggedness: 10, branchSpread: 12, thickness: 3, maxBranchDepth: 3 }
+      config: {
+        branchProbability: 0.4,
+        fadeTime: 28,
+        strikeInterval: 2500,
+        mainPathJaggedness: 10,
+        branchSpread: 12,
+        thickness: 3,
+        maxBranchDepth: 3,
+      },
     },
     {
       id: 5,
       name: 'Chain Lightning',
       description: 'Continuous arcs, minimal fade',
-      config: { branchProbability: 0.15, fadeTime: 15, strikeInterval: 600, mainPathJaggedness: 5, branchSpread: 8, thickness: 2, maxBranchDepth: 1 }
+      config: {
+        branchProbability: 0.15,
+        fadeTime: 15,
+        strikeInterval: 600,
+        mainPathJaggedness: 5,
+        branchSpread: 8,
+        thickness: 2,
+        maxBranchDepth: 1,
+      },
     },
     {
       id: 6,
       name: 'Spider Lightning',
       description: 'Horizontal spread, many thin branches',
-      config: { branchProbability: 0.5, fadeTime: 35, strikeInterval: 3000, mainPathJaggedness: 10, branchSpread: 15, thickness: 1, maxBranchDepth: 2 }
-    }
+      config: {
+        branchProbability: 0.5,
+        fadeTime: 35,
+        strikeInterval: 3000,
+        mainPathJaggedness: 10,
+        branchSpread: 15,
+        thickness: 1,
+        maxBranchDepth: 2,
+      },
+    },
   ];
 
   constructor(theme: Theme, config?: Partial<LightningConfig>) {
@@ -91,9 +139,9 @@ export class LightningPattern implements Pattern {
       mainPathJaggedness: 8,
       branchSpread: 10,
       maxBranchDepth: 2,
-      ...config
+      ...config,
     };
-    
+
     // Validate numeric config values
     this.config = {
       branchProbability: validateProbability(merged.branchProbability),
@@ -102,7 +150,7 @@ export class LightningPattern implements Pattern {
       mainPathJaggedness: clamp(merged.mainPathJaggedness, 3, 20),
       branchSpread: clamp(merged.branchSpread, 5, 20),
       thickness: clamp(merged.thickness ?? 2, 1, 3),
-      maxBranchDepth: clamp(merged.maxBranchDepth, 1, 3)
+      maxBranchDepth: clamp(merged.maxBranchDepth, 1, 3),
     };
   }
 
@@ -156,7 +204,7 @@ export class LightningPattern implements Pattern {
 
       branchWaypoints.push({
         x: start.x + perpX * side * spread + (dx / length) * jag,
-        y: start.y + perpY * side * spread + (dy / length) * jag
+        y: start.y + perpY * side * spread + (dy / length) * jag,
       });
     }
 
@@ -166,8 +214,10 @@ export class LightningPattern implements Pattern {
       const bEnd = branchWaypoints[j + 1];
 
       const branchLinePoints = bresenhamLine(
-        Math.floor(bStart.x), Math.floor(bStart.y),
-        Math.floor(bEnd.x), Math.floor(bEnd.y)
+        Math.floor(bStart.x),
+        Math.floor(bStart.y),
+        Math.floor(bEnd.x),
+        Math.floor(bEnd.y)
       );
 
       // Branch intensity fades along its length
@@ -181,7 +231,7 @@ export class LightningPattern implements Pattern {
           intensity: Math.max(0.3, branchIntensity),
           thickness: thicknessForDepth,
           isBranch: depth > 0,
-          depth: depth
+          depth: depth,
         });
       }
 
@@ -191,7 +241,7 @@ export class LightningPattern implements Pattern {
         const subDx = bEnd.x - bStart.x;
         const subDy = bEnd.y - bStart.y;
         const subLength = Math.sqrt(subDx * subDx + subDy * subDy);
-        
+
         if (subLength > 0.1) {
           this.createBranchRecursive(
             branchWaypoints[j],
@@ -206,53 +256,64 @@ export class LightningPattern implements Pattern {
 
   private createBolt(start: Point, end: Point): LightningBolt {
     const points: LightningPoint[] = [];
-    
+
     // Calculate main path direction
     const dx = end.x - start.x;
     const dy = end.y - start.y;
     const length = Math.sqrt(dx * dx + dy * dy);
-    
+
     if (length < 1) {
       // Degenerate case: start and end are the same
       return {
-        points: [{ x: start.x, y: start.y, intensity: 1.0, thickness: this.config.thickness, isBranch: false, depth: 0 }],
+        points: [
+          {
+            x: start.x,
+            y: start.y,
+            intensity: 1.0,
+            thickness: this.config.thickness,
+            isBranch: false,
+            depth: 0,
+          },
+        ],
         age: 0,
-        maxAge: this.config.fadeTime
+        maxAge: this.config.fadeTime,
       };
     }
-    
+
     const perpX = -dy / length;
     const perpY = dx / length;
-    
+
     // Generate jagged waypoints for the main path (8-12 segments)
     const numSegments = 8 + Math.floor(Math.random() * 5);
     const waypoints: Point[] = [start];
-    
+
     for (let i = 1; i < numSegments; i++) {
       const t = i / numSegments;
       const baseX = start.x + dx * t;
       const baseY = start.y + dy * t;
-      
+
       // Add perpendicular jaggedness
       const offset = (Math.random() - 0.5) * this.config.mainPathJaggedness;
-      
+
       waypoints.push({
         x: baseX + perpX * offset,
-        y: baseY + perpY * offset
+        y: baseY + perpY * offset,
       });
     }
     waypoints.push(end);
-    
+
     // Connect waypoints with Bresenham lines to create solid bolt
     for (let i = 0; i < waypoints.length - 1; i++) {
       const segmentStart = waypoints[i];
       const segmentEnd = waypoints[i + 1];
-      
+
       const linePoints = bresenhamLine(
-        Math.floor(segmentStart.x), Math.floor(segmentStart.y),
-        Math.floor(segmentEnd.x), Math.floor(segmentEnd.y)
+        Math.floor(segmentStart.x),
+        Math.floor(segmentStart.y),
+        Math.floor(segmentEnd.x),
+        Math.floor(segmentEnd.y)
       );
-      
+
       // Add each point with thickness and main path intensity
       for (const pt of linePoints) {
         points.push({
@@ -261,10 +322,10 @@ export class LightningPattern implements Pattern {
           intensity: 1.0,
           thickness: this.config.thickness,
           isBranch: false,
-          depth: 0
+          depth: 0,
         });
       }
-      
+
       // Spawn branches recursively at some waypoints
       if (i > 0 && i < waypoints.length - 2 && Math.random() < this.config.branchProbability) {
         this.createBranchRecursive(
@@ -275,16 +336,16 @@ export class LightningPattern implements Pattern {
         );
       }
     }
-    
+
     // Cap total points at 500 to maintain performance (Phase 2 allows more complexity)
     if (points.length > 500) {
       points.length = 500;
     }
-    
+
     return {
       points,
       age: 0,
-      maxAge: this.config.fadeTime
+      maxAge: this.config.fadeTime,
     };
   }
 
@@ -298,10 +359,7 @@ export class LightningPattern implements Pattern {
       const endX = startX + (Math.random() - 0.5) * width * 0.5;
       const endY = height - Math.random() * height * 0.3;
 
-      this.bolts.push(this.createBolt(
-        { x: startX, y: 0 },
-        { x: endX, y: endY }
-      ));
+      this.bolts.push(this.createBolt({ x: startX, y: 0 }, { x: endX, y: endY }));
 
       this.lastStrike = time;
 
@@ -334,11 +392,11 @@ export class LightningPattern implements Pattern {
       for (const point of bolt.points) {
         const x = Math.floor(point.x);
         const y = Math.floor(point.y);
-        
+
         // Bounds check
         if (x >= 0 && x < width && y >= 0 && y < height) {
           const finalIntensity = point.intensity * flashIntensity;
-          
+
           // Choose character based on type and intensity
           let char: string;
           if (point.isBranch) {
@@ -358,25 +416,25 @@ export class LightningPattern implements Pattern {
               char = '⚡'; // Stylized lightning
             }
           }
-          
+
           // Render main point
           buffer[y][x] = {
             char,
-            color: this.theme.getColor(finalIntensity)
+            color: this.theme.getColor(finalIntensity),
           };
-          
+
           // Add thickness pixels if thickness > 1
           if (point.thickness > 1) {
             // Add horizontal neighbors for thickness
             for (let tx = 1; tx < point.thickness; tx++) {
               const offsetX = Math.floor(tx / 2) * (tx % 2 === 0 ? 1 : -1);
               const thickX = x + offsetX;
-              
+
               if (thickX >= 0 && thickX < width && thickX !== x) {
                 const thickIntensity = finalIntensity * 0.8; // Slightly dimmer
                 buffer[y][thickX] = {
                   char,
-                  color: this.theme.getColor(thickIntensity)
+                  color: this.theme.getColor(thickIntensity),
                 };
               }
             }
@@ -391,7 +449,7 @@ export class LightningPattern implements Pattern {
       if (Math.random() < 0.3) {
         this.chargeParticles.push({
           x: mousePos.x + (Math.random() - 0.5) * 6,
-          y: mousePos.y + (Math.random() - 0.5) * 6
+          y: mousePos.y + (Math.random() - 0.5) * 6,
         });
       }
 
@@ -407,7 +465,7 @@ export class LightningPattern implements Pattern {
         if (x >= 0 && x < width && y >= 0 && y < height) {
           buffer[y][x] = {
             char: '·',
-            color: this.theme.getColor(0.6)
+            color: this.theme.getColor(0.6),
           };
         }
       }
@@ -415,7 +473,7 @@ export class LightningPattern implements Pattern {
       // Age out charge particles
       this.chargeParticles = this.chargeParticles.map(p => ({
         x: p.x + (Math.random() - 0.5) * 0.5,
-        y: p.y + (Math.random() - 0.5) * 0.5
+        y: p.y + (Math.random() - 0.5) * 0.5,
       }));
     } else {
       this.chargeParticles = [];
@@ -433,10 +491,7 @@ export class LightningPattern implements Pattern {
     const endX = pos.x + (Math.random() - 0.5) * 15;
     const endY = pos.y + (Math.random() - 0.5) * 10;
 
-    this.bolts.push(this.createBolt(
-      { x: startX, y: startY },
-      { x: endX, y: endY }
-    ));
+    this.bolts.push(this.createBolt({ x: startX, y: startY }, { x: endX, y: endY }));
 
     // Limit total bolts to 3
     while (this.bolts.length > 3) {
@@ -450,7 +505,7 @@ export class LightningPattern implements Pattern {
     return {
       activeBolts: this.bolts.length,
       totalPoints: this.bolts.reduce((sum, bolt) => sum + bolt.points.length, 0),
-      chargeParticles: this.chargeParticles.length
+      chargeParticles: this.chargeParticles.length,
     };
   }
 

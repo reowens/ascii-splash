@@ -11,7 +11,7 @@ export interface Metaball {
 /**
  * Calculate metaball field value at a point
  * Uses inverse square falloff for smooth blending
- * 
+ *
  * @param x X coordinate
  * @param y Y coordinate
  * @param balls Array of metaballs
@@ -50,7 +50,7 @@ export function isInsideMetaball(
   x: number,
   y: number,
   balls: Metaball[],
-  threshold: number = 1.0
+  threshold = 1.0
 ): boolean {
   return metaballField(x, y, balls) >= threshold;
 }
@@ -67,7 +67,7 @@ export function metaballIntensity(
   x: number,
   y: number,
   balls: Metaball[],
-  maxIntensity: number = 5.0
+  maxIntensity = 5.0
 ): number {
   const field = metaballField(x, y, balls);
   return Math.min(1.0, field / maxIntensity);

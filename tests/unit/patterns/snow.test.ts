@@ -29,7 +29,7 @@ describe('SnowPattern', () => {
         rotationSpeed: 2.0,
         particleType: 'cherry',
         mouseWindForce: 3.0,
-        accumulation: false
+        accumulation: false,
       });
       expect(customPattern).toBeDefined();
     });
@@ -50,7 +50,7 @@ describe('SnowPattern', () => {
 
     it('should fill buffer with snow particles', () => {
       pattern.render(buffer, 1000, size);
-      
+
       // Check that cells are set
       let filledCells = 0;
       for (let y = 0; y < size.height; y++) {
@@ -60,7 +60,7 @@ describe('SnowPattern', () => {
           }
         }
       }
-      
+
       // Should have some snow particles visible
       expect(filledCells).toBeGreaterThan(0);
     });
@@ -73,9 +73,9 @@ describe('SnowPattern', () => {
           buffer1[y][x] = { ...buffer[y][x] };
         }
       }
-      
+
       pattern.render(buffer, 2000, size);
-      
+
       // Buffer should change over time
       let differences = 0;
       for (let y = 0; y < size.height; y++) {
@@ -85,13 +85,13 @@ describe('SnowPattern', () => {
           }
         }
       }
-      
+
       expect(differences).toBeGreaterThan(0);
     });
 
     it('should use theme colors for snow', () => {
       pattern.render(buffer, 1000, size);
-      
+
       // Find a snow particle
       let foundColor = false;
       for (let y = 0; y < size.height; y++) {
@@ -106,13 +106,13 @@ describe('SnowPattern', () => {
         }
         if (foundColor) break;
       }
-      
+
       expect(foundColor).toBe(true);
     });
 
     it('should use appropriate snow characters', () => {
       pattern.render(buffer, 1000, size);
-      
+
       const validChars = [' ', '*', '❄', '·', '○', '•', '⋆'];
       for (let y = 0; y < size.height; y++) {
         for (let x = 0; x < size.width; x++) {
@@ -124,7 +124,7 @@ describe('SnowPattern', () => {
     it('should handle very small terminal', () => {
       const smallSize = { width: 20, height: 10 };
       const smallBuffer = createMockBuffer(smallSize.width, smallSize.height);
-      
+
       expect(() => {
         pattern.render(smallBuffer, 1000, smallSize);
       }).not.toThrow();
@@ -133,7 +133,7 @@ describe('SnowPattern', () => {
     it('should handle very large terminal', () => {
       const largeSize = { width: 200, height: 60 };
       const largeBuffer = createMockBuffer(largeSize.width, largeSize.height);
-      
+
       expect(() => {
         pattern.render(largeBuffer, 1000, largeSize);
       }).not.toThrow();
@@ -142,20 +142,12 @@ describe('SnowPattern', () => {
     it('should show particles falling downward over time', () => {
       // Render initial frame
       pattern.render(buffer, 1000, size);
-      
-      // Count particles in top half
-      let topParticles = 0;
-      for (let y = 0; y < size.height / 2; y++) {
-        for (let x = 0; x < size.width; x++) {
-          if (buffer[y][x].char !== ' ') topParticles++;
-        }
-      }
-      
+
       // Simulate several frames
       for (let t = 1000; t < 5000; t += 100) {
         pattern.render(buffer, t, size);
       }
-      
+
       // Count particles in bottom half
       let bottomParticles = 0;
       for (let y = size.height / 2; y < size.height; y++) {
@@ -163,7 +155,7 @@ describe('SnowPattern', () => {
           if (buffer[y][x].char !== ' ') bottomParticles++;
         }
       }
-      
+
       // More particles should accumulate in bottom half over time
       expect(bottomParticles).toBeGreaterThan(0);
     });
@@ -187,13 +179,13 @@ describe('SnowPattern', () => {
 
       // Render initial state
       pattern.render(buffer, 1000, size);
-      
+
       // Move mouse
       pattern.onMouseMove({ x: 40, y: 12 });
-      
+
       // Render after mouse move
       pattern.render(buffer, 1100, size);
-      
+
       // Should still render without errors
       expect(buffer).toBeDefined();
     });
@@ -206,17 +198,17 @@ describe('SnowPattern', () => {
       // Get initial particle count
       const initialMetrics = pattern.getMetrics();
       const initialCount = initialMetrics.activeParticles + initialMetrics.accumulated;
-      
+
       // Click
       pattern.onMouseClick({ x: 40, y: 12 });
-      
+
       // Render to update
       pattern.render(buffer, 1000, size);
-      
+
       // Get new particle count
       const newMetrics = pattern.getMetrics();
       const newCount = newMetrics.activeParticles + newMetrics.accumulated;
-      
+
       // Should have more particles after click
       expect(newCount).toBeGreaterThan(initialCount);
     });
@@ -230,12 +222,12 @@ describe('SnowPattern', () => {
       for (let i = 0; i < 20; i++) {
         pattern.onMouseClick({ x: 40, y: 12 });
       }
-      
+
       pattern.render(buffer, 1000, size);
-      
+
       const metrics = pattern.getMetrics();
       const totalParticles = metrics.activeParticles + metrics.accumulated;
-      
+
       // Should not exceed reasonable limit (2x base config)
       expect(totalParticles).toBeLessThan(150);
     });
@@ -303,7 +295,7 @@ describe('SnowPattern', () => {
     it('should apply preset 1 (Light Flurries)', () => {
       const result = pattern.applyPreset(1);
       expect(result).toBe(true);
-      
+
       pattern.render(buffer, 1000, size);
       expect(buffer).toBeDefined();
     });
@@ -311,7 +303,7 @@ describe('SnowPattern', () => {
     it('should apply preset 2 (Blizzard)', () => {
       const result = pattern.applyPreset(2);
       expect(result).toBe(true);
-      
+
       pattern.render(buffer, 1000, size);
       expect(buffer).toBeDefined();
     });
@@ -319,9 +311,9 @@ describe('SnowPattern', () => {
     it('should apply preset 3 (Cherry Blossoms)', () => {
       const result = pattern.applyPreset(3);
       expect(result).toBe(true);
-      
+
       pattern.render(buffer, 1000, size);
-      
+
       // Cherry blossoms should use different characters
       let foundCherryChar = false;
       const cherryChars = ['🌸', '✿', '❀', '✾', '✽', '⚘'];
@@ -334,16 +326,16 @@ describe('SnowPattern', () => {
         }
         if (foundCherryChar) break;
       }
-      
+
       expect(foundCherryChar).toBe(true);
     });
 
     it('should apply preset 4 (Autumn Leaves)', () => {
       const result = pattern.applyPreset(4);
       expect(result).toBe(true);
-      
+
       pattern.render(buffer, 1000, size);
-      
+
       // Autumn leaves should use different characters
       let foundLeafChar = false;
       const leafChars = ['🍂', '🍁', '🍃', '◆', '◇', '❖'];
@@ -356,14 +348,14 @@ describe('SnowPattern', () => {
         }
         if (foundLeafChar) break;
       }
-      
+
       expect(foundLeafChar).toBe(true);
     });
 
     it('should apply preset 5 (Confetti)', () => {
       const result = pattern.applyPreset(5);
       expect(result).toBe(true);
-      
+
       pattern.render(buffer, 1000, size);
       expect(buffer).toBeDefined();
     });
@@ -371,7 +363,7 @@ describe('SnowPattern', () => {
     it('should apply preset 6 (Ash)', () => {
       const result = pattern.applyPreset(6);
       expect(result).toBe(true);
-      
+
       pattern.render(buffer, 1000, size);
       expect(buffer).toBeDefined();
     });
@@ -385,10 +377,10 @@ describe('SnowPattern', () => {
       // Render some frames
       pattern.render(buffer, 1000, size);
       pattern.render(buffer, 2000, size);
-      
+
       // Apply preset
       pattern.applyPreset(1);
-      
+
       // Should render cleanly
       expect(() => {
         pattern.render(buffer, 1000, size);
@@ -400,7 +392,7 @@ describe('SnowPattern', () => {
     it('should render snow type particles', () => {
       const snowPattern = new SnowPattern(theme, { particleType: 'snow' });
       snowPattern.render(buffer, 1000, size);
-      
+
       const validChars = ['*', '❄', '·', '○', '•', '⋆', ' '];
       for (let y = 0; y < size.height; y++) {
         for (let x = 0; x < size.width; x++) {
@@ -412,7 +404,7 @@ describe('SnowPattern', () => {
     it('should render cherry blossom particles', () => {
       const cherryPattern = new SnowPattern(theme, { particleType: 'cherry' });
       cherryPattern.render(buffer, 1000, size);
-      
+
       let foundCherryChar = false;
       const cherryChars = ['🌸', '✿', '❀', '✾', '✽', '⚘'];
       for (let y = 0; y < size.height; y++) {
@@ -424,14 +416,14 @@ describe('SnowPattern', () => {
         }
         if (foundCherryChar) break;
       }
-      
+
       expect(foundCherryChar).toBe(true);
     });
 
     it('should render autumn leaf particles', () => {
       const autumnPattern = new SnowPattern(theme, { particleType: 'autumn' });
       autumnPattern.render(buffer, 1000, size);
-      
+
       let foundLeafChar = false;
       const leafChars = ['🍂', '🍁', '🍃', '◆', '◇', '❖'];
       for (let y = 0; y < size.height; y++) {
@@ -443,14 +435,14 @@ describe('SnowPattern', () => {
         }
         if (foundLeafChar) break;
       }
-      
+
       expect(foundLeafChar).toBe(true);
     });
 
     it('should render confetti particles', () => {
       const confettiPattern = new SnowPattern(theme, { particleType: 'confetti' });
       confettiPattern.render(buffer, 1000, size);
-      
+
       const validChars = ['▪', '▫', '◾', '◽', '■', '□', '●', '○', '♦', '♢', ' '];
       for (let y = 0; y < size.height; y++) {
         for (let x = 0; x < size.width; x++) {
@@ -462,7 +454,7 @@ describe('SnowPattern', () => {
     it('should render ash particles', () => {
       const ashPattern = new SnowPattern(theme, { particleType: 'ash' });
       ashPattern.render(buffer, 1000, size);
-      
+
       const validChars = ['·', '•', '∙', '⋅', '⋆', '˙', ' '];
       for (let y = 0; y < size.height; y++) {
         for (let x = 0; x < size.width; x++) {
@@ -482,10 +474,10 @@ describe('SnowPattern', () => {
       // Render some frames
       pattern.render(buffer, 1000, size);
       pattern.render(buffer, 2000, size);
-      
+
       // Reset
       pattern.reset();
-      
+
       // Should be able to render cleanly
       expect(() => {
         pattern.render(buffer, 1000, size);
@@ -495,7 +487,7 @@ describe('SnowPattern', () => {
     it('should clear particles on reset', () => {
       pattern.render(buffer, 1000, size);
       pattern.reset();
-      
+
       const metrics = pattern.getMetrics();
       expect(metrics.activeParticles).toBeGreaterThan(0);
       expect(metrics.accumulated).toBe(0);
@@ -511,7 +503,7 @@ describe('SnowPattern', () => {
     it('should return particle count metric', () => {
       pattern.render(buffer, 1000, size);
       const metrics = pattern.getMetrics();
-      
+
       expect(metrics).toBeDefined();
       expect(metrics.activeParticles).toBeDefined();
       expect(typeof metrics.activeParticles).toBe('number');
@@ -521,7 +513,7 @@ describe('SnowPattern', () => {
     it('should return accumulated particles metric', () => {
       pattern.render(buffer, 1000, size);
       const metrics = pattern.getMetrics();
-      
+
       expect(metrics.accumulated).toBeDefined();
       expect(typeof metrics.accumulated).toBe('number');
       expect(metrics.accumulated).toBeGreaterThanOrEqual(0);
@@ -530,7 +522,7 @@ describe('SnowPattern', () => {
     it('should return average velocity metric', () => {
       pattern.render(buffer, 1000, size);
       const metrics = pattern.getMetrics();
-      
+
       expect(metrics.avgVelocity).toBeDefined();
       expect(typeof metrics.avgVelocity).toBe('number');
       expect(metrics.avgVelocity).toBeGreaterThanOrEqual(0);
@@ -538,14 +530,14 @@ describe('SnowPattern', () => {
 
     it('should update metrics over time', () => {
       pattern.render(buffer, 1000, size);
-      
+
       // Simulate many frames
       for (let t = 1000; t < 10000; t += 100) {
         pattern.render(buffer, t, size);
       }
-      
+
       const metrics = pattern.getMetrics();
-      
+
       // Metrics should still be valid
       expect(metrics.activeParticles).toBeGreaterThan(0);
     });
@@ -554,28 +546,28 @@ describe('SnowPattern', () => {
   describe('accumulation', () => {
     it('should accumulate particles at bottom when enabled', () => {
       const accPattern = new SnowPattern(theme, { accumulation: true, fallSpeed: 2.0 });
-      
+
       // Simulate many frames to let particles fall
       for (let t = 1000; t < 20000; t += 100) {
         accPattern.render(buffer, t, size);
       }
-      
+
       const metrics = accPattern.getMetrics();
-      
+
       // Should have some accumulated particles
       expect(metrics.accumulated).toBeGreaterThanOrEqual(0);
     });
 
     it('should not accumulate particles when disabled', () => {
       const noAccPattern = new SnowPattern(theme, { accumulation: false, fallSpeed: 2.0 });
-      
+
       // Simulate many frames to let particles fall
       for (let t = 1000; t < 20000; t += 100) {
         noAccPattern.render(buffer, t, size);
       }
-      
+
       const metrics = noAccPattern.getMetrics();
-      
+
       // Should have no accumulated particles
       expect(metrics.accumulated).toBe(0);
     });

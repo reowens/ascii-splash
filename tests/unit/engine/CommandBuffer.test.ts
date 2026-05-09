@@ -1,4 +1,4 @@
-import { jest, describe, it, test, expect, beforeEach, afterEach } from '@jest/globals';
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { CommandBuffer } from '../../../src/engine/CommandBuffer.js';
 
 describe('CommandBuffer', () => {
@@ -253,19 +253,19 @@ describe('CommandBuffer', () => {
 
     it('does not add duplicate consecutive commands to history', () => {
       const buffer = new CommandBuffer();
-      
+
       // First command
       buffer.activate();
       buffer.addChar('p');
       buffer.addChar('3');
       buffer.execute();
-      
+
       // Same command again
       buffer.activate();
       buffer.addChar('p');
       buffer.addChar('3');
       buffer.execute();
-      
+
       const history = buffer.getHistory();
       expect(history).toHaveLength(1);
       expect(history[0]).toBe('0p3');
@@ -273,22 +273,22 @@ describe('CommandBuffer', () => {
 
     it('allows duplicate non-consecutive commands in history', () => {
       const buffer = new CommandBuffer();
-      
+
       buffer.activate();
       buffer.addChar('p');
       buffer.addChar('3');
       buffer.execute();
-      
+
       buffer.activate();
       buffer.addChar('t');
       buffer.addChar('2');
       buffer.execute();
-      
+
       buffer.activate();
       buffer.addChar('p');
       buffer.addChar('3');
       buffer.execute();
-      
+
       const history = buffer.getHistory();
       expect(history).toHaveLength(3);
       expect(history).toEqual(['0p3', '0t2', '0p3']);
@@ -333,12 +333,12 @@ describe('CommandBuffer', () => {
       buffer.addChar('p');
       buffer.addChar('1');
       buffer.execute();
-      
+
       buffer.activate();
       buffer.addChar('t');
       buffer.addChar('2');
       buffer.execute();
-      
+
       buffer.activate();
       buffer.addChar('*');
       buffer.execute();
@@ -420,12 +420,12 @@ describe('CommandBuffer', () => {
       const buffer = new CommandBuffer();
       buffer.activate();
       buffer.addChar('p');
-      
+
       expect(buffer.isActive()).toBe(true);
-      
+
       // Fast-forward time by 10 seconds
       jest.advanceTimersByTime(10000);
-      
+
       expect(buffer.isActive()).toBe(false);
     });
 
@@ -433,10 +433,10 @@ describe('CommandBuffer', () => {
       const buffer = new CommandBuffer(5000); // 5 second timeout
       buffer.activate();
       buffer.addChar('p');
-      
+
       jest.advanceTimersByTime(4999);
       expect(buffer.isActive()).toBe(true);
-      
+
       jest.advanceTimersByTime(1);
       expect(buffer.isActive()).toBe(false);
     });
@@ -444,18 +444,18 @@ describe('CommandBuffer', () => {
     it('resets timeout when character is added', () => {
       const buffer = new CommandBuffer();
       buffer.activate();
-      
+
       // Wait 9 seconds (1 second before timeout)
       jest.advanceTimersByTime(9000);
       expect(buffer.isActive()).toBe(true);
-      
+
       // Add character (should reset timeout)
       buffer.addChar('p');
-      
+
       // Wait another 9 seconds (should still be active)
       jest.advanceTimersByTime(9000);
       expect(buffer.isActive()).toBe(true);
-      
+
       // Wait final 1 second to reach timeout
       jest.advanceTimersByTime(1000);
       expect(buffer.isActive()).toBe(false);
@@ -465,13 +465,13 @@ describe('CommandBuffer', () => {
       const buffer = new CommandBuffer();
       buffer.activate();
       buffer.addChar('p');
-      
+
       jest.advanceTimersByTime(9000);
       buffer.backspace();
-      
+
       jest.advanceTimersByTime(9000);
       expect(buffer.isActive()).toBe(true);
-      
+
       jest.advanceTimersByTime(1000);
       expect(buffer.isActive()).toBe(false);
     });
@@ -481,7 +481,7 @@ describe('CommandBuffer', () => {
       buffer.activate();
       buffer.addChar('p');
       buffer.deactivate();
-      
+
       // Advance past timeout - should not reactivate or cause issues
       jest.advanceTimersByTime(15000);
       expect(buffer.isActive()).toBe(false);
@@ -492,14 +492,14 @@ describe('CommandBuffer', () => {
       buffer.activate();
       buffer.addChar('p');
       buffer.execute();
-      
+
       buffer.activate();
       jest.advanceTimersByTime(9000);
-      
+
       buffer.previousCommand(); // Should reset timeout
       jest.advanceTimersByTime(9000);
       expect(buffer.isActive()).toBe(true);
-      
+
       jest.advanceTimersByTime(1000);
       expect(buffer.isActive()).toBe(false);
     });
@@ -511,17 +511,17 @@ describe('CommandBuffer', () => {
       buffer.activate();
       buffer.addChar('p');
       buffer.execute();
-      
+
       const history1 = buffer.getHistory();
       const history2 = buffer.getHistory();
-      
+
       expect(history1).not.toBe(history2);
       expect(history1).toEqual(history2);
     });
 
     it('limits history size to 50 commands', () => {
       const buffer = new CommandBuffer();
-      
+
       // Add 55 commands
       for (let i = 1; i <= 55; i++) {
         buffer.activate();
@@ -529,14 +529,14 @@ describe('CommandBuffer', () => {
         buffer.addChar(String(i % 10));
         buffer.execute();
       }
-      
+
       const history = buffer.getHistory();
       expect(history.length).toBe(50);
     });
 
     it('removes oldest commands when history exceeds 50', () => {
       const buffer = new CommandBuffer();
-      
+
       // Add 52 commands
       for (let i = 1; i <= 52; i++) {
         buffer.activate();
@@ -544,7 +544,7 @@ describe('CommandBuffer', () => {
         buffer.addChar(String(i % 10));
         buffer.execute();
       }
-      
+
       const history = buffer.getHistory();
       expect(history.length).toBe(50);
       // First command should be command 3 (commands 1-2 dropped)
@@ -555,29 +555,29 @@ describe('CommandBuffer', () => {
 
     it('history persists across activate/deactivate cycles', () => {
       const buffer = new CommandBuffer();
-      
+
       buffer.activate();
       buffer.addChar('p');
       buffer.execute();
-      
+
       buffer.activate();
       buffer.addChar('t');
       buffer.execute();
-      
+
       expect(buffer.getHistory()).toEqual(['0p', '0t']);
     });
 
     it('history is preserved after cancellation', () => {
       const buffer = new CommandBuffer();
-      
+
       buffer.activate();
       buffer.addChar('p');
       buffer.execute();
-      
+
       buffer.activate();
       buffer.addChar('x');
       buffer.cancel(); // Cancel, should not add to history
-      
+
       expect(buffer.getHistory()).toEqual(['0p']);
     });
   });
@@ -610,7 +610,7 @@ describe('CommandBuffer', () => {
 
     it('multiple execute cycles maintain correct state', () => {
       const buffer = new CommandBuffer();
-      
+
       for (let i = 1; i <= 5; i++) {
         buffer.activate();
         expect(buffer.isActive()).toBe(true);
@@ -620,7 +620,7 @@ describe('CommandBuffer', () => {
         expect(result).toBe(`0p${i}`);
         expect(buffer.isActive()).toBe(false);
       }
-      
+
       expect(buffer.getHistory()).toHaveLength(5);
     });
 
@@ -634,13 +634,13 @@ describe('CommandBuffer', () => {
     it('cursor and buffer stay synchronized', () => {
       const buffer = new CommandBuffer();
       buffer.activate();
-      
+
       for (let i = 0; i < 10; i++) {
         buffer.addChar('x');
       }
       expect(buffer.getCursorPos()).toBe(11); // '0' + 10 'x's
       expect(buffer.getBuffer().length).toBe(11);
-      
+
       for (let i = 0; i < 5; i++) {
         buffer.backspace();
       }

@@ -74,10 +74,10 @@ export default tseslint.config(
       'dist/**',
       'coverage/**',
       'node_modules/**',
-      '*.js',
-      '*.mjs',
-      '*.cjs',
-      'jest.config.mjs',
+      // Match .js/.mjs/.cjs at any depth — flat-config bare globs only match cwd.
+      '**/*.js',
+      '**/*.mjs',
+      '**/*.cjs',
     ],
   }
 );

@@ -3,13 +3,13 @@ import { vec2Add, vec2Multiply, inBounds } from '../utils/math.js';
 
 /**
  * SpriteManager - Manages animated sprites for scene-based patterns
- * 
+ *
  * Provides:
  * - Sprite management (add/remove/clear)
  * - Animation (frame cycling based on time)
  * - Physics (position/velocity updates)
  * - Batch rendering (render all sprites to buffer)
- * 
+ *
  * Used by v0.3.0 scene-based patterns for animated characters
  * (seagulls, fish, trees, etc.)
  */
@@ -143,7 +143,7 @@ export class SpriteManager {
           if (inBounds(renderX, renderY, size.width, size.height)) {
             buffer[renderY][renderX] = {
               char: char,
-              color: sprite.color
+              color: sprite.color,
             };
           }
         }
@@ -177,7 +177,7 @@ export class SpriteManager {
     y: number,
     frames: string[][],
     color: { r: number; g: number; b: number },
-    frameDuration: number = 100
+    frameDuration = 100
   ): Sprite {
     return {
       position: { x, y },

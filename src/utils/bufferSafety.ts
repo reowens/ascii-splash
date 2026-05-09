@@ -18,10 +18,14 @@ interface RenderError {
 class BufferSafetyMonitor {
   private errors: RenderError[] = [];
   private readonly MAX_ERRORS = 50; // Keep last 50 errors
-  private debugMode: boolean = false;
+  private debugMode = false;
 
   setDebugMode(enabled: boolean): void {
     this.debugMode = enabled;
+  }
+
+  isDebugMode(): boolean {
+    return this.debugMode;
   }
 
   /**
@@ -34,7 +38,7 @@ class BufferSafetyMonitor {
     y: number,
     char: string,
     color: Color,
-    patternName: string = 'unknown'
+    patternName = 'unknown'
   ): boolean {
     // Get buffer dimensions
     const height = buffer.length;
@@ -44,12 +48,12 @@ class BufferSafetyMonitor {
     if (y < 0 || y >= height || x < 0 || x >= width) {
       this.logError({
         patternName,
-        message: `Out of bounds write attempt: (${x}, ${y})`,
+        message: `Out of bounds write attempt: (${String(x)}, ${String(y)})`,
         timestamp: Date.now(),
         x,
         y,
         bufferWidth: width,
-        bufferHeight: height
+        bufferHeight: height,
       });
       return false;
     }
@@ -58,11 +62,11 @@ class BufferSafetyMonitor {
     if (!buffer[y]) {
       this.logError({
         patternName,
-        message: `Buffer row undefined at y=${y}`,
+        message: `Buffer row undefined at y=${String(y)}`,
         timestamp: Date.now(),
         y,
         bufferWidth: width,
-        bufferHeight: height
+        bufferHeight: height,
       });
       return false;
     }
@@ -78,7 +82,7 @@ class BufferSafetyMonitor {
         x,
         y,
         bufferWidth: width,
-        bufferHeight: height
+        bufferHeight: height,
       });
       return false;
     }
@@ -89,7 +93,7 @@ class BufferSafetyMonitor {
    */
   private logError(error: RenderError): void {
     this.errors.push(error);
-    
+
     // Trim old errors
     if (this.errors.length > this.MAX_ERRORS) {
       this.errors.shift();
@@ -98,9 +102,12 @@ class BufferSafetyMonitor {
     // Log to console in debug mode
     if (this.debugMode) {
       console.error(`[BufferSafety] ${error.patternName}: ${error.message}`, {
-        coordinates: error.x !== undefined ? `(${error.x}, ${error.y})` : 'N/A',
-        bufferSize: error.bufferWidth !== undefined ? `${error.bufferWidth}x${error.bufferHeight}` : 'N/A',
-        timestamp: new Date(error.timestamp).toISOString()
+        coordinates: error.x !== undefined ? `(${String(error.x)}, ${String(error.y)})` : 'N/A',
+        bufferSize:
+          error.bufferWidth !== undefined
+            ? `${String(error.bufferWidth)}x${String(error.bufferHeight)}`
+            : 'N/A',
+        timestamp: new Date(error.timestamp).toISOString(),
       });
     }
   }
@@ -108,11 +115,11 @@ class BufferSafetyMonitor {
   /**
    * Log a general pattern error (not buffer-related)
    */
-  logPatternError(patternName: string, message: string, details?: any): void {
+  logPatternError(patternName: string, message: string, details?: unknown): void {
     this.logError({
       patternName,
       message,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     if (this.debugMode) {
@@ -150,18 +157,18 @@ class BufferSafetyMonitor {
    */
   getSummary(): string {
     if (this.errors.length === 0) return 'No errors';
-    
+
     const byPattern = this.getErrorsByPattern();
-    const lines: string[] = [`Total errors: ${this.errors.length}`];
-    
+    const lines: string[] = [`Total errors: ${String(this.errors.length)}`];
+
     for (const [pattern, count] of Object.entries(byPattern)) {
-      lines.push(`  ${pattern}: ${count}`);
+      lines.push(`  ${pattern}: ${String(count)}`);
     }
-    
+
     // Show last error
     const lastError = this.errors[this.errors.length - 1];
     lines.push(`Last: ${lastError.message}`);
-    
+
     return lines.join('\n');
   }
 }
@@ -172,25 +179,20 @@ export const bufferSafety = new BufferSafetyMonitor();
 /**
  * Wrap pattern render() with error catching
  */
-export function safeRenderWrapper(
-  patternName: string,
-  renderFn: () => void
-): void {
+export function safeRenderWrapper(patternName: string, renderFn: () => void): void {
   try {
     renderFn();
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     const stack = err instanceof Error ? err.stack : '';
-    
-    bufferSafety.logPatternError(
-      patternName,
-      `Unhandled exception in render(): ${message}`,
-      { stack }
-    );
-    
+
+    bufferSafety.logPatternError(patternName, `Unhandled exception in render(): ${message}`, {
+      stack,
+    });
+
     // In production, don't crash - just log and continue
     // This prevents one bad pattern from killing the whole app
-    if (bufferSafety['debugMode']) {
+    if (bufferSafety.isDebugMode()) {
       console.error(`[SafeRender] ${patternName} crashed:`, err);
     }
   }

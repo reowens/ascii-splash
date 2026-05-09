@@ -1,6 +1,11 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import { QuicksilverPattern } from '../../../src/patterns/QuicksilverPattern.js';
-import { createMockBuffer, createMockTheme, createMockSize, createMockPoint } from '../../utils/mocks.js';
+import {
+  createMockBuffer,
+  createMockTheme,
+  createMockSize,
+  createMockPoint,
+} from '../../utils/mocks.js';
 import { Cell } from '../../../src/types/index.js';
 
 describe('QuicksilverPattern', () => {
@@ -29,7 +34,7 @@ describe('QuicksilverPattern', () => {
       const customPattern = new QuicksilverPattern(theme, {
         speed: 2.0,
         flowIntensity: 0.8,
-        noiseScale: 0.1
+        noiseScale: 0.1,
       });
       const metrics = customPattern.getMetrics();
       expect(metrics.flowIntensity).toBe(0.8);
@@ -37,7 +42,7 @@ describe('QuicksilverPattern', () => {
 
     it('should accept partial config', () => {
       const customPattern = new QuicksilverPattern(theme, {
-        speed: 1.5
+        speed: 1.5,
       });
       const metrics = customPattern.getMetrics();
       expect(metrics.flowIntensity).toBe(0.5); // Default value
@@ -47,7 +52,7 @@ describe('QuicksilverPattern', () => {
   describe('Rendering', () => {
     it('should render flowing liquid metal', () => {
       pattern.render(buffer, 0, size);
-      
+
       // Buffer should be completely filled with liquid chars
       let nonEmptyCount = 0;
       for (let y = 0; y < size.height; y++) {
@@ -62,7 +67,7 @@ describe('QuicksilverPattern', () => {
 
     it('should use metallic characters', () => {
       pattern.render(buffer, 0, size);
-      
+
       const liquidChars = ['█', '▓', '▒', '░', '●', '◉', '○', '◐', '◑', '◒', '◓', '•', '∘', '·'];
       let usesLiquidChars = false;
       for (let y = 0; y < size.height; y++) {
@@ -79,18 +84,20 @@ describe('QuicksilverPattern', () => {
 
     it('should animate over time', () => {
       pattern.render(buffer, 0, size);
-      
+
       const buffer2 = createMockBuffer(size.width, size.height);
       pattern.render(buffer2, 5000, size);
-      
+
       // Pattern should change over time - check a grid of cells to be more reliable
       let differenceCount = 0;
       for (let y = 5; y < size.height - 5; y += 5) {
         for (let x = 5; x < size.width - 5; x += 5) {
-          if (buffer[y][x].char !== buffer2[y][x].char || 
-              buffer[y][x].color?.r !== buffer2[y][x].color?.r ||
-              buffer[y][x].color?.g !== buffer2[y][x].color?.g ||
-              buffer[y][x].color?.b !== buffer2[y][x].color?.b) {
+          if (
+            buffer[y][x].char !== buffer2[y][x].char ||
+            buffer[y][x].color?.r !== buffer2[y][x].color?.r ||
+            buffer[y][x].color?.g !== buffer2[y][x].color?.g ||
+            buffer[y][x].color?.b !== buffer2[y][x].color?.b
+          ) {
             differenceCount++;
           }
         }
@@ -101,7 +108,7 @@ describe('QuicksilverPattern', () => {
 
     it('should apply colors from theme', () => {
       pattern.render(buffer, 0, size);
-      
+
       let hasColor = false;
       for (let y = 0; y < size.height; y++) {
         for (let x = 0; x < size.width; x++) {
@@ -121,7 +128,7 @@ describe('QuicksilverPattern', () => {
 
     it('should add metallic shine boost', () => {
       pattern.render(buffer, 0, size);
-      
+
       // Some cells should have boosted colors for metallic effect
       let hasBrightCell = false;
       for (let y = 0; y < size.height; y++) {
@@ -140,12 +147,10 @@ describe('QuicksilverPattern', () => {
     it('should update noise offset over time', () => {
       const customPattern = new QuicksilverPattern(theme, { speed: 5.0 });
       customPattern.render(buffer, 0, size);
-      const snapshot1 = buffer[12][40].char;
-      
+
       const buffer2 = createMockBuffer(size.width, size.height);
       customPattern.render(buffer2, 0, size); // Same time, but noise offset changed
-      const snapshot2 = buffer2[12][40].char;
-      
+
       // Check multiple cells for differences due to noise offset progression
       let differenceCount = 0;
       for (let i = 0; i < 20; i++) {
@@ -163,7 +168,7 @@ describe('QuicksilverPattern', () => {
     it('should create ripples on mouse move', () => {
       const pos = createMockPoint(40, 12);
       pattern.onMouseMove(pos);
-      
+
       const metrics = pattern.getMetrics();
       expect(metrics.ripples).toBe(1);
     });
@@ -171,10 +176,10 @@ describe('QuicksilverPattern', () => {
     it('should create ripples with radius 15', () => {
       const pos = createMockPoint(40, 12);
       pattern.onMouseMove(pos);
-      
+
       // Render and check that area around mouse position is affected
       pattern.render(buffer, 0, size);
-      
+
       // Should have visible effect near the ripple
       expect(buffer[12][40].char).not.toBe(' ');
     });
@@ -183,7 +188,7 @@ describe('QuicksilverPattern', () => {
       for (let i = 0; i < 15; i++) {
         pattern.onMouseMove(createMockPoint(40 + i, 12));
       }
-      
+
       const metrics = pattern.getMetrics();
       expect(metrics.ripples).toBe(10);
     });
@@ -191,28 +196,29 @@ describe('QuicksilverPattern', () => {
     it('should render ripples on buffer', () => {
       const pos = createMockPoint(40, 12);
       pattern.onMouseMove(pos);
-      
+
       pattern.render(buffer, 100, size);
-      
+
       // Area around ripple should be affected
       const cellAtRipple = buffer[12][40];
       expect(cellAtRipple.char).not.toBe(' ');
     });
 
     it('should clean up old ripples after 1500ms', () => {
-      jest.spyOn(Date, 'now')
-        .mockReturnValueOnce(0)     // onMouseMove call
-        .mockReturnValue(2000);     // render call
-      
+      jest
+        .spyOn(Date, 'now')
+        .mockReturnValueOnce(0) // onMouseMove call
+        .mockReturnValue(2000); // render call
+
       const pos = createMockPoint(40, 12);
       pattern.onMouseMove(pos);
-      
+
       expect(pattern.getMetrics().ripples).toBe(1);
-      
+
       pattern.render(buffer, 2000, size);
-      
+
       expect(pattern.getMetrics().ripples).toBe(0);
-      
+
       jest.restoreAllMocks();
     });
   });
@@ -221,7 +227,7 @@ describe('QuicksilverPattern', () => {
     it('should create 12 droplets on mouse click', () => {
       const pos = createMockPoint(40, 12);
       pattern.onMouseClick(pos);
-      
+
       const metrics = pattern.getMetrics();
       expect(metrics.droplets).toBe(12);
     });
@@ -229,109 +235,110 @@ describe('QuicksilverPattern', () => {
     it('should create droplets radiating outward', () => {
       const pos = createMockPoint(40, 12);
       pattern.onMouseClick(pos);
-      
+
       pattern.render(buffer, Date.now(), size);
-      
+
       // After initial click, droplets should still exist
       expect(pattern.getMetrics().droplets).toBe(12);
     });
 
     it('should apply gravity to droplets', () => {
       jest.spyOn(Date, 'now').mockReturnValue(0);
-      
+
       const pos = createMockPoint(40, 10);
       pattern.onMouseClick(pos);
-      
+
       // Render multiple times to simulate gravity
       pattern.render(buffer, 100, size);
       pattern.render(buffer, 200, size);
       pattern.render(buffer, 300, size);
-      
+
       // Droplets should have moved and some might be off-screen
       const metricsAfter = pattern.getMetrics();
       expect(metricsAfter.droplets).toBeGreaterThanOrEqual(0);
       expect(metricsAfter.droplets).toBeLessThanOrEqual(12);
-      
+
       jest.restoreAllMocks();
     });
 
     it('should remove droplets after 2000ms', () => {
-      jest.spyOn(Date, 'now')
-        .mockReturnValueOnce(0)     // onMouseClick
-        .mockReturnValue(2500);     // render call
-      
+      jest
+        .spyOn(Date, 'now')
+        .mockReturnValueOnce(0) // onMouseClick
+        .mockReturnValue(2500); // render call
+
       const pos = createMockPoint(40, 12);
       pattern.onMouseClick(pos);
-      
+
       expect(pattern.getMetrics().droplets).toBe(12);
-      
+
       pattern.render(buffer, 2500, size);
-      
+
       expect(pattern.getMetrics().droplets).toBe(0);
-      
+
       jest.restoreAllMocks();
     });
 
     it('should remove droplets that fall off screen', () => {
       jest.spyOn(Date, 'now').mockReturnValue(0);
-      
+
       const pos = createMockPoint(40, size.height - 1);
       pattern.onMouseClick(pos);
-      
+
       // Render multiple times to let droplets fall
       for (let i = 0; i < 50; i++) {
         pattern.render(buffer, i * 100, size);
       }
-      
+
       // All droplets should have fallen off screen
       expect(pattern.getMetrics().droplets).toBe(0);
-      
+
       jest.restoreAllMocks();
     });
 
     it('should shrink droplet radius over time', () => {
       jest.spyOn(Date, 'now').mockReturnValue(0);
-      
+
       const pos = createMockPoint(40, 5);
       pattern.onMouseClick(pos);
-      
+
       // Initial render
       pattern.render(buffer, 100, size);
       const initialCount = pattern.getMetrics().droplets;
-      
+
       // Render many times to shrink radius
       for (let i = 0; i < 100; i++) {
         pattern.render(buffer, 200 + i * 10, size);
       }
-      
+
       // Some droplets should be removed due to radius <= 0
       const finalCount = pattern.getMetrics().droplets;
       expect(finalCount).toBeLessThan(initialCount);
-      
+
       jest.restoreAllMocks();
     });
 
     it('should create large ripple on click', () => {
       jest.spyOn(Date, 'now').mockReturnValue(0);
-      
+
       const pos = createMockPoint(40, 12);
       pattern.onMouseClick(pos);
-      
+
       const metrics = pattern.getMetrics();
       expect(metrics.ripples).toBe(1); // Large ripple from click
       expect(metrics.droplets).toBe(12); // 12 droplets
-      
+
       jest.restoreAllMocks();
     });
 
     it('should render droplet effects on buffer', () => {
       jest.spyOn(Date, 'now').mockReturnValue(0);
-      
+
       const pos = createMockPoint(40, 12);
       pattern.onMouseClick(pos);
-      
+
       pattern.render(buffer, 100, size);
-      
+
       // Area around click should have visible droplets
       let hasDropletEffect = false;
       for (let y = 10; y < 15; y++) {
@@ -344,7 +351,7 @@ describe('QuicksilverPattern', () => {
         if (hasDropletEffect) break;
       }
       expect(hasDropletEffect).toBe(true);
-      
+
       jest.restoreAllMocks();
     });
   });
@@ -358,10 +365,10 @@ describe('QuicksilverPattern', () => {
     it('should apply preset 1: Liquid Mercury', () => {
       const result = pattern.applyPreset(1);
       expect(result).toBe(true);
-      
+
       const metrics = pattern.getMetrics();
       expect(metrics.flowIntensity).toBe(0.5);
-      
+
       const preset = QuicksilverPattern.getPreset(1);
       expect(preset?.name).toBe('Liquid Mercury');
       expect(preset?.description).toBe('Classic metallic flow');
@@ -370,10 +377,10 @@ describe('QuicksilverPattern', () => {
     it('should apply preset 2: Molten Silver', () => {
       const result = pattern.applyPreset(2);
       expect(result).toBe(true);
-      
+
       const metrics = pattern.getMetrics();
       expect(metrics.flowIntensity).toBe(0.7);
-      
+
       const preset = QuicksilverPattern.getPreset(2);
       expect(preset?.name).toBe('Molten Silver');
       expect(preset?.description).toBe('Slower, thicker flow');
@@ -382,10 +389,10 @@ describe('QuicksilverPattern', () => {
     it('should apply preset 3: Quicksilver Rush', () => {
       const result = pattern.applyPreset(3);
       expect(result).toBe(true);
-      
+
       const metrics = pattern.getMetrics();
       expect(metrics.flowIntensity).toBe(0.4);
-      
+
       const preset = QuicksilverPattern.getPreset(3);
       expect(preset?.name).toBe('Quicksilver Rush');
       expect(preset?.description).toBe('Fast-flowing liquid metal');
@@ -394,10 +401,10 @@ describe('QuicksilverPattern', () => {
     it('should apply preset 4: Chrome Puddle', () => {
       const result = pattern.applyPreset(4);
       expect(result).toBe(true);
-      
+
       const metrics = pattern.getMetrics();
       expect(metrics.flowIntensity).toBe(0.8);
-      
+
       const preset = QuicksilverPattern.getPreset(4);
       expect(preset?.name).toBe('Chrome Puddle');
       expect(preset?.description).toBe('Minimal flow, high detail');
@@ -406,10 +413,10 @@ describe('QuicksilverPattern', () => {
     it('should apply preset 5: Turbulent Metal', () => {
       const result = pattern.applyPreset(5);
       expect(result).toBe(true);
-      
+
       const metrics = pattern.getMetrics();
       expect(metrics.flowIntensity).toBe(0.9);
-      
+
       const preset = QuicksilverPattern.getPreset(5);
       expect(preset?.name).toBe('Turbulent Metal');
       expect(preset?.description).toBe('Chaotic, intense flow');
@@ -418,10 +425,10 @@ describe('QuicksilverPattern', () => {
     it('should apply preset 6: Gentle Shimmer', () => {
       const result = pattern.applyPreset(6);
       expect(result).toBe(true);
-      
+
       const metrics = pattern.getMetrics();
       expect(metrics.flowIntensity).toBe(0.3);
-      
+
       const preset = QuicksilverPattern.getPreset(6);
       expect(preset?.name).toBe('Gentle Shimmer');
       expect(preset?.description).toBe('Subtle, peaceful flow');
@@ -436,13 +443,13 @@ describe('QuicksilverPattern', () => {
       // Add some droplets and ripples
       pattern.onMouseClick(createMockPoint(40, 12));
       pattern.onMouseMove(createMockPoint(50, 15));
-      
+
       expect(pattern.getMetrics().droplets).toBeGreaterThan(0);
       expect(pattern.getMetrics().ripples).toBeGreaterThan(0);
-      
+
       // Apply preset should reset
       pattern.applyPreset(2);
-      
+
       expect(pattern.getMetrics().droplets).toBe(0);
       expect(pattern.getMetrics().ripples).toBe(0);
     });
@@ -457,12 +464,12 @@ describe('QuicksilverPattern', () => {
     it('should clear all droplets and ripples', () => {
       pattern.onMouseClick(createMockPoint(40, 12));
       pattern.onMouseMove(createMockPoint(50, 15));
-      
+
       expect(pattern.getMetrics().droplets).toBeGreaterThan(0);
       expect(pattern.getMetrics().ripples).toBeGreaterThan(0);
-      
+
       pattern.reset();
-      
+
       expect(pattern.getMetrics().droplets).toBe(0);
       expect(pattern.getMetrics().ripples).toBe(0);
     });
@@ -474,15 +481,15 @@ describe('QuicksilverPattern', () => {
       for (let i = 0; i < 20; i++) {
         pattern.render(buffer, i * 100, size);
       }
-      
+
       const buffer1 = createMockBuffer(size.width, size.height);
       pattern.render(buffer1, 0, size);
-      
+
       // Reset and render again
       pattern.reset();
       const buffer2 = createMockBuffer(size.width, size.height);
       pattern.render(buffer2, 0, size);
-      
+
       // After reset, pattern should look different (noise offset reset)
       // Use grid-based sampling instead of random to ensure deterministic results
       // Check cells in a grid pattern across the buffer
@@ -490,8 +497,8 @@ describe('QuicksilverPattern', () => {
       const gridSize = 4; // 4x4 grid = 16 cells
       for (let gy = 0; gy < gridSize; gy++) {
         for (let gx = 0; gx < gridSize; gx++) {
-          const y = Math.floor((gy + 0.5) * size.height / gridSize);
-          const x = Math.floor((gx + 0.5) * size.width / gridSize);
+          const y = Math.floor(((gy + 0.5) * size.height) / gridSize);
+          const x = Math.floor(((gx + 0.5) * size.width) / gridSize);
           if (buffer1[y][x].char !== buffer2[y][x].char) {
             differenceCount++;
           }
@@ -505,9 +512,9 @@ describe('QuicksilverPattern', () => {
     it('should return droplet count', () => {
       const metrics1 = pattern.getMetrics();
       expect(metrics1.droplets).toBe(0);
-      
+
       pattern.onMouseClick(createMockPoint(40, 12));
-      
+
       const metrics2 = pattern.getMetrics();
       expect(metrics2.droplets).toBe(12);
     });
@@ -515,10 +522,10 @@ describe('QuicksilverPattern', () => {
     it('should return ripple count', () => {
       const metrics1 = pattern.getMetrics();
       expect(metrics1.ripples).toBe(0);
-      
+
       pattern.onMouseMove(createMockPoint(40, 12));
       pattern.onMouseMove(createMockPoint(50, 15));
-      
+
       const metrics2 = pattern.getMetrics();
       expect(metrics2.ripples).toBe(2);
     });
@@ -534,7 +541,7 @@ describe('QuicksilverPattern', () => {
     it('should handle zero flow intensity', () => {
       const customPattern = new QuicksilverPattern(theme, { flowIntensity: 0 });
       customPattern.render(buffer, 0, size);
-      
+
       // Should still render something
       let nonEmptyCount = 0;
       for (let y = 0; y < size.height; y++) {
@@ -550,7 +557,7 @@ describe('QuicksilverPattern', () => {
     it('should handle very high flow intensity', () => {
       const customPattern = new QuicksilverPattern(theme, { flowIntensity: 2.0 });
       customPattern.render(buffer, 0, size);
-      
+
       // Should still render without errors
       let nonEmptyCount = 0;
       for (let y = 0; y < size.height; y++) {
@@ -567,11 +574,11 @@ describe('QuicksilverPattern', () => {
       const customPattern = new QuicksilverPattern(theme, { speed: 0 });
       customPattern.render(buffer, 0, size);
       const snapshot1 = buffer[10][40].char;
-      
+
       const buffer2 = createMockBuffer(size.width, size.height);
       customPattern.render(buffer2, 5000, size);
       const snapshot2 = buffer2[10][40].char;
-      
+
       // With zero speed, pattern should be mostly static
       expect(snapshot1).toBe(snapshot2);
     });
@@ -579,7 +586,7 @@ describe('QuicksilverPattern', () => {
     it('should handle negative speed', () => {
       const customPattern = new QuicksilverPattern(theme, { speed: -1.0 });
       customPattern.render(buffer, 0, size);
-      
+
       // Should render without errors
       expect(buffer[0][0].char).toBeDefined();
     });
@@ -587,9 +594,9 @@ describe('QuicksilverPattern', () => {
     it('should handle very small buffer', () => {
       const smallSize = createMockSize(5, 3);
       const smallBuffer = createMockBuffer(smallSize.width, smallSize.height);
-      
+
       pattern.render(smallBuffer, 0, smallSize);
-      
+
       // Should render without errors
       expect(smallBuffer[0][0].char).toBeDefined();
       expect(smallBuffer[2][4].char).toBeDefined();
@@ -598,9 +605,9 @@ describe('QuicksilverPattern', () => {
     it('should handle very large buffer', () => {
       const largeSize = createMockSize(200, 100);
       const largeBuffer = createMockBuffer(largeSize.width, largeSize.height);
-      
+
       pattern.render(largeBuffer, 0, largeSize);
-      
+
       // Should render without errors
       let nonEmptyCount = 0;
       for (let y = 0; y < largeSize.height; y++) {
@@ -617,7 +624,7 @@ describe('QuicksilverPattern', () => {
       const pos = createMockPoint(0, 0);
       pattern.onMouseClick(pos);
       pattern.render(buffer, Date.now(), size);
-      
+
       // Should not crash
       expect(pattern.getMetrics().droplets).toBeLessThanOrEqual(12);
     });
@@ -626,7 +633,7 @@ describe('QuicksilverPattern', () => {
       const pos = createMockPoint(size.width - 1, size.height - 1);
       pattern.onMouseMove(pos);
       pattern.render(buffer, 0, size);
-      
+
       // Should not crash
       expect(pattern.getMetrics().ripples).toBe(1);
     });
@@ -634,7 +641,7 @@ describe('QuicksilverPattern', () => {
     it('should handle very high noise scale', () => {
       const customPattern = new QuicksilverPattern(theme, { noiseScale: 1.0 });
       customPattern.render(buffer, 0, size);
-      
+
       // Should render without errors
       let nonEmptyCount = 0;
       for (let y = 0; y < size.height; y++) {
@@ -650,7 +657,7 @@ describe('QuicksilverPattern', () => {
     it('should handle very low noise scale', () => {
       const customPattern = new QuicksilverPattern(theme, { noiseScale: 0.001 });
       customPattern.render(buffer, 0, size);
-      
+
       // Should render without errors
       let nonEmptyCount = 0;
       for (let y = 0; y < size.height; y++) {
@@ -669,7 +676,7 @@ describe('QuicksilverPattern', () => {
       for (let i = 0; i < 100; i++) {
         pattern.render(buffer, i * 16, size);
       }
-      
+
       // Should complete without errors
       expect(buffer[0][0].char).toBeDefined();
     });
@@ -678,10 +685,10 @@ describe('QuicksilverPattern', () => {
       for (let i = 0; i < 20; i++) {
         pattern.onMouseClick(createMockPoint(40 + i, 12));
       }
-      
+
       // Should create many droplets
       expect(pattern.getMetrics().droplets).toBeGreaterThan(0);
-      
+
       // Render to clean up
       pattern.render(buffer, Date.now() + 3000, size);
     });
@@ -690,7 +697,7 @@ describe('QuicksilverPattern', () => {
       for (let i = 0; i < 50; i++) {
         pattern.onMouseMove(createMockPoint(40 + i, 12));
       }
-      
+
       // Should limit to 10 ripples
       expect(pattern.getMetrics().ripples).toBe(10);
     });
@@ -700,7 +707,7 @@ describe('QuicksilverPattern', () => {
         pattern.applyPreset(i);
         pattern.render(buffer, 0, size);
       }
-      
+
       // Should complete without errors
       expect(pattern.getMetrics().flowIntensity).toBeGreaterThan(0);
     });
@@ -715,7 +722,7 @@ describe('QuicksilverPattern', () => {
           pattern.render(buffer, i * 100, size);
         }
       }
-      
+
       // Should complete without errors
       expect(buffer[0][0].char).toBeDefined();
     });
@@ -726,7 +733,7 @@ describe('QuicksilverPattern', () => {
         pattern.onMouseClick(createMockPoint(40, 12));
         pattern.render(buffer, i * 100, size);
       }
-      
+
       // Reset and verify clean state
       pattern.reset();
       const metrics = pattern.getMetrics();

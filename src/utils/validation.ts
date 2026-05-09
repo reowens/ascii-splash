@@ -12,14 +12,14 @@ export function clamp(value: number, min: number, max: number): number {
 /**
  * Ensure a value is positive (> 0)
  */
-export function ensurePositive(value: number, defaultValue: number = 1): number {
+export function ensurePositive(value: number, defaultValue = 1): number {
   return value > 0 ? value : defaultValue;
 }
 
 /**
  * Ensure a value is non-negative (>= 0)
  */
-export function ensureNonNegative(value: number, defaultValue: number = 0): number {
+export function ensureNonNegative(value: number, defaultValue = 0): number {
   return value >= 0 ? value : defaultValue;
 }
 
@@ -48,7 +48,7 @@ export function validateCount(count: number, max?: number): number {
 /**
  * Validate a speed value (positive)
  */
-export function validateSpeed(speed: number, min: number = 0.1, max: number = 10): number {
+export function validateSpeed(speed: number, min = 0.1, max = 10): number {
   return clamp(ensurePositive(speed, min), min, max);
 }
 
@@ -74,7 +74,7 @@ export function validateAngleDegrees(angle: number): number {
 /**
  * Validate a time interval in milliseconds (positive)
  */
-export function validateInterval(interval: number, min: number = 1, max: number = 10000): number {
+export function validateInterval(interval: number, min = 1, max = 10000): number {
   return Math.floor(clamp(ensurePositive(interval, min), min, max));
 }
 

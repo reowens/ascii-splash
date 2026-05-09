@@ -104,7 +104,7 @@ export function vec2Limit(v: Vector2, max: number): Vector2 {
 export function vec2Lerp(a: Vector2, b: Vector2, t: number): Vector2 {
   return {
     x: lerp(a.x, b.x, t),
-    y: lerp(a.y, b.y, t)
+    y: lerp(a.y, b.y, t),
   };
 }
 
@@ -116,7 +116,7 @@ export function vec2Rotate(v: Vector2, angle: number): Vector2 {
   const sin = Math.sin(angle);
   return {
     x: v.x * cos - v.y * sin,
-    y: v.x * sin + v.y * cos
+    y: v.x * sin + v.y * cos,
   };
 }
 
@@ -130,17 +130,17 @@ export function vec2Angle(v: Vector2): number {
 /**
  * Create vector from angle and magnitude
  */
-export function vec2FromAngle(angle: number, magnitude: number = 1): Vector2 {
+export function vec2FromAngle(angle: number, magnitude = 1): Vector2 {
   return {
     x: Math.cos(angle) * magnitude,
-    y: Math.sin(angle) * magnitude
+    y: Math.sin(angle) * magnitude,
   };
 }
 
 /**
  * Check if two vectors are equal (with optional epsilon for floating point)
  */
-export function vec2Equals(a: Vector2, b: Vector2, epsilon: number = 0.0001): boolean {
+export function vec2Equals(a: Vector2, b: Vector2, epsilon = 0.0001): boolean {
   return Math.abs(a.x - b.x) < epsilon && Math.abs(a.y - b.y) < epsilon;
 }
 
@@ -157,14 +157,14 @@ export interface Complex {
 export function complexAdd(a: Complex, b: Complex): Complex {
   return {
     real: a.real + b.real,
-    imag: a.imag + b.imag
+    imag: a.imag + b.imag,
   };
 }
 
 export function complexMult(a: Complex, b: Complex): Complex {
   return {
     real: a.real * b.real - a.imag * b.imag,
-    imag: a.real * b.imag + a.imag * b.real
+    imag: a.real * b.imag + a.imag * b.real,
   };
 }
 
@@ -179,12 +179,12 @@ export interface Point3D {
   z: number;
 }
 
-export function projectTo2D(point: Point3D, fov: number = 500): Point {
+export function projectTo2D(point: Point3D, fov = 500): Point {
   // Simple perspective projection
   const scale = fov / (fov + point.z);
   return {
     x: point.x * scale,
-    y: point.y * scale
+    y: point.y * scale,
   };
 }
 
@@ -194,7 +194,7 @@ export function rotateY(point: Point3D, angle: number): Point3D {
   return {
     x: point.x * cos + point.z * sin,
     y: point.y,
-    z: -point.x * sin + point.z * cos
+    z: -point.x * sin + point.z * cos,
   };
 }
 
@@ -204,7 +204,7 @@ export function rotateZ(point: Point3D, angle: number): Point3D {
   return {
     x: point.x * cos - point.y * sin,
     y: point.x * sin + point.y * cos,
-    z: point.z
+    z: point.z,
   };
 }
 

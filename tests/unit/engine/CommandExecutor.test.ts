@@ -1,15 +1,15 @@
 /**
  * CommandExecutor Tests
- * 
+ *
  * Comprehensive test suite for CommandExecutor - the orchestrator that executes
  * parsed commands and manages pattern/theme/favorite state.
- * 
+ *
  * Coverage target: 95%+
  * Expected tests: ~70
  */
 
-import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import { CommandExecutor, ExecutionResult } from '../../../src/engine/CommandExecutor.js';
+import { jest, describe, expect, beforeEach, afterEach } from '@jest/globals';
+import { CommandExecutor } from '../../../src/engine/CommandExecutor.js';
 import { ParsedCommand } from '../../../src/engine/CommandParser.js';
 import { AnimationEngine } from '../../../src/engine/AnimationEngine.js';
 import { ConfigLoader } from '../../../src/config/ConfigLoader.js';
@@ -23,7 +23,7 @@ jest.mock('../../../src/config/ConfigLoader');
 const cmd = (type: ParsedCommand['type'], args: any, raw: string = 'test'): ParsedCommand => ({
   type,
   args,
-  raw
+  raw,
 });
 
 // Base mock pattern with preset support
@@ -51,7 +51,7 @@ const createMockPatternClass = (className: string, hasPresets: boolean) => {
       { id: 3, name: 'Preset 3' },
       { id: 4, name: 'Preset 4' },
       { id: 5, name: 'Preset 5' },
-      { id: 6, name: 'Preset 6' }
+      { id: 6, name: 'Preset 6' },
     ]);
 
     (MockClass as any).getPreset = jest.fn((id: number) => {
@@ -75,7 +75,7 @@ const createMockTheme = (name: string, displayName: string): Theme => ({
   name,
   displayName,
   colors: [{ r: 0, g: 0, b: 0 }],
-  getColor: jest.fn(() => ({ r: 0, g: 0, b: 0 }))
+  getColor: jest.fn(() => ({ r: 0, g: 0, b: 0 })),
 });
 
 describe('CommandExecutor', () => {
@@ -93,21 +93,21 @@ describe('CommandExecutor', () => {
     // Create mock engine
     mockEngine = {
       setPattern: jest.fn(),
-      getFps: jest.fn(() => 30)
+      getFps: jest.fn(() => 30),
     } as any;
 
     // Create mock patterns using the specific classes
     patterns = [
       new WavePattern() as any,
       new SimplePattern() as any,
-      new StarfieldPattern() as any
+      new StarfieldPattern() as any,
     ];
 
     // Create mock themes
     themes = [
       createMockTheme('ocean', 'Ocean'),
       createMockTheme('fire', 'Fire'),
-      createMockTheme('matrix', 'Matrix')
+      createMockTheme('matrix', 'Matrix'),
     ];
 
     // Create mock config loader
@@ -119,7 +119,7 @@ describe('CommandExecutor', () => {
       load: jest.fn(() => ({})),
       save: jest.fn(),
       getConfigPath: jest.fn(),
-      reset: jest.fn()
+      reset: jest.fn(),
     } as any;
 
     // Create executor
@@ -154,13 +154,7 @@ describe('CommandExecutor', () => {
     });
 
     test('works without config loader (optional)', () => {
-      const executorNoConfig = new CommandExecutor(
-        mockEngine,
-        patterns,
-        themes,
-        0,
-        0
-      );
+      const executorNoConfig = new CommandExecutor(mockEngine, patterns, themes, 0, 0);
       const result = executorNoConfig.execute(cmd('favorite', { favoriteSlot: 1 }, '0f1'));
       expect(result.success).toBe(false);
       expect(result.message).toContain('Config loader not available');
@@ -170,7 +164,7 @@ describe('CommandExecutor', () => {
   describe('State Management', () => {
     test('updateState updates current indices', () => {
       executor.updateState(2, 1);
-      
+
       // Verify by checking pattern switch doesn't happen when already on pattern 2
       mockEngine.setPattern.mockClear();
       const result = executor.execute(cmd('pattern', { patternId: 3 }, '0p3'));
@@ -180,10 +174,10 @@ describe('CommandExecutor', () => {
     test('setThemeChangeCallback registers callback', () => {
       const callback = jest.fn();
       executor.setThemeChangeCallback(callback);
-      
+
       // Trigger theme change
       executor.execute(cmd('theme', { themeId: 2 }, '0t2'));
-      
+
       expect(callback).toHaveBeenCalledWith(1); // Theme index 1 (0-based)
     });
 
@@ -278,7 +272,9 @@ describe('CommandExecutor', () => {
     });
 
     test('handles pattern with invalid preset gracefully', () => {
-      const result = executor.execute(cmd('pattern', { patternId: 3, patternPreset: 99 }, '0p3.99'));
+      const result = executor.execute(
+        cmd('pattern', { patternId: 3, patternPreset: 99 }, '0p3.99')
+      );
 
       expect(result.success).toBe(true); // Pattern switch succeeds
       expect(result.message).toContain('Switched to pattern 3');
@@ -300,7 +296,9 @@ describe('CommandExecutor', () => {
     });
 
     test('rejects invalid pattern name', () => {
-      const result = executor.execute(cmd('pattern', { patternId: 'nonexistent' }, '0pnonexistent'));
+      const result = executor.execute(
+        cmd('pattern', { patternId: 'nonexistent' }, '0pnonexistent')
+      );
 
       expect(result.success).toBe(false);
       expect(result.message).toContain('not found');
@@ -390,7 +388,7 @@ describe('CommandExecutor', () => {
         pattern: 'StarfieldPattern',
         theme: 'fire',
         preset: 3,
-        savedAt: new Date().toISOString()
+        savedAt: new Date().toISOString(),
       };
       mockConfigLoader.getFavorite.mockReturnValue(favorite);
 
@@ -413,7 +411,7 @@ describe('CommandExecutor', () => {
       const favorite: FavoriteSlot = {
         pattern: 'WavePattern',
         theme: 'ocean',
-        savedAt: new Date().toISOString()
+        savedAt: new Date().toISOString(),
       };
       mockConfigLoader.getFavorite.mockReturnValue(favorite);
 
@@ -429,7 +427,7 @@ describe('CommandExecutor', () => {
         pattern: 'WavePattern',
         theme: 'ocean',
         note: 'Calm vibes',
-        savedAt: new Date().toISOString()
+        savedAt: new Date().toISOString(),
       };
       mockConfigLoader.getFavorite.mockReturnValue(favorite);
 
@@ -452,7 +450,7 @@ describe('CommandExecutor', () => {
       const favorite: FavoriteSlot = {
         pattern: 'NonExistentPattern',
         theme: 'ocean',
-        savedAt: new Date().toISOString()
+        savedAt: new Date().toISOString(),
       };
       mockConfigLoader.getFavorite.mockReturnValue(favorite);
 
@@ -466,7 +464,7 @@ describe('CommandExecutor', () => {
       const favorite: FavoriteSlot = {
         pattern: 'WavePattern',
         theme: 'nonexistent',
-        savedAt: new Date().toISOString()
+        savedAt: new Date().toISOString(),
       };
       mockConfigLoader.getFavorite.mockReturnValue(favorite);
 
@@ -484,13 +482,7 @@ describe('CommandExecutor', () => {
     });
 
     test('handles missing config loader', () => {
-      const executorNoConfig = new CommandExecutor(
-        mockEngine,
-        patterns,
-        themes,
-        0,
-        0
-      );
+      const executorNoConfig = new CommandExecutor(mockEngine, patterns, themes, 0, 0);
 
       const result = executorNoConfig.execute(cmd('favorite', { favoriteSlot: 1 }, '0f1'));
 
@@ -502,7 +494,7 @@ describe('CommandExecutor', () => {
       const favorite: FavoriteSlot = {
         pattern: 'StarfieldPattern',
         theme: 'ocean', // Already on this theme (index 0)
-        savedAt: new Date().toISOString()
+        savedAt: new Date().toISOString(),
       };
       mockConfigLoader.getFavorite.mockReturnValue(favorite);
 
@@ -528,7 +520,7 @@ describe('CommandExecutor', () => {
         3,
         expect.objectContaining({
           pattern: 'WavePattern',
-          theme: 'ocean'
+          theme: 'ocean',
         })
       );
     });
@@ -539,7 +531,7 @@ describe('CommandExecutor', () => {
       expect(mockConfigLoader.saveFavorite).toHaveBeenCalledWith(
         1,
         expect.objectContaining({
-          savedAt: expect.any(String)
+          savedAt: expect.any(String),
         })
       );
     });
@@ -552,13 +544,7 @@ describe('CommandExecutor', () => {
     });
 
     test('handles missing config loader', () => {
-      const executorNoConfig = new CommandExecutor(
-        mockEngine,
-        patterns,
-        themes,
-        0,
-        0
-      );
+      const executorNoConfig = new CommandExecutor(mockEngine, patterns, themes, 0, 0);
 
       const result = executorNoConfig.execute(cmd('saveFavorite', { favoriteSlot: 1 }, '0F1'));
 
@@ -576,7 +562,7 @@ describe('CommandExecutor', () => {
         7,
         expect.objectContaining({
           pattern: 'StarfieldPattern',
-          theme: 'fire'
+          theme: 'fire',
         })
       );
     });
@@ -640,14 +626,14 @@ describe('CommandExecutor', () => {
           pattern: 'WavePattern',
           theme: 'ocean',
           preset: 2,
-          savedAt: '2025-01-01T00:00:00.000Z'
+          savedAt: '2025-01-01T00:00:00.000Z',
         },
         5: {
           pattern: 'StarfieldPattern',
           theme: 'fire',
           note: 'Cool effect',
-          savedAt: '2025-01-02T00:00:00.000Z'
-        }
+          savedAt: '2025-01-02T00:00:00.000Z',
+        },
       });
 
       const result = executor.execute(cmd('special', { specialCmd: 'favoriteList' }, '0fl'));
@@ -668,15 +654,11 @@ describe('CommandExecutor', () => {
     });
 
     test('favoriteList handles missing config loader', () => {
-      const executorNoConfig = new CommandExecutor(
-        mockEngine,
-        patterns,
-        themes,
-        0,
-        0
-      );
+      const executorNoConfig = new CommandExecutor(mockEngine, patterns, themes, 0, 0);
 
-      const result = executorNoConfig.execute(cmd('special', { specialCmd: 'favoriteList' }, '0fl'));
+      const result = executorNoConfig.execute(
+        cmd('special', { specialCmd: 'favoriteList' }, '0fl')
+      );
 
       expect(result.success).toBe(false);
       expect(result.message).toContain('Config loader not available');
@@ -770,19 +752,13 @@ describe('CommandExecutor', () => {
         expect.objectContaining({
           defaultPattern: 'wave',
           theme: 'ocean',
-          fps: 30
+          fps: 30,
         })
       );
     });
 
     test('save handles missing config loader', () => {
-      const executorNoConfig = new CommandExecutor(
-        mockEngine,
-        patterns,
-        themes,
-        0,
-        0
-      );
+      const executorNoConfig = new CommandExecutor(mockEngine, patterns, themes, 0, 0);
 
       const result = executorNoConfig.execute(cmd('special', { specialCmd: 'save' }, '0s'));
 
@@ -804,7 +780,9 @@ describe('CommandExecutor', () => {
   // =============================================================================
   describe('Special Commands - Search', () => {
     test('search finds patterns by name', () => {
-      const result = executor.execute(cmd('special', { specialCmd: 'search', specialArg: 'wave' }, '0/wave'));
+      const result = executor.execute(
+        cmd('special', { specialCmd: 'search', specialArg: 'wave' }, '0/wave')
+      );
 
       expect(result.success).toBe(true);
       expect(result.message).toContain('Found:');
@@ -812,14 +790,18 @@ describe('CommandExecutor', () => {
     });
 
     test('search finds themes by name', () => {
-      const result = executor.execute(cmd('special', { specialCmd: 'search', specialArg: 'fire' }, '0/fire'));
+      const result = executor.execute(
+        cmd('special', { specialCmd: 'search', specialArg: 'fire' }, '0/fire')
+      );
 
       expect(result.success).toBe(true);
       expect(result.message).toContain('T2:Fire');
     });
 
     test('search finds both patterns and themes', () => {
-      const result = executor.execute(cmd('special', { specialCmd: 'search', specialArg: 'a' }, '0/a'));
+      const result = executor.execute(
+        cmd('special', { specialCmd: 'search', specialArg: 'a' }, '0/a')
+      );
 
       expect(result.success).toBe(true);
       expect(result.message).toContain('P1:Wave'); // Contains 'a'
@@ -829,21 +811,27 @@ describe('CommandExecutor', () => {
     });
 
     test('search is case-insensitive', () => {
-      const result = executor.execute(cmd('special', { specialCmd: 'search', specialArg: 'WAVE' }, '0/WAVE'));
+      const result = executor.execute(
+        cmd('special', { specialCmd: 'search', specialArg: 'WAVE' }, '0/WAVE')
+      );
 
       expect(result.success).toBe(true);
       expect(result.message).toContain('P1:Wave');
     });
 
     test('search handles no matches', () => {
-      const result = executor.execute(cmd('special', { specialCmd: 'search', specialArg: 'xyz123' }, '0/xyz123'));
+      const result = executor.execute(
+        cmd('special', { specialCmd: 'search', specialArg: 'xyz123' }, '0/xyz123')
+      );
 
       expect(result.success).toBe(false);
       expect(result.message).toContain('No matches for "xyz123"');
     });
 
     test('search requires term', () => {
-      const result = executor.execute(cmd('special', { specialCmd: 'search', specialArg: '' }, '0/'));
+      const result = executor.execute(
+        cmd('special', { specialCmd: 'search', specialArg: '' }, '0/')
+      );
 
       expect(result.success).toBe(false);
       expect(result.message).toContain('Search term required');
@@ -884,28 +872,36 @@ describe('CommandExecutor', () => {
     });
 
     test('sets custom shuffle interval', () => {
-      const result = executor.execute(cmd('special', { specialCmd: 'shuffle', specialArg: '5' }, '0!5'));
+      const result = executor.execute(
+        cmd('special', { specialCmd: 'shuffle', specialArg: '5' }, '0!5')
+      );
 
       expect(result.success).toBe(true);
       expect(result.message).toContain('5s intervals');
     });
 
     test('rejects invalid shuffle interval (too low)', () => {
-      const result = executor.execute(cmd('special', { specialCmd: 'shuffle', specialArg: '0' }, '0!0'));
+      const result = executor.execute(
+        cmd('special', { specialCmd: 'shuffle', specialArg: '0' }, '0!0')
+      );
 
       expect(result.success).toBe(false);
       expect(result.message).toContain('Shuffle interval must be 1-300 seconds');
     });
 
     test('rejects invalid shuffle interval (too high)', () => {
-      const result = executor.execute(cmd('special', { specialCmd: 'shuffle', specialArg: '500' }, '0!500'));
+      const result = executor.execute(
+        cmd('special', { specialCmd: 'shuffle', specialArg: '500' }, '0!500')
+      );
 
       expect(result.success).toBe(false);
       expect(result.message).toContain('Shuffle interval must be 1-300 seconds');
     });
 
     test('rejects non-numeric shuffle interval', () => {
-      const result = executor.execute(cmd('special', { specialCmd: 'shuffle', specialArg: 'abc' }, '0!abc'));
+      const result = executor.execute(
+        cmd('special', { specialCmd: 'shuffle', specialArg: 'abc' }, '0!abc')
+      );
 
       expect(result.success).toBe(false);
       expect(result.message).toContain('Shuffle interval must be 1-300 seconds');
@@ -1031,13 +1027,19 @@ describe('CommandExecutor', () => {
       const callback = jest.fn();
       executor.setThemeChangeCallback(callback);
 
-      const result = executor.execute(cmd('combination', {
-        commands: [
-          cmd('pattern', { patternId: 1 }, '0p1'),
-          cmd('theme', { themeId: 2 }, '0t2'),
-          cmd('preset', { presetNumber: 3 }, '03')
-        ]
-      }, '0p1+t2+03'));
+      const result = executor.execute(
+        cmd(
+          'combination',
+          {
+            commands: [
+              cmd('pattern', { patternId: 1 }, '0p1'),
+              cmd('theme', { themeId: 2 }, '0t2'),
+              cmd('preset', { presetNumber: 3 }, '03'),
+            ],
+          },
+          '0p1+t2+03'
+        )
+      );
 
       expect(result.success).toBe(true);
       expect(result.message).toContain('Switched to pattern 1');
@@ -1048,13 +1050,19 @@ describe('CommandExecutor', () => {
     });
 
     test('reports failure if any sub-command fails', () => {
-      const result = executor.execute(cmd('combination', {
-        commands: [
-          cmd('pattern', { patternId: 1 }, '0p1'),
-          cmd('pattern', { patternId: 99 }, '0p99'),
-          cmd('theme', { themeId: 1 }, '0t1')
-        ]
-      }, 'test'));
+      const result = executor.execute(
+        cmd(
+          'combination',
+          {
+            commands: [
+              cmd('pattern', { patternId: 1 }, '0p1'),
+              cmd('pattern', { patternId: 99 }, '0p99'),
+              cmd('theme', { themeId: 1 }, '0t1'),
+            ],
+          },
+          'test'
+        )
+      );
 
       expect(result.success).toBe(false);
       expect(result.message).toContain('❌');
@@ -1065,13 +1073,19 @@ describe('CommandExecutor', () => {
       const callback = jest.fn();
       executor.setThemeChangeCallback(callback);
 
-      const result = executor.execute(cmd('combination', {
-        commands: [
-          cmd('theme', { themeId: 2 }, '0t2'),
-          cmd('pattern', { patternId: 99 }, '0p99'),
-          cmd('theme', { themeId: 3 }, '0t3')
-        ]
-      }, 'test'));
+      const result = executor.execute(
+        cmd(
+          'combination',
+          {
+            commands: [
+              cmd('theme', { themeId: 2 }, '0t2'),
+              cmd('pattern', { patternId: 99 }, '0p99'),
+              cmd('theme', { themeId: 3 }, '0t3'),
+            ],
+          },
+          'test'
+        )
+      );
 
       expect(result.success).toBe(false);
       expect(callback).toHaveBeenCalledTimes(2); // Both theme changes
@@ -1092,12 +1106,18 @@ describe('CommandExecutor', () => {
     });
 
     test('combines pattern and preset', () => {
-      const result = executor.execute(cmd('combination', {
-        commands: [
-          cmd('pattern', { patternId: 3 }, '0p3'),
-          cmd('preset', { presetNumber: 4 }, '04')
-        ]
-      }, '0p3.4'));
+      const result = executor.execute(
+        cmd(
+          'combination',
+          {
+            commands: [
+              cmd('pattern', { patternId: 3 }, '0p3'),
+              cmd('preset', { presetNumber: 4 }, '04'),
+            ],
+          },
+          '0p3.4'
+        )
+      );
 
       expect(result.success).toBe(true);
       expect(mockEngine.setPattern).toHaveBeenCalledWith(patterns[2]);

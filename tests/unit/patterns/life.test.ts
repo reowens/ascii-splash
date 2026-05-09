@@ -28,7 +28,7 @@ describe('LifePattern', () => {
         aliveChar: '●',
         deadChar: '·',
         randomDensity: 0.5,
-        initialPattern: 'gliders'
+        initialPattern: 'gliders',
       });
       expect(customPattern).toBeDefined();
     });
@@ -43,7 +43,7 @@ describe('LifePattern', () => {
 
     it('should fill buffer with life cells', () => {
       pattern.render(buffer, 1000, size);
-      
+
       // Check that cells are set (alive or dead)
       let filledCells = 0;
       for (let y = 0; y < size.height; y++) {
@@ -53,7 +53,7 @@ describe('LifePattern', () => {
           }
         }
       }
-      
+
       expect(filledCells).toBeGreaterThan(0);
     });
 
@@ -61,40 +61,40 @@ describe('LifePattern', () => {
       // First generation
       pattern.render(buffer, 0, size);
       const metrics1 = pattern.getMetrics();
-      
+
       // Wait for update (default updateSpeed is 100ms)
       pattern.render(buffer, 150, size);
       const metrics2 = pattern.getMetrics();
-      
+
       // Generation should have increased
       expect(metrics2.generation).toBeGreaterThan(metrics1.generation);
     });
 
     it('should use theme colors', () => {
       pattern.render(buffer, 1000, size);
-      
+
       // Find a colored cell
       let hasColor = false;
       for (let y = 0; y < size.height; y++) {
         for (let x = 0; x < size.width; x++) {
-          if (buffer[y][x].color && 
-              (buffer[y][x].color!.r > 0 || 
-               buffer[y][x].color!.g > 0 || 
-               buffer[y][x].color!.b > 0)) {
+          if (
+            buffer[y][x].color &&
+            (buffer[y][x].color!.r > 0 || buffer[y][x].color!.g > 0 || buffer[y][x].color!.b > 0)
+          ) {
             hasColor = true;
             break;
           }
         }
         if (hasColor) break;
       }
-      
+
       expect(hasColor).toBe(true);
     });
 
     it('should handle small terminal sizes', () => {
       const smallSize = { width: 20, height: 10 };
       const smallBuffer = createMockBuffer(smallSize.width, smallSize.height);
-      
+
       expect(() => {
         pattern.render(smallBuffer, 1000, smallSize);
       }).not.toThrow();
@@ -103,7 +103,7 @@ describe('LifePattern', () => {
     it('should handle large terminal sizes', () => {
       const largeSize = { width: 200, height: 50 };
       const largeBuffer = createMockBuffer(largeSize.width, largeSize.height);
-      
+
       expect(() => {
         pattern.render(largeBuffer, 1000, largeSize);
       }).not.toThrow();
@@ -133,7 +133,7 @@ describe('LifePattern', () => {
     it('should apply preset 1 - Random Soup', () => {
       const result = pattern.applyPreset(1);
       expect(result).toBe(true);
-      
+
       // Render and verify preset was applied
       pattern.render(buffer, 1000, size);
       const metrics = pattern.getMetrics();
@@ -144,7 +144,7 @@ describe('LifePattern', () => {
     it('should apply preset 2 - Glider Garden', () => {
       const result = pattern.applyPreset(2);
       expect(result).toBe(true);
-      
+
       pattern.render(buffer, 1000, size);
       const metrics = pattern.getMetrics();
       expect(metrics.cellSize).toBe(2);
@@ -154,7 +154,7 @@ describe('LifePattern', () => {
     it('should apply preset 3 - Oscillator Park', () => {
       const result = pattern.applyPreset(3);
       expect(result).toBe(true);
-      
+
       pattern.render(buffer, 1000, size);
       const metrics = pattern.getMetrics();
       expect(metrics.cellSize).toBe(2);
@@ -164,7 +164,7 @@ describe('LifePattern', () => {
     it('should apply preset 4 - Primordial Soup', () => {
       const result = pattern.applyPreset(4);
       expect(result).toBe(true);
-      
+
       pattern.render(buffer, 1000, size);
       const metrics = pattern.getMetrics();
       expect(metrics.cellSize).toBe(1);
@@ -174,7 +174,7 @@ describe('LifePattern', () => {
     it('should apply preset 5 - Methuselah Patterns', () => {
       const result = pattern.applyPreset(5);
       expect(result).toBe(true);
-      
+
       pattern.render(buffer, 1000, size);
       const metrics = pattern.getMetrics();
       expect(metrics.cellSize).toBe(2);
@@ -184,7 +184,7 @@ describe('LifePattern', () => {
     it('should apply preset 6 - Still Life Garden', () => {
       const result = pattern.applyPreset(6);
       expect(result).toBe(true);
-      
+
       pattern.render(buffer, 1000, size);
       const metrics = pattern.getMetrics();
       expect(metrics.cellSize).toBe(2);
@@ -198,14 +198,14 @@ describe('LifePattern', () => {
 
     it('should reset pattern when applying preset', () => {
       pattern.render(buffer, 1000, size);
-      
+
       // Apply preset - this calls reset()
       pattern.applyPreset(2);
-      
+
       // Render at time 0 (no evolution yet)
       pattern.render(buffer, 0, size);
       const metrics = pattern.getMetrics();
-      
+
       // Generation should be reset
       expect(metrics.generation).toBe(0);
     });
@@ -224,23 +224,23 @@ describe('LifePattern', () => {
       pattern.render(buffer, 1000, size);
       const metrics1 = pattern.getMetrics();
       const pop1 = metrics1.population;
-      
+
       // Click to toggle a cell
       pattern.onMouseClick({ x: 10, y: 10 });
       const metrics2 = pattern.getMetrics();
       const pop2 = metrics2.population;
-      
+
       // Population should change
       expect(pop2).not.toBe(pop1);
     });
 
     it('should handle clicks outside grid bounds', () => {
       pattern.render(buffer, 1000, size);
-      
+
       expect(() => {
         pattern.onMouseClick({ x: -1, y: -1 });
       }).not.toThrow();
-      
+
       expect(() => {
         pattern.onMouseClick({ x: 1000, y: 1000 });
       }).not.toThrow();
@@ -250,14 +250,13 @@ describe('LifePattern', () => {
   describe('reset', () => {
     it('should reset to initial state', () => {
       pattern.render(buffer, 1000, size);
-      
+
       // Let it evolve
       pattern.render(buffer, 500, size);
-      const metrics1 = pattern.getMetrics();
-      
+
       pattern.reset();
       const metrics2 = pattern.getMetrics();
-      
+
       expect(metrics2.generation).toBe(0);
       expect(metrics2.population).toBe(0);
     });
@@ -267,7 +266,7 @@ describe('LifePattern', () => {
     it('should return metrics with correct structure', () => {
       pattern.render(buffer, 1000, size);
       const metrics = pattern.getMetrics();
-      
+
       expect(metrics).toHaveProperty('generation');
       expect(metrics).toHaveProperty('population');
       expect(metrics).toHaveProperty('gridWidth');
@@ -281,7 +280,7 @@ describe('LifePattern', () => {
     it('should return numeric values only', () => {
       pattern.render(buffer, 1000, size);
       const metrics = pattern.getMetrics();
-      
+
       Object.values(metrics).forEach(value => {
         expect(typeof value).toBe('number');
       });
@@ -298,9 +297,9 @@ describe('LifePattern', () => {
         aliveChar: '█',
         deadChar: ' ',
         randomDensity: 0,
-        initialPattern: 'random'
+        initialPattern: 'random',
       });
-      
+
       testPattern.render(buffer, 0, size);
       expect(() => {
         testPattern.render(buffer, 100, size);
@@ -315,15 +314,13 @@ describe('LifePattern', () => {
         aliveChar: '█',
         deadChar: ' ',
         randomDensity: 0.3,
-        initialPattern: 'random'
+        initialPattern: 'random',
       });
-      
+
       testPattern.render(buffer, 0, size);
-      const metrics1 = testPattern.getMetrics();
-      
       testPattern.render(buffer, 100, size);
       const metrics2 = testPattern.getMetrics();
-      
+
       // Some cells should survive
       expect(metrics2.population).toBeGreaterThan(0);
     });
@@ -336,9 +333,9 @@ describe('LifePattern', () => {
         aliveChar: '█',
         deadChar: ' ',
         randomDensity: 0.5,
-        initialPattern: 'random'
+        initialPattern: 'random',
       });
-      
+
       testPattern.render(buffer, 0, size);
       expect(() => {
         testPattern.render(buffer, 100, size);
@@ -355,12 +352,12 @@ describe('LifePattern', () => {
         aliveChar: '█',
         deadChar: ' ',
         randomDensity: 0.3,
-        initialPattern: 'random'
+        initialPattern: 'random',
       });
-      
+
       testPattern.render(buffer, 1000, size);
       const metrics = testPattern.getMetrics();
-      
+
       expect(metrics.population).toBeGreaterThan(0);
     });
 
@@ -372,12 +369,12 @@ describe('LifePattern', () => {
         aliveChar: '●',
         deadChar: '·',
         randomDensity: 0,
-        initialPattern: 'gliders'
+        initialPattern: 'gliders',
       });
-      
+
       testPattern.render(buffer, 1000, size);
       const metrics = testPattern.getMetrics();
-      
+
       expect(metrics.population).toBeGreaterThan(0);
     });
 
@@ -389,12 +386,12 @@ describe('LifePattern', () => {
         aliveChar: '▓',
         deadChar: ' ',
         randomDensity: 0,
-        initialPattern: 'oscillators'
+        initialPattern: 'oscillators',
       });
-      
+
       testPattern.render(buffer, 1000, size);
       const metrics = testPattern.getMetrics();
-      
+
       expect(metrics.population).toBeGreaterThan(0);
     });
   });
@@ -408,12 +405,12 @@ describe('LifePattern', () => {
         aliveChar: '█',
         deadChar: ' ',
         randomDensity: 0.3,
-        initialPattern: 'random'
+        initialPattern: 'random',
       });
-      
+
       testPattern.render(buffer, 1000, size);
       const metrics = testPattern.getMetrics();
-      
+
       expect(metrics.cellSize).toBe(3);
     });
 
@@ -425,12 +422,12 @@ describe('LifePattern', () => {
         aliveChar: '█',
         deadChar: ' ',
         randomDensity: 0.3,
-        initialPattern: 'random'
+        initialPattern: 'random',
       });
-      
+
       testPattern.render(buffer, 1000, size);
       const metrics = testPattern.getMetrics();
-      
+
       expect(metrics.updateSpeed).toBe(200);
     });
 
@@ -442,12 +439,12 @@ describe('LifePattern', () => {
         aliveChar: '█',
         deadChar: ' ',
         randomDensity: 0.3,
-        initialPattern: 'random'
+        initialPattern: 'random',
       });
-      
+
       testPattern.render(buffer, 1000, size);
       const metrics = testPattern.getMetrics();
-      
+
       expect(metrics.wrapEdges).toBe(0); // false = 0
     });
 
@@ -459,11 +456,11 @@ describe('LifePattern', () => {
         aliveChar: '●',
         deadChar: '·',
         randomDensity: 0.3,
-        initialPattern: 'random'
+        initialPattern: 'random',
       });
-      
+
       testPattern.render(buffer, 1000, size);
-      
+
       // Check that custom chars appear in buffer
       let hasCustomChar = false;
       for (let y = 0; y < size.height; y++) {
@@ -475,7 +472,7 @@ describe('LifePattern', () => {
         }
         if (hasCustomChar) break;
       }
-      
+
       expect(hasCustomChar).toBe(true);
     });
   });
@@ -483,7 +480,7 @@ describe('LifePattern', () => {
   describe('theme integration', () => {
     it('should use theme colors with varying intensities', () => {
       pattern.render(buffer, 1000, size);
-      
+
       // Collect unique colors
       const colors = new Set<string>();
       for (let y = 0; y < size.height; y++) {
@@ -494,7 +491,7 @@ describe('LifePattern', () => {
           }
         }
       }
-      
+
       // Should have multiple color variations from theme
       expect(colors.size).toBeGreaterThan(0);
     });
