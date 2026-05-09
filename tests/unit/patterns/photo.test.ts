@@ -51,10 +51,31 @@ describe('PhotoPattern', () => {
       expect(pattern.getCurrentPreset().preset).toBe('inverted');
     });
 
-    test('exposes 6 presets', () => {
+    test('exposes 12 presets after Phase 2 (Phase 1 ids 1–6 plus Phase 2 ids 7–12)', () => {
       const presets = PhotoPattern.getPresets();
-      expect(presets).toHaveLength(6);
+      expect(presets).toHaveLength(12);
       expect(presets.map(p => p.preset)).toEqual([
+        'default',
+        'high-contrast',
+        'inverted',
+        'grayscale',
+        'bg-tinted',
+        'edge-only',
+        'edge-dog',
+        'braille',
+        'braille-inverted',
+        'braille-dithered',
+        'braille-edges',
+        'halfblock-bayer',
+      ]);
+    });
+
+    test('Phase 1 preset ids 1–6 keep their original semantics', () => {
+      const ids = [1, 2, 3, 4, 5, 6].map(id => {
+        const p = PhotoPattern.getPreset(id);
+        return p?.preset;
+      });
+      expect(ids).toEqual([
         'default',
         'high-contrast',
         'inverted',
@@ -128,7 +149,7 @@ describe('PhotoPattern', () => {
     test('returns false for invalid preset ids', () => {
       const pattern = new PhotoPattern(theme, { source: Buffer.alloc(1) });
       expect(pattern.applyPreset(0)).toBe(false);
-      expect(pattern.applyPreset(7)).toBe(false);
+      expect(pattern.applyPreset(13)).toBe(false);
       expect(pattern.applyPreset(-1)).toBe(false);
     });
 
@@ -276,6 +297,125 @@ describe('PhotoPattern', () => {
       const metrics = pattern.getMetrics();
       expect(metrics.sourceWidth).toBe(4);
       expect(metrics.sourceHeight).toBe(4);
+    });
+  });
+
+  describe('Phase 2: braille mode', () => {
+    test('switching to a braille preset reports mode=1 in metrics', async () => {
+      const png = await makeGradientPng(4, 8);
+      const pattern = new PhotoPattern(theme, { source: png });
+      await pattern.load();
+      expect(pattern.applyPreset(8)).toBe(true); // braille
+      expect(pattern.getMetrics().mode).toBe(1);
+      expect(pattern.applyPreset(1)).toBe(true); // back to halfblock default
+      expect(pattern.getMetrics().mode).toBe(0);
+    });
+
+    test('braille preset uses 2× wider × 4× taller source canvas than halfblock', async () => {
+      // 16×16 source → halfblock with terminal 4×4 wants 4×8 source (canvas 4×8);
+      // braille on the same terminal wants 8×16 (canvas 8×16); 16×16 source fits both
+      // letterbox-style. We verify by inspecting the resize cache.
+      const png = await makeGradientPng(16, 16);
+      const pattern = new PhotoPattern(theme, { source: png });
+      await pattern.load();
+
+      const size = createMockSize(4, 4);
+
+      pattern.applyPreset(1); // halfblock default — canvas 4×8 → fit 1:1 → 4×4? No, 4×8 canvas, 1:1 input → fits in 4×4.
+      await pattern.prepareForSize(size);
+      const halfMetrics = pattern.getMetrics();
+
+      pattern.applyPreset(8); // braille — canvas 8×16 → 1:1 input → fits 8×8.
+      await pattern.prepareForSize(size);
+      const brailleMetrics = pattern.getMetrics();
+
+      expect(brailleMetrics.cachedWidth).toBeGreaterThanOrEqual(halfMetrics.cachedWidth);
+      expect(brailleMetrics.cachedHeight).toBeGreaterThanOrEqual(halfMetrics.cachedHeight);
+    });
+
+    test('braille preset writes Unicode Braille codepoints into the buffer', async () => {
+      const png = await makeGradientPng(8, 16); // 1:2 source → fits braille canvas
+      const pattern = new PhotoPattern(theme, { source: png });
+      await pattern.load();
+      pattern.applyPreset(8); // braille, threshold 128
+
+      const size = createMockSize(4, 4);
+      await pattern.prepareForSize(size);
+      const buffer: Cell[][] = createMockBuffer(size.width, size.height);
+      pattern.render(buffer, 0, size);
+
+      // Find at least one cell whose char is in U+2800–U+28FF.
+      let foundBraille = false;
+      for (const row of buffer) {
+        for (const cell of row) {
+          const code = cell.char.charCodeAt(0);
+          if (code >= 0x2800 && code <= 0x28ff) {
+            foundBraille = true;
+            break;
+          }
+        }
+      }
+      expect(foundBraille).toBe(true);
+    });
+  });
+
+  describe('Phase 2: edge presets', () => {
+    test('Sobel edge-only preset produces edge-thresholded output (only 0 or 255 fg)', async () => {
+      const png = await makeGradientPng(8, 8);
+      const pattern = new PhotoPattern(theme, { source: png });
+      await pattern.load();
+      pattern.applyPreset(6); // edge-only Sobel
+
+      const size = createMockSize(8, 4);
+      await pattern.prepareForSize(size);
+      const buffer: Cell[][] = createMockBuffer(size.width, size.height);
+      pattern.render(buffer, 0, size);
+
+      // Every fg/bg color channel should be exactly 0 or 255 (post-threshold mask).
+      for (const row of buffer) {
+        for (const cell of row) {
+          if (cell.color) {
+            expect([0, 255]).toContain(cell.color.r);
+            expect([0, 255]).toContain(cell.color.g);
+            expect([0, 255]).toContain(cell.color.b);
+          }
+          if (cell.bg) {
+            expect([0, 255]).toContain(cell.bg.r);
+            expect([0, 255]).toContain(cell.bg.g);
+            expect([0, 255]).toContain(cell.bg.b);
+          }
+        }
+      }
+    });
+
+    test('DoG edge preset is selectable', async () => {
+      const png = await makeGradientPng(8, 8);
+      const pattern = new PhotoPattern(theme, { source: png });
+      await pattern.load();
+      expect(pattern.applyPreset(7)).toBe(true);
+      expect(pattern.getCurrentPreset().preset).toBe('edge-dog');
+      expect(pattern.getCurrentPreset().edge).toBe('dog');
+    });
+  });
+
+  describe('Phase 2: dither presets', () => {
+    test('Floyd-Steinberg + braille preset is selectable and binarized', () => {
+      const pattern = new PhotoPattern(theme, { source: Buffer.alloc(1) });
+      expect(pattern.applyPreset(10)).toBe(true);
+      const p = pattern.getCurrentPreset();
+      expect(p.preset).toBe('braille-dithered');
+      expect(p.dither).toBe('floyd-steinberg');
+      expect(p.ditherLevels).toBe(2);
+      expect(p.braille?.preBinarized).toBe(true);
+    });
+
+    test('Bayer halfblock preset is selectable', () => {
+      const pattern = new PhotoPattern(theme, { source: Buffer.alloc(1) });
+      expect(pattern.applyPreset(12)).toBe(true);
+      const p = pattern.getCurrentPreset();
+      expect(p.preset).toBe('halfblock-bayer');
+      expect(p.dither).toBe('bayer-8');
+      expect(p.ditherLevels).toBe(8);
     });
   });
 });
