@@ -6,14 +6,14 @@ This directory contains enhancement proposals, feature plans, and future roadmap
 
 ## Status Overview
 
-| Item                                     | Status               | Last Updated |
-| ---------------------------------------- | -------------------- | ------------ |
-| **v0.2.0 ESM Migration**                 | ✅ Published         | Nov 5, 2025  |
-| **v0.3.0 Scene-Based Patterns**          | 🔄 Planning          | Nov 5, 2025  |
-| **v0.4.0 Photo / Visual Media Pipeline** | 📝 Draft             | May 9, 2026  |
-| **Fireworks Enhancement**                | ✅ Complete          | Nov 3, 2025  |
-| **Visual Media (GIFs)**                  | ✅ Complete (v0.1.4) | Nov 4, 2025  |
-| **Pattern Audit**                        | 📊 Reference         | Nov 3, 2025  |
+| Item                                     | Status                         | Last Updated |
+| ---------------------------------------- | ------------------------------ | ------------ |
+| **v0.2.0 ESM Migration**                 | ✅ Published                   | Nov 5, 2025  |
+| **v0.3.0 Scene-Based Patterns**          | ✅ Released (Dec 25, 2025)     | Dec 25, 2025 |
+| **v0.4.0 Photo / Visual Media Pipeline** | 🚧 Phases 1 + 2 done on branch | May 9, 2026  |
+| **Fireworks Enhancement**                | ✅ Complete                    | Nov 3, 2025  |
+| **Visual Media (GIFs)**                  | ✅ Complete (v0.1.4)           | Nov 4, 2025  |
+| **Pattern Audit**                        | 📊 Reference                   | Nov 3, 2025  |
 
 ---
 
@@ -21,17 +21,18 @@ This directory contains enhancement proposals, feature plans, and future roadmap
 
 ### [v0.4.0 Roadmap — "From Engine to Canvas"](./v0.4.0-ROADMAP.md) 🆕
 
-**Status**: 📝 Draft — Awaiting Approval
+**Status**: 🚧 Phases 1 + 2 done on `feature/v0.4.0-phase1-photo-pattern`; Phases 3–9 planned
 **Difficulty**: High
 **Impact**: Transformative — Photo/video as first-class input + modern terminal graphics
 
 Comprehensive roadmap for v0.4.0: turning ascii-splash into a canvas that renders any image as colored ASCII alongside procedural patterns. Five rendering modes (ascii-ramp, halfblock, braille, chafa-style symbol matcher, native protocol pass-through), scene composition with photo backgrounds, Kitty/iTerm2/Sixel support, color-mask sprites for richer scenes, seeded PRNG with share codes, and asciinema export. Backed by code-level inspection of chafa, viuer, ascii-image-converter, drawille, tarts, and asciiquarium in `~/Development/packages/`.
 
-- Phase 1–2: PhotoPattern (halfblock + braille + dither + edge)
-- Phase 3: Scene composition (photo bg + procedural overlay)
-- Phase 4–5: Symbol matcher + protocol pass-through
-- Phase 6: Color-mask sprites for hand-drawn scenes
-- Phase 7–8: Seeded PRNG, share codes, asciinema export
+- ✅ Phase 1: Half-block PhotoPattern (`splash --photo PATH`, 6 presets, 2× vertical resolution)
+- ✅ Phase 2: Braille mode (8× resolution, U+2800–U+28FF), Floyd-Steinberg + Bayer dither, Sobel + DoG edge detection, 12 presets total, real Sobel replaces Phase-1 stub
+- 📋 Phase 3 (next): Scene composition (photo bg + procedural overlay; the v0.4 headline)
+- 📋 Phase 4–5: Symbol matcher + protocol pass-through (Kitty / iTerm2 / Sixel)
+- 📋 Phase 6: Color-mask sprites for hand-drawn scenes
+- 📋 Phase 7–8: Seeded PRNG, share codes, asciinema export
 
 ---
 
@@ -116,28 +117,36 @@ Key finding: **Fireworks** is the standout candidate for Lightning-style enhance
 
 ---
 
-### v0.4.0 - Advanced Technical Features
+### v0.4.0 - "From Engine to Canvas" (current direction)
 
-- [ ] ASCII Fluid Dynamics (water/smoke/fire simulation)
-- [ ] Ray-Marched 3D Scenes (mountains, cityscapes)
+The original v0.4.0 sketch (fluid dynamics, ray-marching, etc.) was retired in May 2026 in favor of the [Photo / Visual Media Pipeline](./v0.4.0-ROADMAP.md). The retired ideas live on under "Future - Nice-to-Have" below.
+
+- ✅ Phase 1 — Half-block PhotoPattern
+- ✅ Phase 2 — Braille + dithering + edge detection
+- 📋 Phase 3 — Scene composition (photo bg + procedural overlay)
+- 📋 Phase 4 — Chafa-style symbol matcher
+- 📋 Phase 5 — Kitty / iTerm2 / Sixel pass-through
+- 📋 Phase 6 — Color-mask sprites
+- 📋 Phase 7 — Seeded PRNG + share codes
+- 📋 Phase 8 — asciinema export
+- ⏳ Phase 9 (stretch) — GIF export
+
+### Future - Nice-to-Have (post-v0.4)
+
+Captured in the v0.4.0 roadmap as deferred to v0.5+:
+
+- [ ] ASCII fluid dynamics (water / smoke / fire simulation)
+- [ ] Ray-marched / SDF 3D scenes (mountains, cityscapes, rotating donut)
+- [ ] Audio-reactive overlays (waits for a real user signal; cross-platform Node audio capture is genuinely painful)
+- [ ] Video-to-ASCII (per-frame `PhotoPattern` plus scrub UI)
+- [ ] Plugin / scripting system (JSON pattern definitions first, isolated-vm scripts later, WASM eventually)
+- [ ] Marketplace / gallery UI for sharing share-codes
 - [ ] Custom color gradient support
 - [ ] Performance profiling UI
-- [ ] Community pattern showcase
-
-### Future - Nice-to-Have
-
-- [ ] Additional scenes:
-  - Forest Clearing (swaying trees, wildlife)
-  - Rainy Window (droplets, puddles, lightning)
-  - Mountain Sunrise (time-of-day control)
-  - Undersea Cave (bioluminescent creatures)
-- [ ] Additional patterns:
-  - Constellation Map
-  - Ripple Grid
-  - Waveform Visualizer
-  - ASCII Art Morphing
-- [ ] Demo/tutorial mode
+- [ ] Demo / tutorial mode
 - [ ] Integration with terminal themes
+- [ ] Additional scenes (Forest Clearing, Rainy Window, Mountain Sunrise, Undersea Cave)
+- [ ] Additional patterns (Constellation Map, Ripple Grid, Waveform Visualizer, ASCII Art Morphing)
 
 ---
 
@@ -214,5 +223,5 @@ Completed features are moved to [../archive/](../archive/) for historical refere
 
 ---
 
-**Last Updated**: November 5, 2025
+**Last Updated**: May 9, 2026 (v0.4.0 Phases 1 + 2 done on branch; Phase 3 up next)
 **Organization**: Active enhancement proposals separated from completed work

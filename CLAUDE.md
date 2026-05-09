@@ -480,6 +480,6 @@ npm run test:coverage # Coverage report
 
 ---
 
-**Last Updated**: December 25, 2025
+**Last Updated**: May 9, 2026 (v0.4.0 Phases 1 + 2 on `feature/v0.4.0-phase1-photo-pattern`; 2197 tests; pattern-types convention added)
 **For**: AI Assistant navigation and project context
 **Human Readers**: Please see [README.md](README.md) instead

@@ -1,7 +1,9 @@
 # ascii-splash Project Review & Enhancement Recommendations
 
+> **📜 Historical document — November 2025 snapshot.** Reflects the project at v0.2.0 (17 patterns, 1505 tests, 92.35% coverage). Many of the recommendations below have since been implemented in v0.3.0 (23 patterns, scene graph, UI components, 2097 tests) and v0.4.0 Phases 1 + 2 (PhotoPattern, half-block + braille rendering, dither, edge detection — currently on `feature/v0.4.0-phase1-photo-pattern`). For current status, see [PROJECT_STATUS.md](PROJECT_STATUS.md). For the active roadmap, see [planning/v0.4.0-ROADMAP.md](planning/v0.4.0-ROADMAP.md).
+
 **Review Date**: November 5, 2025
-**Project Version**: v0.2.0 (ESM Migration Complete)
+**Project Version (at review time)**: v0.2.0 (ESM Migration Complete)
 **Reviewer**: Claude Code AI Assistant
 **Scope**: Comprehensive project analysis with actionable enhancement recommendations
 

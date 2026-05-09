@@ -118,9 +118,7 @@ describe('MyFirstPattern', () => {
     const pattern = new MyFirstPattern(createMockTheme());
     const buffer = Array(10)
       .fill(null)
-      .map(() =>
-        Array(20).fill({ char: ' ', color: { r: 0, g: 0, b: 0 } })
-      );
+      .map(() => Array(20).fill({ char: ' ', color: { r: 0, g: 0, b: 0 } }));
 
     expect(() => {
       pattern.render(buffer, 1000, { width: 20, height: 10 });
@@ -139,14 +137,22 @@ npm test -- my-first-pattern
 
 ## 5. Key Files for Development
 
-| File | Purpose |
-|------|---------|
-| `src/main.ts` | Entry point, pattern registration |
-| `src/types/index.ts` | All TypeScript interfaces |
-| `src/patterns/` | Pattern implementations (17 files) |
-| `src/config/defaults.ts` | Default configuration |
-| `src/engine/AnimationEngine.ts` | Main loop and pattern lifecycle |
-| `tests/unit/` | Test suite (patterns, engine, config) |
+| File                                | Purpose                                                                        |
+| ----------------------------------- | ------------------------------------------------------------------------------ |
+| `src/main.ts`                       | Entry point, CLI parsing, pattern registration                                 |
+| `src/types/index.ts`                | Centralized TypeScript interfaces (JSON-persistable pattern configs)           |
+| `src/patterns/`                     | Pattern implementations (23 procedural + optional `PhotoPattern` from v0.4.0+) |
+| `src/config/defaults.ts`            | Default configuration                                                          |
+| `src/engine/AnimationEngine.ts`     | Main loop and pattern lifecycle                                                |
+| `src/engine/SceneGraph.ts`          | Layered rendering (z-ordered `SceneLayer`s)                                    |
+| `src/renderer/Buffer.ts`            | Double-buffered cell grid with dirty-rect tracking                             |
+| `src/renderer/HalfBlockRenderer.ts` | RGBA → `Cell[][]` half-block (`▀`/`▄`) emitter (v0.4.0 Phase 1)                |
+| `src/renderer/BrailleRenderer.ts`   | RGBA → `Cell[][]` braille (U+2800–U+28FF) emitter at 8× resolution (Phase 2)   |
+| `src/utils/dither.ts`               | Floyd-Steinberg + Bayer ordered dithering (Phase 2)                            |
+| `src/utils/edges.ts`                | Sobel + Difference-of-Gaussians edge detection (Phase 2)                       |
+| `tests/unit/`                       | Test suite — `patterns/`, `engine/`, `renderer/`, `utils/`, `ui/`, `config/`   |
+
+> **Try the photo path:** `npm run build && node dist/main.js --photo path/to/photo.jpg`. Cycle through 12 photo presets with `.` / `,` (or `c08` to jump). See [README → Photo Mode](../../README.md) for the preset table.
 
 ---
 
@@ -187,16 +193,19 @@ npm run test:watch -- patterns/wave
 ## Troubleshooting
 
 **Build fails**: Ensure TypeScript is correct
+
 ```bash
 npm run build
 ```
 
 **Tests fail**: Check Jest output
+
 ```bash
 npm test 2>&1 | head -100
 ```
 
 **App crashes**: Check Node.js version (requires 20+)
+
 ```bash
 node --version
 ```

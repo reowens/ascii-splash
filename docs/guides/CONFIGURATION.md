@@ -3,6 +3,7 @@
 Configure ascii-splash through CLI arguments, configuration files, or defaults.
 
 **Quick Links**:
+
 - 📊 [Project Status](../PROJECT_STATUS.md) - Current features and statistics
 - 🏗️ [Architecture](../ARCHITECTURE.md) - Technical deep dive
 - 👤 [User Guide](../../README.md) - Installation and usage
@@ -28,10 +29,10 @@ Example: If you set `--pattern wave` on the command line, it overrides the confi
 
 ## Configuration File Location
 
-| Platform | Location |
-|----------|----------|
+| Platform        | Location                                |
+| --------------- | --------------------------------------- |
 | **macOS/Linux** | `~/.config/ascii-splash/.splashrc.json` |
-| **Windows** | `%APPDATA%\ascii-splash\config.json` |
+| **Windows**     | `%APPDATA%\ascii-splash\config.json`    |
 
 ### Creating a Config File
 
@@ -61,13 +62,13 @@ nano ~/.config/ascii-splash/.splashrc.json
 
 ### Configuration Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `defaultPattern` | string | `wave` | Starting pattern (e.g., `wave`, `starfield`, `matrix`) |
-| `quality` | `"low"` \| `"medium"` \| `"high"` | `medium` | Rendering quality (affects performance) |
-| `fps` | number (10-60) | 30 | Target frames per second |
-| `theme` | string | `ocean` | Color theme (`ocean`, `matrix`, `starlight`, `fire`, `monochrome`) |
-| `mouseEnabled` | boolean | `true` | Enable mouse interaction |
+| Option           | Type                              | Default  | Description                                                        |
+| ---------------- | --------------------------------- | -------- | ------------------------------------------------------------------ |
+| `defaultPattern` | string                            | `wave`   | Starting pattern (e.g., `wave`, `starfield`, `matrix`)             |
+| `quality`        | `"low"` \| `"medium"` \| `"high"` | `medium` | Rendering quality (affects performance)                            |
+| `fps`            | number (10-60)                    | 30       | Target frames per second                                           |
+| `theme`          | string                            | `ocean`  | Color theme (`ocean`, `matrix`, `starlight`, `fire`, `monochrome`) |
+| `mouseEnabled`   | boolean                           | `true`   | Enable mouse interaction                                           |
 
 ---
 
@@ -84,11 +85,13 @@ nano ~/.config/ascii-splash/.splashrc.json
 ### Switching Themes
 
 - **Via config file**:
+
   ```json
   { "theme": "fire" }
   ```
 
 - **Via CLI**:
+
   ```bash
   splash --theme starlight
   ```
@@ -125,153 +128,170 @@ Each of the 17 patterns supports custom settings. Configure them under the `patt
 ### Pattern Configuration Reference
 
 #### Wave
+
 ```json
 {
-  "frequency": 0.1,      // Wave frequency (0.05-0.5)
-  "amplitude": 3,        // Wave height (1-5)
-  "layers": 3,          // Number of overlapping waves (1-5)
+  "frequency": 0.1, // Wave frequency (0.05-0.5)
+  "amplitude": 3, // Wave height (1-5)
+  "layers": 3, // Number of overlapping waves (1-5)
   "rippleDuration": 2000 // Ripple effect duration (ms)
 }
 ```
 
 #### Starfield
+
 ```json
 {
-  "starCount": 300,         // Number of stars (100-500)
-  "speed": 50,              // Movement speed (10-100)
-  "forceFieldRadius": 20    // Mouse interaction radius (5-50)
+  "starCount": 300, // Number of stars (100-500)
+  "speed": 50, // Movement speed (10-100)
+  "forceFieldRadius": 20 // Mouse interaction radius (5-50)
 }
 ```
 
 #### Matrix
+
 ```json
 {
-  "columnCount": 20,     // Number of columns (10-40)
-  "digitSpeed": 100,     // Speed of digit fall (50-200)
+  "columnCount": 20, // Number of columns (10-40)
+  "digitSpeed": 100, // Speed of digit fall (50-200)
   "characterDensity": 50 // Density of characters (20-100)
 }
 ```
 
 #### Rain
+
 ```json
 {
-  "dropCount": 100,      // Number of drops (50-300)
-  "windStrength": 0.3,   // Wind effect (0-1)
-  "gravity": 0.3         // Drop gravity (0.1-1)
+  "dropCount": 100, // Number of drops (50-300)
+  "windStrength": 0.3, // Wind effect (0-1)
+  "gravity": 0.3 // Drop gravity (0.1-1)
 }
 ```
 
 #### Plasma
+
 ```json
 {
-  "complexity": 0.5,     // Effect complexity (0.1-1)
-  "speed": 0.3,          // Animation speed (0.1-1)
-  "scale": 8             // Pattern scale (4-16)
+  "complexity": 0.5, // Effect complexity (0.1-1)
+  "speed": 0.3, // Animation speed (0.1-1)
+  "scale": 8 // Pattern scale (4-16)
 }
 ```
 
 #### Particle
+
 ```json
 {
-  "particleCount": 200,  // Number of particles (100-500)
-  "spread": 0.5,         // Emission spread (0-1)
-  "gravity": 0.2         // Gravity effect (0-1)
+  "particleCount": 200, // Number of particles (100-500)
+  "spread": 0.5, // Emission spread (0-1)
+  "gravity": 0.2 // Gravity effect (0-1)
 }
 ```
 
 #### Lightning
+
 ```json
 {
-  "thickness": 1,        // Branch thickness (1-3)
-  "intensity": 0.7,      // Brightness (0.3-1)
-  "forkChance": 0.3      // Branching probability (0.1-0.8)
+  "thickness": 1, // Branch thickness (1-3)
+  "intensity": 0.7, // Brightness (0.3-1)
+  "forkChance": 0.3 // Branching probability (0.1-0.8)
 }
 ```
 
 #### Tunnel
+
 ```json
 {
-  "speed": 0.5,          // Speed of movement (0.1-1)
-  "depth": 20,           // Tunnel depth (10-40)
+  "speed": 0.5, // Speed of movement (0.1-1)
+  "depth": 20, // Tunnel depth (10-40)
   "pattern": "concentric" // Pattern type
 }
 ```
 
 #### Spiral
+
 ```json
 {
-  "speed": 0.3,          // Rotation speed (0.1-1)
-  "arms": 3,             // Number of arms (1-8)
-  "density": 0.5         // Point density (0.1-1)
+  "speed": 0.3, // Rotation speed (0.1-1)
+  "arms": 3, // Number of arms (1-8)
+  "density": 0.5 // Point density (0.1-1)
 }
 ```
 
 #### Quicksilver
+
 ```json
 {
-  "particleCount": 150,  // Number of particles (50-300)
-  "cohesion": 0.8,       // Particle cohesion (0-1)
-  "maxSpeed": 2          // Maximum particle speed (1-5)
+  "particleCount": 150, // Number of particles (50-300)
+  "cohesion": 0.8, // Particle cohesion (0-1)
+  "maxSpeed": 2 // Maximum particle speed (1-5)
 }
 ```
 
 #### Fireflies (FirefliesPattern)
+
 ```json
 {
-  "fireflies": 50,       // Number of fireflies (10-200)
-  "speed": 0.5,          // Movement speed (0.1-1)
-  "glowRadius": 5        // Glow effect radius (2-10)
+  "fireflies": 50, // Number of fireflies (10-200)
+  "speed": 0.5, // Movement speed (0.1-1)
+  "glowRadius": 5 // Glow effect radius (2-10)
 }
 ```
 
 #### Life (Conway's Game of Life)
+
 ```json
 {
-  "speed": 500,          // Update interval (ms) (100-2000)
-  "density": 30          // Initial population (10-60)
+  "speed": 500, // Update interval (ms) (100-2000)
+  "density": 30 // Initial population (10-60)
 }
 ```
 
 #### Maze
+
 ```json
 {
-  "speed": 500,          // Generation speed (100-2000)
-  "cellSize": 2          // Cell size (1-5)
+  "speed": 500, // Generation speed (100-2000)
+  "cellSize": 2 // Cell size (1-5)
 }
 ```
 
 #### DNA
+
 ```json
 {
-  "speed": 0.3,          // Animation speed (0.1-1)
-  "helixSize": 10        // Helix radius (5-20)
+  "speed": 0.3, // Animation speed (0.1-1)
+  "helixSize": 10 // Helix radius (5-20)
 }
 ```
 
 #### Lava Lamp
+
 ```json
 {
-  "speed": 0.3,          // Blob movement speed (0.1-1)
-  "blobCount": 15,       // Number of blobs (5-30)
-  "viscosity": 0.8       // Viscosity effect (0.5-1)
+  "speed": 0.3, // Blob movement speed (0.1-1)
+  "blobCount": 15, // Number of blobs (5-30)
+  "viscosity": 0.8 // Viscosity effect (0.5-1)
 }
 ```
 
 #### Smoke
+
 ```json
 {
-  "speed": 0.4,          // Animation speed (0.1-1)
-  "density": 60,         // Smoke density (20-100)
-  "dispersion": 0.3      // Dispersion effect (0-1)
+  "speed": 0.4, // Animation speed (0.1-1)
+  "density": 60, // Smoke density (20-100)
+  "dispersion": 0.3 // Dispersion effect (0-1)
 }
 ```
 
 #### Snow
+
 ```json
 {
-  "snowflakes": 200,     // Number of snowflakes (50-500)
-  "speed": 0.3,          // Fall speed (0.1-1)
-  "windStrength": 0.2    // Wind effect (0-1)
+  "snowflakes": 200, // Number of snowflakes (50-500)
+  "speed": 0.3, // Fall speed (0.1-1)
+  "windStrength": 0.2 // Wind effect (0-1)
 }
 ```
 
@@ -305,6 +325,7 @@ Save and load your favorite pattern + preset + theme combinations:
 ### Using Favorites
 
 In the app:
+
 - **Save current setup**: Press `cF#` (where # is 1-9)
 - **Load favorite**: Press `cf#` (where # is 1-9)
 
@@ -343,7 +364,39 @@ splash --no-mouse
 
 # Combine multiple options
 splash --pattern starfield --theme ocean --fps 30
+
+# v0.4.0+: render any image (path is the only required arg)
+splash --photo path/to/photo.jpg
+splash --photo ~/Pictures/cat.png --theme matrix
 ```
+
+---
+
+## Photo Mode (v0.4.0+)
+
+`--photo PATH` is the **only** way to load `PhotoPattern`. The pattern is opt-in: when the flag is omitted, no image-decoding code is loaded and `sharp` stays out of the require graph. This keeps the warm-start cost of the default pattern set unchanged.
+
+### Why isn't there a `patterns.photo` config block?
+
+By design. Every other `*PatternConfig` in `~/.splashrc` is JSON-serializable, but `PhotoPatternConfig` carries `source: string | Buffer | Uint8Array` — a runtime image reference that can't round-trip through JSON. Persisting an image path in `~/.splashrc` would also surprise users (their splash window would auto-open a photo on next run), so the flag stays explicit.
+
+### Cycling through photo presets
+
+12 presets ship in v0.4.0 (see [README → Photo Mode](../../README.md) for the table). Cycle them at runtime exactly like procedural pattern presets:
+
+| Action                  | Keystroke     |
+| ----------------------- | ------------- |
+| Next preset             | `.`           |
+| Previous preset         | `,`           |
+| Jump to preset N (1–12) | `c01` … `c12` |
+| Random preset           | `c*`          |
+| Random pattern + preset | `c**`         |
+
+Saving a photo preset to a favorites slot (`cF1` … `cF9`) records the pattern + preset + theme triple, but **not** the image path — re-running with the same favorite still requires `--photo`.
+
+### Phase 7 outlook
+
+A future "share-code" mechanism (v0.4.0 Phase 7) will encode `{patternId, presetId, themeId, seed}` into a base32 string so that a single CLI invocation reproduces an exact scene. The image path is the one thing share codes can't capture, so `--photo` will remain a separate orthogonal flag.
 
 ---
 
@@ -370,6 +423,7 @@ Then restart the app to use built-in defaults.
 ### Invalid pattern name
 
 Pattern names are case-sensitive. Check the valid list:
+
 - `wave`, `starfield`, `matrix`, `rain`, `plasma`, `particle`
 - `spiral`, `tunnel`, `lightning`, `fireflies`, `quicksilver`
 - `life`, `maze`, `dna`, `lavaLamp`, `smoke`, `snow`
@@ -388,4 +442,4 @@ splash --pattern wave  # Ignore config file default
 
 ---
 
-**Last Updated**: November 5, 2025
+**Last Updated**: May 9, 2026 (added v0.4.0 `--photo` flag and rationale for no `patterns.photo` config block)
