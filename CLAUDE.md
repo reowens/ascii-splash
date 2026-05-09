@@ -20,14 +20,15 @@
 - **138 total presets** (6 per pattern)
 - **5 color themes** (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **40+ commands** via multi-key command system
-- **2140 tests** with 92%+ coverage (2097 in v0.3.0; +43 from in-flight v0.4.0 Phase 1)
+- **2197 tests** with 92%+ coverage (2097 in v0.3.0; +100 from in-flight v0.4.0 Phases 1+2)
 - **Performance**: <5% CPU, ~40-50MB RAM
 - **Target**: Node.js 20+
 
 **v0.4.0 in flight** (branch `feature/v0.4.0-phase1-photo-pattern`):
 
 - **Phase 1 done on branch**: `PhotoPattern` (24th, optional via `--photo <path>`), `HalfBlockRenderer`, `Cell.bg` field for two-tone cells, 6 photo presets, `sharp` runtime dep.
-- Phases 2–9 planned: braille mode, Floyd-Steinberg + Bayer dithering, edge detection, scene composition (photo bg + procedural overlay), chafa-style symbol matcher, Kitty/iTerm2/Sixel pass-through, color-mask sprites, seeded PRNG + share codes, asciinema export.
+- **Phase 2 done on branch**: `BrailleRenderer` (8× resolution via U+2800–U+28FF), Floyd-Steinberg + Bayer dithering, Sobel + DoG edge detection, 6 additional presets (ids 7–12), `edge-only` upgraded from stub to real Sobel.
+- Phases 3–9 planned: scene composition (photo bg + procedural overlay), chafa-style symbol matcher, Kitty/iTerm2/Sixel pass-through, color-mask sprites, seeded PRNG + share codes, asciinema export.
 - Full plan: [docs/planning/v0.4.0-ROADMAP.md](docs/planning/v0.4.0-ROADMAP.md).
 
 **Tech Stack**:
@@ -128,11 +129,12 @@ splash/
 │       ├── SnowfallParkPattern.ts # Scene-based (v0.3.0)
 │       └── MetaballPattern.ts     # Enhanced (v0.3.0)
 │
-├── tests/                        # Jest test suites (2140 tests)
+├── tests/                        # Jest test suites (2197 tests)
 │   ├── unit/patterns/           # Pattern tests (23 + optional Photo)
 │   ├── unit/engine/             # SceneGraph, SpriteManager, ParticleSystem
 │   ├── unit/ui/                 # StatusBar, ToastManager, HelpOverlay
-│   └── unit/renderer/           # Buffer, TransitionManager
+│   ├── unit/renderer/           # Buffer, HalfBlockRenderer, BrailleRenderer, TransitionManager
+│   └── unit/utils/              # math, noise, drawing, dither, edges, validation
 │
 ├── docs/                         # Developer documentation (reorganized Nov 4)
 │   ├── ARCHITECTURE.md          # ⭐ Technical architecture reference
@@ -235,6 +237,11 @@ interface Pattern {
 - Clean up in `reset()` to prevent leaks
 - Check bounds before buffer access
 
+**Where pattern types live (convention)**:
+
+- **JSON-persistable** pattern config (frequencies, speeds, density, etc.) → centralize in `src/types/index.ts` and wire into `ConfigSchema.patterns` so `~/.splashrc` can override defaults. All 23 procedural patterns follow this pattern.
+- **Runtime-only** pattern config that carries non-serializable data (file paths bound to image buffers, sockets, etc.) → keep local to the pattern file. `PhotoPatternConfig` is the canonical example: its `source: string | Buffer | Uint8Array` field cannot round-trip through JSON, so it lives in `src/patterns/PhotoPattern.ts` and is not exposed via `ConfigSchema`.
+
 **For full technical details**, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#contribution-points).
 
 ---
@@ -308,7 +315,7 @@ interface Theme {
 ## Current Status (AI Awareness)
 
 **Released**: v0.3.0 - Next-Generation Terminal Graphics ✅ **STABLE RELEASE**
-**In flight**: v0.4.0 Phase 1 on branch `feature/v0.4.0-phase1-photo-pattern`
+**In flight**: v0.4.0 Phases 1 + 2 on branch `feature/v0.4.0-phase1-photo-pattern`
 
 **v0.3.0 (released)**:
 
@@ -335,8 +342,15 @@ interface Theme {
   - `splash --photo <path>` renders any image at 2× vertical resolution
   - 6 presets, aspect-preserving fit, truecolor fg+bg ANSI per cell
   - New `Cell.bg?: Color` field; backward-compatible
-  - 43 new tests; total 2140
-- 📋 **Phase 2** — braille (8× resolution), Floyd-Steinberg + Bayer dither, edge detection
+  - +43 tests
+- ✅ **Phase 2 — Braille mode + dithering + edge detection** (done on branch, awaiting review)
+  - `BrailleRenderer` (8× resolution): U+2800–U+28FF codepoints, mean-of-lit-dots color
+  - Floyd-Steinberg error-diffusion dither with configurable quantization levels
+  - Bayer ordered dither (8×8 + 16×16, hue-preserving offsets)
+  - Sobel + DoG edge detectors (default DoG σ=(1,2) tuned for halfblock canvas size)
+  - 6 new presets (ids 7–12); `edge-only` (id 6) upgraded from stub to real Sobel; 12 total
+  - +57 tests; total 2197
+  - All Phase 2 features reachable via runtime preset cycling — no new CLI flags (deferred to Phase 7's seeded-share-code mechanism)
 - 📋 **Phase 3** — scene composition (photo bg + procedural overlay; the v0.4 headline)
 - 📋 **Phase 4–5** — chafa-style symbol matcher (~200 LOC port); Kitty / iTerm2 / Sixel pass-through
 - 📋 **Phase 6** — color-mask sprites (richer hand-drawn scenes)
@@ -380,7 +394,7 @@ npm run test:coverage # Coverage report
 - `tests/unit/renderer/`: Renderer, Buffer & TransitionManager tests
 - `tests/unit/ui/`: UI component tests (StatusBar, ToastManager, HelpOverlay)
 
-**Coverage**: 92%+ (2140 tests)
+**Coverage**: 92%+ (2197 tests)
 
 ---
 

@@ -17,7 +17,7 @@ ascii-splash is a terminal ASCII animation app that displays animated patterns i
 ## Current Status
 
 - **Released**: v0.3.0 (Next-Generation Terminal Graphics) — Dec 25, 2025 ✅
-- **In flight**: v0.4.0 Phase 1 (Half-block PhotoPattern) — done on branch `feature/v0.4.0-phase1-photo-pattern`, awaiting review
+- **In flight**: v0.4.0 Phases 1 + 2 — done on branch `feature/v0.4.0-phase1-photo-pattern`, awaiting review. Phase 1 = Half-block PhotoPattern; Phase 2 = Braille mode, FS / Bayer dither, Sobel / DoG edges, 12 photo presets total.
 - **Next**: v0.4.0 Phases 2–9 — see [roadmap](planning/v0.4.0-ROADMAP.md)
 
 ### Released (v0.3.0)
@@ -29,10 +29,10 @@ ascii-splash is a terminal ASCII animation app that displays animated patterns i
 ### Project Statistics
 
 - **23 Patterns** with **138 Presets** (6 per pattern — standardized)
-- **+ optional `PhotoPattern`** when `--photo <path>` is supplied (v0.4.0 Phase 1, on branch)
+- **+ optional `PhotoPattern`** when `--photo <path>` is supplied (v0.4.0 Phases 1 + 2, on branch — 12 photo presets, halfblock + braille modes, FS / Bayer dither, Sobel + DoG edges)
 - **5 Color Themes** (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **40+ Commands** via advanced command system
-- **2140 Tests** with **92%+ Coverage** (2097 in v0.3.0 + 43 in v0.4.0 Phase 1)
+- **2197 Tests** with **92%+ Coverage** (2097 in v0.3.0 + 43 in v0.4.0 Phase 1 + 57 in Phase 2)
 - **Scene-Based Architecture**: SceneGraph → SpriteManager → ParticleSystem
   - For technical details, see [ARCHITECTURE.md](ARCHITECTURE.md)
 - **UI Components**: StatusBar, ToastManager, HelpOverlay, TransitionManager
@@ -292,8 +292,8 @@ The full plan lives in [docs/planning/v0.4.0-ROADMAP.md](planning/v0.4.0-ROADMAP
 | Phase                          | Status              | Deliverable                                                         |
 | ------------------------------ | ------------------- | ------------------------------------------------------------------- |
 | 1 — Half-block PhotoPattern    | ✅ Done on branch   | `splash --photo <path>` renders any image at 2× vertical resolution |
-| 2 — Braille + dithering + edge | 📋 Planned          | 8× resolution mode; Floyd-Steinberg + Bayer dither; Sobel/DoG edges |
-| 3 — Scene composition          | 📋 Planned          | Photo background + procedural overlay (the v0.4 headline)           |
+| 2 — Braille + dithering + edge | ✅ Done on branch   | 8× resolution braille; FS + Bayer dither; Sobel + DoG; 12 presets   |
+| 3 — Scene composition          | 📋 Planned (next)   | Photo background + procedural overlay (the v0.4 headline)           |
 | 4 — Chafa-style symbol matcher | 📋 Planned          | Wow-mode rendering via 8×8 bitmap matching (~200 LOC port)          |
 | 5 — Protocol pass-through      | 📋 Planned          | Kitty / iTerm2 / Sixel detection + emit, halfblock fallback         |
 | 6 — Color-mask sprites         | 📋 Planned          | Multi-color hand-drawn scenes (asciiquarium technique)              |
@@ -301,7 +301,7 @@ The full plan lives in [docs/planning/v0.4.0-ROADMAP.md](planning/v0.4.0-ROADMAP
 | 8 — asciinema export           | 📋 Planned          | One-keystroke `.cast` recording                                     |
 | 9 (stretch) — GIF export       | ⏳ If budget allows | `splash record --format gif`                                        |
 
-**Branch**: Phase 1 sits on `feature/v0.4.0-phase1-photo-pattern`, two commits, hooks green, awaiting review. Not yet merged or published.
+**Branch**: Phases 1 + 2 sit on `feature/v0.4.0-phase1-photo-pattern`, hooks green, awaiting review. Not yet merged or published.
 
 ### Post-v0.4 stretch ideas (deferred to v0.5+)
 
@@ -358,10 +358,10 @@ Tracked separately — mostly net-new patterns that don't depend on v0.4 infrast
 
 ---
 
-**Project Status:** v0.3.0 stable; v0.4.0 Phase 1 done on branch
+**Project Status:** v0.3.0 stable; v0.4.0 Phases 1 + 2 done on branch
 **Latest Published:** v0.3.0 (December 25, 2025)
 **Patterns:** 23 patterns with 138 presets (+ optional `PhotoPattern` via `--photo` on branch)
-**Test Coverage:** 92%+ (2140 tests) ✅
+**Test Coverage:** 92%+ (2197 tests) ✅
 **Active branch:** `feature/v0.4.0-phase1-photo-pattern`
 **Roadmap:** [v0.4.0 — "From Engine to Canvas"](planning/v0.4.0-ROADMAP.md)
 **npm:** https://www.npmjs.com/package/ascii-splash

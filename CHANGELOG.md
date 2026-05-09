@@ -11,18 +11,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **PhotoPattern (v0.4.0 Phase 1)**: Render any image into the existing terminal at 2× vertical resolution using upper/lower half-block characters (▀ ▄). Supports truecolor 24-bit output via combined fg + bg ANSI sequences.
   - New CLI flag: `splash --photo <path>` loads and renders an image immediately on startup.
-  - Six presets: `default`, `high-contrast`, `inverted`, `grayscale`, `bg-tinted`, and `edge-only` (stub for v0.4 Phase 2).
   - Aspect-preserving fit (mirrors viuer's `fit_dimensions`): square / portrait images are letterboxed rather than stretched to the terminal's aspect.
   - Direct port of viuer's `block.rs` half-block algorithm (MIT) targeting our `Cell[][]` model.
-- **`HalfBlockRenderer`** (`src/renderer/HalfBlockRenderer.ts`): Pure function that fills a `Cell[][]` from an RGBA pixel buffer. Re-usable by upcoming braille / symbol-matcher modes (Phase 2 / 4).
+- **`HalfBlockRenderer`** (`src/renderer/HalfBlockRenderer.ts`): Pure function that fills a `Cell[][]` from an RGBA pixel buffer. Re-usable by upcoming symbol-matcher mode (Phase 4) and protocol pass-through (Phase 5).
 - **`Cell.bg`** (background color): New optional field on `Cell`. Required by half-block rendering; will also be used by the symbol matcher in Phase 4 and protocol pass-through in Phase 5. Backward-compatible — existing patterns leave it undefined.
 - **`sharp`** dependency for image decode + resize (ESM-compatible, Node 20+).
-- 32 new unit tests in `tests/unit/renderer/HalfBlockRenderer.test.ts` and `tests/unit/patterns/photo.test.ts`.
+- **PhotoPattern (v0.4.0 Phase 2)**: Adds braille mode, dithering preprocessors, and edge detection.
+  - **`BrailleRenderer`** (`src/renderer/BrailleRenderer.ts`): Renders RGBA into Unicode Braille Patterns (U+2800–U+28FF). Each terminal cell encodes 2 wide × 4 tall = 8 dots — 8× resolution vs. plain ASCII. Cell color is the mean of lit dots. Re-derived from the Unicode 8-dot Braille spec (drawille is AGPL-3.0, so no code copied).
+  - **Floyd-Steinberg dither** (`src/utils/dither.ts`): Error-diffusion preprocessor with configurable quantization levels. Re-derived from the original 1976 paper.
+  - **Bayer ordered dither** (8×8 and 16×16): Pre-generated threshold matrices using the recursive 1973 Bayer construction. Hue-preserving (same offset applied to all channels — chafa's convention).
+  - **Sobel edge detection** (`src/utils/edges.ts`): 3×3 Gx/Gy gradient magnitude on a luminance image.
+  - **Difference-of-Gaussians edge detection**: Separable Gaussian blur ×2, subtract, normalize. σ1=1, σ2=1.6 by default.
+  - **Six new presets** (ids 7–12): `edge-dog`, `braille`, `braille-inverted`, `braille-dithered`, `braille-edges`, `halfblock-bayer`. PhotoPattern now exposes 12 total presets.
+  - **`edge-only` preset (id 6) upgraded** from a hard-threshold stub to real Sobel-based edge detection.
+- 89 new unit tests across `tests/unit/utils/dither.test.ts`, `tests/unit/utils/edges.test.ts`, `tests/unit/renderer/HalfBlockRenderer.test.ts`, `tests/unit/renderer/BrailleRenderer.test.ts`, and `tests/unit/patterns/photo.test.ts`. Total: 2197 tests (up from 2097 in v0.3.0).
 
 ### Changed
 
 - `Buffer.getChanges()` now detects background-color changes in addition to char + foreground.
 - `TerminalRenderer.render()` now emits `\x1b[48;2;r;g;bm` background-color escapes when `cell.bg` is set.
+- `PhotoPatternConfig` extended with optional `mode` (`halfblock` | `braille`), `dither` (`none` | `floyd-steinberg` | `bayer-8` | `bayer-16`), `edge` (`off` | `sobel` | `dog`), and `edgeThreshold` knobs (Phase 2). Defaults preserve Phase 1 behavior.
+- Switching to a braille preset triggers a re-resize at the larger 2W × 4H source canvas (vs. W × 2H for half-block).
 
 ## [0.3.1] - 2026-01-22
 

@@ -192,7 +192,7 @@ interface Pattern {
 - **Classic Patterns** (17): Wave, Starfield, Matrix, Rain, Quicksilver, Particle, Spiral, Plasma, Tunnel, Lightning, Fireworks, Life, Maze, DNA, LavaLamp, Smoke, Snow
 - **Scene-Based Patterns** (5, v0.3.0): Ocean Beach, Campfire, Aquarium, Night Sky, Snowfall Park
 - **Enhanced Patterns** (1, v0.3.0): Metaball Playground with physics simulation modes
-- **Image-Driven** (v0.4.0 Phase 1): `PhotoPattern` — instantiated on demand when `splash --photo <path>` is supplied. Decodes via `sharp`, renders through `HalfBlockRenderer` at 2× vertical resolution. Async lifecycle (`load()` + `prepareForSize()`) sits off the render path; `render()` itself stays sync. Has its own 6 presets and an aspect-preserving fit (matches viuer's `fit_dimensions`).
+- **Image-Driven** (v0.4.0 Phases 1 + 2): `PhotoPattern` — instantiated on demand when `splash --photo <path>` is supplied. Decodes via `sharp`; runs an `edge → dither → renderer` pipeline per frame. Async lifecycle (`load()` + `prepareForSize()`) sits off the render path; `render()` itself stays sync. Two render modes: half-block (2× vertical resolution via `HalfBlockRenderer`) and braille (8× resolution via `BrailleRenderer`). Twelve presets cover combinations of mode / dither (Floyd-Steinberg, Bayer 8/16) / edge detection (Sobel, DoG). Switching to a braille preset triggers a re-resize at the larger 2W × 4H source canvas. Aspect-preserving fit matches viuer's `fit_dimensions`.
 
 **Pattern Implementation Constraints**:
 
