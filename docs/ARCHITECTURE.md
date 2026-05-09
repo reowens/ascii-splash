@@ -29,13 +29,29 @@ Manages all terminal I/O and rendering:
 **Buffer** (Double-Buffering Implementation)
 
 - Maintains two frame buffers: current and previous
-- `Cell` interface: `{char: string, color: Color}`
+- `Cell` interface: `{ char: string; color?: Color; bg?: Color }`
+  - `color` is the foreground (existing behavior).
+  - `bg` is **optional** — used by half-block / symbol-matcher renderers (v0.4.0+)
+    to encode two stacked source pixels per terminal cell. Existing patterns
+    leave `bg` undefined and behave unchanged.
 - `render(changes)`: Only writes changed cells to terminal (optimization)
-- `getChanges()`: Diffs current vs previous to find modified cells
+- `getChanges()`: Diffs current vs previous to find modified cells. Uses a
+  `-1` sentinel for `bg` so `undefined → undefined` transitions are not flagged
+  but `undefined ↔ defined` are.
 - `swap()`: Copies current to previous after each frame
 - Prevents flicker and minimizes terminal writes (critical for performance)
 
 **Performance Benefit**: Only ~5-10% of cells typically change per frame, reducing terminal writes by 90%
+
+**HalfBlockRenderer** (v0.4.0, `src/renderer/HalfBlockRenderer.ts`)
+
+- Pure function: `renderHalfBlock(buffer, pixels, w, h, options) → void`.
+- Direct port of viuer's `block.rs` algorithm targeting our `Cell[][]` model.
+- Each terminal cell encodes two stacked source pixels: emits `▄` with
+  `color = bottom_pixel`, `bg = top_pixel` (or `▀` for the unpaired last row
+  of an odd-height image, or for cells with only one opaque pixel).
+- Reused by `PhotoPattern` (v0.4 Phase 1) and planned for the chafa-style
+  symbol matcher and protocol-fallback paths in Phases 4–5.
 
 ### 2. Engine Layer (`src/engine/`)
 
@@ -171,11 +187,12 @@ interface Pattern {
 - Support 6 presets with unique visual variations
 - Adapt to theme colors via `getColor(intensity)` method
 
-**Pattern Categories** (23 patterns total):
+**Pattern Categories** (23 patterns total + optional `PhotoPattern`):
 
 - **Classic Patterns** (17): Wave, Starfield, Matrix, Rain, Quicksilver, Particle, Spiral, Plasma, Tunnel, Lightning, Fireworks, Life, Maze, DNA, LavaLamp, Smoke, Snow
 - **Scene-Based Patterns** (5, v0.3.0): Ocean Beach, Campfire, Aquarium, Night Sky, Snowfall Park
 - **Enhanced Patterns** (1, v0.3.0): Metaball Playground with physics simulation modes
+- **Image-Driven** (v0.4.0 Phase 1): `PhotoPattern` — instantiated on demand when `splash --photo <path>` is supplied. Decodes via `sharp`, renders through `HalfBlockRenderer` at 2× vertical resolution. Async lifecycle (`load()` + `prepareForSize()`) sits off the render path; `render()` itself stays sync. Has its own 6 presets and an aspect-preserving fit (matches viuer's `fit_dimensions`).
 
 **Pattern Implementation Constraints**:
 
@@ -831,9 +848,10 @@ interface YourPatternConfig {
 - **User Guide**: [README.md](../README.md)
 - **Testing Strategy**: [guides/TESTING.md](guides/TESTING.md)
 - **Project Status**: [PROJECT_STATUS.md](PROJECT_STATUS.md)
+- **v0.4.0 Roadmap**: [planning/v0.4.0-ROADMAP.md](planning/v0.4.0-ROADMAP.md) — image rendering, scene composition, protocol pass-through, share codes, asciinema export
 - **Configuration Example**: [examples/.splashrc.example](../examples/.splashrc.example)
 
 ---
 
-**Last Updated**: January 22, 2026
+**Last Updated**: May 9, 2026
 **For**: Developer contributions and deep technical understanding

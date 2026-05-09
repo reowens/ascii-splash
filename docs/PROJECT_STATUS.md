@@ -1,6 +1,6 @@
 # Project Status - ascii-splash
 
-**Last Updated:** December 23, 2025
+**Last Updated:** May 9, 2026
 
 ## Overview
 
@@ -11,23 +11,28 @@ ascii-splash is a terminal ASCII animation app that displays animated patterns i
 - 👤 [User guide & installation](../README.md)
 - 🏗️ [Technical architecture](ARCHITECTURE.md)
 - 🧪 [Testing details](TESTING_PLAN.md)
+- 🗺️ [v0.4.0 Roadmap — "From Engine to Canvas"](planning/v0.4.0-ROADMAP.md) — current direction
 - 📊 [v0.2.0 Release Report](status/reports/2025-11-05-v0.2.0-release.md)
 
-## Current Status: v0.3.0 (Next-Generation Terminal Graphics) 🚀
+## Current Status
 
-The project has completed a major architecture upgrade with **scene-based patterns** and **new UI components**.
+- **Released**: v0.3.0 (Next-Generation Terminal Graphics) — Dec 25, 2025 ✅
+- **In flight**: v0.4.0 Phase 1 (Half-block PhotoPattern) — done on branch `feature/v0.4.0-phase1-photo-pattern`, awaiting review
+- **Next**: v0.4.0 Phases 2–9 — see [roadmap](planning/v0.4.0-ROADMAP.md)
+
+### Released (v0.3.0)
 
 - **npm Package**: https://www.npmjs.com/package/ascii-splash
-- **Current Development**: v0.3.0 (December 2025)
-- **Previous Release**: v0.2.0 (November 5, 2025)
 - **Installation**: `npm install -g ascii-splash` or `npx ascii-splash`
+- The project completed a major architecture upgrade with **scene-based patterns** and **new UI components**.
 
 ### Project Statistics
 
-- **23 Patterns** with **138 Presets** (6 per pattern - standardized!)
+- **23 Patterns** with **138 Presets** (6 per pattern — standardized)
+- **+ optional `PhotoPattern`** when `--photo <path>` is supplied (v0.4.0 Phase 1, on branch)
 - **5 Color Themes** (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **40+ Commands** via advanced command system
-- **2097 Tests** with **92%+ Coverage** (comprehensive test suite!)
+- **2140 Tests** with **92%+ Coverage** (2097 in v0.3.0 + 43 in v0.4.0 Phase 1)
 - **Scene-Based Architecture**: SceneGraph → SpriteManager → ParticleSystem
   - For technical details, see [ARCHITECTURE.md](ARCHITECTURE.md)
 - **UI Components**: StatusBar, ToastManager, HelpOverlay, TransitionManager
@@ -280,52 +285,48 @@ Highlights:
 
 ---
 
-## Future Opportunities (v0.4.0+)
+## v0.4.0 Direction — "From Engine to Canvas"
 
-Project is **stable and feature-complete**. Below are ideas for future development when revisiting.
+The full plan lives in [docs/planning/v0.4.0-ROADMAP.md](planning/v0.4.0-ROADMAP.md). Quick summary:
 
-### High Priority
+| Phase                          | Status              | Deliverable                                                         |
+| ------------------------------ | ------------------- | ------------------------------------------------------------------- |
+| 1 — Half-block PhotoPattern    | ✅ Done on branch   | `splash --photo <path>` renders any image at 2× vertical resolution |
+| 2 — Braille + dithering + edge | 📋 Planned          | 8× resolution mode; Floyd-Steinberg + Bayer dither; Sobel/DoG edges |
+| 3 — Scene composition          | 📋 Planned          | Photo background + procedural overlay (the v0.4 headline)           |
+| 4 — Chafa-style symbol matcher | 📋 Planned          | Wow-mode rendering via 8×8 bitmap matching (~200 LOC port)          |
+| 5 — Protocol pass-through      | 📋 Planned          | Kitty / iTerm2 / Sixel detection + emit, halfblock fallback         |
+| 6 — Color-mask sprites         | 📋 Planned          | Multi-color hand-drawn scenes (asciiquarium technique)              |
+| 7 — Seeded PRNG + share codes  | 📋 Planned          | `splash share` / `splash play AB7K2X9` reproducibility              |
+| 8 — asciinema export           | 📋 Planned          | One-keystroke `.cast` recording                                     |
+| 9 (stretch) — GIF export       | ⏳ If budget allows | `splash record --format gif`                                        |
 
-| Feature                        | Description                                                             |
-| ------------------------------ | ----------------------------------------------------------------------- |
-| **Pattern Composer**           | Layer/combine patterns (e.g., fire + snow = volcanic ash)               |
-| **Audio Reactive Mode**        | Patterns respond to microphone input - visualizer mode                  |
-| **GIF Demos for New Patterns** | Record demos for Campfire, Aquarium, Night Sky, Snowfall Park, Metaball |
+**Branch**: Phase 1 sits on `feature/v0.4.0-phase1-photo-pattern`, two commits, hooks green, awaiting review. Not yet merged or published.
 
-### New Patterns
+### Post-v0.4 stretch ideas (deferred to v0.5+)
 
-| Pattern             | Description                                          |
-| ------------------- | ---------------------------------------------------- |
-| **Rainy City**      | Urban scene with rain, streetlights, reflections     |
-| **Space Station**   | Orbiting station with stars, Earth view, satellites  |
-| **Underwater Cave** | Bioluminescent creatures, stalactites, bubbles       |
-| **Haunted Forest**  | Fog, bare trees, floating orbs, occasional lightning |
-| **Constellation**   | Connect-the-dots star patterns with mythology        |
-| **Ripple Grid**     | Grid of points with wave propagation                 |
-| **Waveform**        | Audio waveform visualization                         |
-| **Mandelbrot**      | Fractal zoom animation                               |
-| **Kaleidoscope**    | Symmetric mirrored patterns                          |
+Captured in the roadmap, not on the v0.4 critical path:
 
-### Features
+- Audio-reactive overlays (cross-platform audio capture is hard; defer until user signal)
+- Video-to-ASCII (frame extraction is easy; UX is its own project)
+- SDF / raymarching framework
+- Fluid simulation sandbox
+- Plugin / scripting system (JSON pattern definitions first, isolated-vm scripts later, WASM eventually)
+- Marketplace / gallery UI for sharing share-codes
+- Time-of-day automation
+- Theme designer mode
 
-| Feature               | Description                                              |
-| --------------------- | -------------------------------------------------------- |
-| **Seasonal Presets**  | Holiday themes (Christmas, Halloween, Valentine's, etc.) |
-| **Plugin System**     | Allow community to create and share custom patterns      |
-| **Web Demo**          | Browser-based preview before npm install                 |
-| **Pattern Favorites** | Mark patterns as favorites, quick access                 |
-| **Playlist Mode**     | Define sequence of patterns with timing                  |
-| **Export to GIF**     | Built-in recording to animated GIF                       |
+### Pattern wishlist (community-priority)
 
-### Technical Improvements
+Tracked separately — mostly net-new patterns that don't depend on v0.4 infrastructure: Rainy City, Space Station, Underwater Cave, Haunted Forest, Constellation, Ripple Grid, Waveform, Mandelbrot, Kaleidoscope.
 
-| Task                       | Description                                                 |
-| -------------------------- | ----------------------------------------------------------- |
-| **Fix ts-jest warnings**   | Update jest config to modern format                         |
-| **Multi-terminal testing** | Verify on iTerm2, Alacritty, Kitty, Windows Terminal        |
-| **Performance profiling**  | Identify optimization opportunities                         |
-| **Reduce bundle size**     | Tree-shaking, code splitting                                |
-| **WebGL renderer**         | Alternative high-performance renderer for capable terminals |
+### Technical improvements (general hygiene)
+
+- Fix ts-jest warnings (jest config modernization)
+- Multi-terminal testing matrix (iTerm2, Alacritty, Kitty, Windows Terminal)
+- Performance profiling
+- Reduce bundle size (sharp itself adds ~16-32 MB)
+- WebGL renderer for capable terminals (long-term)
 
 ### Community
 
@@ -357,11 +358,12 @@ Project is **stable and feature-complete**. Below are ideas for future developme
 
 ---
 
-**Project Status:** v0.3.0 - Stable Release ✅
+**Project Status:** v0.3.0 stable; v0.4.0 Phase 1 done on branch
 **Latest Published:** v0.3.0 (December 25, 2025)
-**Patterns:** 23 patterns with 138 presets
-**Test Coverage:** 92%+ (2097 tests) ✅
-**Branch:** main
+**Patterns:** 23 patterns with 138 presets (+ optional `PhotoPattern` via `--photo` on branch)
+**Test Coverage:** 92%+ (2140 tests) ✅
+**Active branch:** `feature/v0.4.0-phase1-photo-pattern`
+**Roadmap:** [v0.4.0 — "From Engine to Canvas"](planning/v0.4.0-ROADMAP.md)
 **npm:** https://www.npmjs.com/package/ascii-splash
 **GitHub:** https://github.com/reowens/ascii-splash
 **Install:** `npm install -g ascii-splash` or `npx ascii-splash`
