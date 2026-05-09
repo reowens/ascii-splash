@@ -1,8 +1,9 @@
 # Documentation Index
 
-> **📦 Version v0.3.0 - Next-Generation Terminal Graphics, Published to npm** ✅
+> **📦 Released: v0.3.1 — Next-Generation Terminal Graphics, Published to npm** ✅
+> **🚧 In flight: v0.4.0 Phases 1 + 2** on `feature/v0.4.0-phase1-photo-pattern`
 >
-> The project features 23 patterns with scene-based architecture, 2098 tests passing (92%+ coverage), and is published on npm.
+> 23 procedural patterns + optional `PhotoPattern` (12 photo presets via `--photo`), scene-based architecture, **2197 tests** passing (92%+ coverage). v0.4.0 adds `HalfBlockRenderer`, `BrailleRenderer`, dither + edge utilities, and a 24th pattern that renders any image at 2× / 8× resolution.
 
 Welcome to **ascii-splash** documentation. Choose your path based on your role:
 
@@ -161,6 +162,7 @@ npm run test:coverage  # Coverage report
 - Quicksilver, Particle, Metaball - Interactive
 - LavaLamp, Smoke, Snow - Ambient
 - Ocean Beach, Campfire, Aquarium, Night Sky, Snowfall Park - Scene-based (v0.3.0)
+- Photo - Image-driven, half-block + braille modes (v0.4.0+, opt-in via `--photo PATH`)
 
 ### Commands (in-app)
 
@@ -202,5 +204,5 @@ npm run test:coverage  # Coverage report
 
 ---
 
-**Last Updated**: January 22, 2026 (v0.3.0 Published to npm)
+**Last Updated**: May 9, 2026 (v0.4.0 Phases 1 + 2 done on branch; awaiting review)
 **Organization Status**: ✅ Consolidated, Reorganized, and Ready

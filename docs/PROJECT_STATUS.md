@@ -10,7 +10,7 @@ ascii-splash is a terminal ASCII animation app that displays animated patterns i
 
 - 👤 [User guide & installation](../README.md)
 - 🏗️ [Technical architecture](ARCHITECTURE.md)
-- 🧪 [Testing details](TESTING_PLAN.md)
+- 🧪 [Testing details](guides/TESTING.md)
 - 🗺️ [v0.4.0 Roadmap — "From Engine to Canvas"](planning/v0.4.0-ROADMAP.md) — current direction
 - 📊 [v0.2.0 Release Report](status/reports/2025-11-05-v0.2.0-release.md)
 
@@ -18,7 +18,7 @@ ascii-splash is a terminal ASCII animation app that displays animated patterns i
 
 - **Released**: v0.3.0 (Next-Generation Terminal Graphics) — Dec 25, 2025 ✅
 - **In flight**: v0.4.0 Phases 1 + 2 — done on branch `feature/v0.4.0-phase1-photo-pattern`, awaiting review. Phase 1 = Half-block PhotoPattern; Phase 2 = Braille mode, FS / Bayer dither, Sobel / DoG edges, 12 photo presets total.
-- **Next**: v0.4.0 Phases 2–9 — see [roadmap](planning/v0.4.0-ROADMAP.md)
+- **Next**: v0.4.0 Phase 3 — scene composition (photo background + procedural overlay; the v0.4 headline). See [roadmap](planning/v0.4.0-ROADMAP.md).
 
 ### Released (v0.3.0)
 
@@ -37,6 +37,21 @@ ascii-splash is a terminal ASCII animation app that displays animated patterns i
   - For technical details, see [ARCHITECTURE.md](ARCHITECTURE.md)
 - **UI Components**: StatusBar, ToastManager, HelpOverlay, TransitionManager
 - **Performance**: <5% CPU, ~40-50MB RAM (meeting all targets)
+
+### v0.4.0 In-Flight Highlights (May 2026) 🚧
+
+Phases 1 + 2 are committed on `feature/v0.4.0-phase1-photo-pattern`. Not yet released to npm.
+
+- **Optional 24th pattern**: `PhotoPattern` loaded only when `splash --photo PATH` is supplied. Decodes any image `sharp` can handle (JPEG / PNG / WebP / etc.) into the existing `Cell[][]` buffer.
+- **`HalfBlockRenderer`** (Phase 1): RGBA → `▀` / `▄` with 24-bit fg+bg ANSI per cell. Direct port of viuer's MIT-licensed `block.rs`. 2× vertical resolution.
+- **`BrailleRenderer`** (Phase 2): RGBA → U+2800–U+28FF, 8 dots per cell. Re-derived from the Unicode Braille spec. 8× resolution; cell color is the mean of lit dots.
+- **`Cell.bg`**: New optional foreground/background field. Backward-compatible — existing 23 patterns leave it undefined.
+- **Floyd-Steinberg + Bayer dither** (Phase 2, `src/utils/dither.ts`): Per-channel error diffusion (with configurable quantization levels) and hue-preserving ordered dither (8×8 + 16×16 matrices, recursively generated).
+- **Sobel + Difference-of-Gaussians edge detection** (Phase 2, `src/utils/edges.ts`): 3×3 gradient and band-pass operators. DoG defaults σ=(1, 2) tuned for small canvas sizes; Marr–Hildreth σ=1.6 underflows on ~70×50 inputs.
+- **12 photo presets**: 6 Phase-1 halfblock variants + 6 Phase-2 entries covering DoG edges, braille, braille-inverted, braille-dithered, braille-edges, and halfblock-Bayer. Phase-1 `edge-only` (preset 6) was a hard-threshold stub; upgraded to real Sobel in Phase 2.
+- **Mode-aware resize**: Switching between halfblock and braille presets invalidates the cached resized image and triggers an async re-resize at the larger 2W × 4H source canvas (vs. W × 2H for halfblock).
+- **Testing**: +43 in Phase 1, +57 in Phase 2 = +100 vs. v0.3.0's 2097 baseline → **2197 tests passing**, 92%+ coverage maintained.
+- **No new CLI flags** beyond `--photo`. All Phase 2 capabilities reachable via runtime preset cycling. The principled "lock to exact state" mechanism arrives in Phase 7 (seeded PRNG + share codes).
 
 ### v0.3.0 Development Highlights (December 2025) 🚀
 
@@ -120,6 +135,16 @@ ascii-splash is a terminal ASCII animation app that displays animated patterns i
 | Phase 2 - UX Integration                | ✅ COMPLETE          |
 | Phase 3 - Scene Patterns                | ✅ COMPLETE          |
 | Phase 4 - Polish & Release              | ✅ COMPLETE (v0.3.0) |
+| **v0.4.0 - From Engine to Canvas**      |                      |
+| Phase 1 - Half-block PhotoPattern       | ✅ DONE ON BRANCH    |
+| Phase 2 - Braille + dither + edges      | ✅ DONE ON BRANCH    |
+| Phase 3 - Scene composition             | 📋 NEXT              |
+| Phase 4 - Symbol matcher (chafa-style)  | 📋 PLANNED           |
+| Phase 5 - Protocol pass-through         | 📋 PLANNED           |
+| Phase 6 - Color-mask sprites            | 📋 PLANNED           |
+| Phase 7 - Seeded PRNG + share codes     | 📋 PLANNED           |
+| Phase 8 - asciinema export              | 📋 PLANNED           |
+| Phase 9 (stretch) - GIF export          | ⏳ IF BUDGET ALLOWS  |
 
 ## Features
 
@@ -127,20 +152,22 @@ ascii-splash is a terminal ASCII animation app that displays animated patterns i
 
 **Quick Summary:**
 
-- 23 patterns with 138 presets, 5 themes
-- 5 new scene-based patterns (Ocean Beach, Campfire, Aquarium, Night Sky, Snowfall Park)
+- 23 procedural patterns with 138 presets, 5 themes
+- Optional 24th pattern: `PhotoPattern` (`splash --photo PATH`, v0.4.0+, 12 photo presets)
+- 5 scene-based patterns (Ocean Beach, Campfire, Aquarium, Night Sky, Snowfall Park)
 - Enhanced Metaball Playground with physics modes
 - 7 animated GIF demonstrations in README
 - Full mouse support (move + click interactions)
 - Advanced multi-key command system (40+ commands)
 - Configuration file with CLI override support
-- New UI components (StatusBar, ToastManager, HelpOverlay, TransitionManager)
+- UI components (StatusBar, ToastManager, HelpOverlay, TransitionManager)
+- Image-rendering helpers: `HalfBlockRenderer`, `BrailleRenderer`, Floyd-Steinberg + Bayer dither, Sobel + DoG edge detection (v0.4.0+, available for any pattern that needs to consume RGBA)
 
 ### 🧪 Testing Coverage
 
 **Test Statistics:**
 
-- **Total Tests:** 2097 tests across 35+ suites
+- **Total Tests:** 2197 tests across 53 suites (v0.3.0 baseline 2097 + v0.4.0 Phases 1 + 2 = +100)
 - **Coverage:** 92%+ statements (significantly exceeded 80% target!)
 - **Status:** All tests passing ✅ (100%)
 - **Execution Time:** ~30-40 seconds
@@ -181,7 +208,7 @@ ascii-splash is a terminal ASCII animation app that displays animated patterns i
 
 **Documentation:**
 
-- For comprehensive testing plan and strategy, see [TESTING_PLAN.md](TESTING_PLAN.md)
+- For comprehensive testing plan and strategy, see [guides/TESTING.md](guides/TESTING.md)
 - Test utilities for color comparison and buffer validation
 - Coverage reports in `coverage/` directory
 
@@ -228,7 +255,19 @@ Highlights:
 
 ## What's Next
 
-**v0.3.0 Development Complete!** 🚀 Ready for release
+**v0.3.0 released (Dec 25, 2025); v0.4.0 Phases 1 + 2 done on branch (May 9, 2026).**
+
+**On the branch awaiting review** (`feature/v0.4.0-phase1-photo-pattern`, 4 commits ahead of `main`):
+
+- ✅ **`PhotoPattern`** — opt-in 24th pattern via `splash --photo PATH` (decode via `sharp`).
+- ✅ **`HalfBlockRenderer`** — Phase 1 — RGBA → `▀` / `▄` with truecolor fg+bg ANSI per cell, 2× vertical resolution.
+- ✅ **`BrailleRenderer`** — Phase 2 — RGBA → U+2800–U+28FF, 2×4 dots per cell, 8× resolution.
+- ✅ **Floyd-Steinberg + Bayer dither, Sobel + DoG edge detection** — Phase 2 utilities (`src/utils/dither.ts`, `src/utils/edges.ts`).
+- ✅ **12 photo presets** (6 Phase-1 halfblock variants + 6 Phase-2 halfblock-DoG / braille / dithered / edges / Bayer combos). `edge-only` (preset 6) upgraded from a hard-threshold stub to real Sobel.
+- ✅ **+100 tests** vs. v0.3.0 baseline → **2197 tests passing**, 92%+ coverage maintained.
+- ✅ **CHANGELOG, CLAUDE.md, ARCHITECTURE.md, PROJECT_STATUS.md, planning/v0.4.0-ROADMAP.md, core/CONTRIBUTING.md, guides/TESTING.md, guides/CONFIGURATION.md, README.md** all reflect Phase 1 + 2.
+
+**Phase 3 (next):** Scene composition — `PhotoPattern` becomes a `SceneLayer`, layered with sparse procedural overlays (Lightning, Fireworks, Rain, Snow, Starfield, etc.). Adds `transparentBg` to dense patterns (Plasma, Wave, Matrix). The v0.4 headline feature.
 
 **Completed in v0.3.0 (December 2025):**
 
@@ -344,7 +383,7 @@ Tracked separately — mostly net-new patterns that don't depend on v0.4 infrast
 **For developers:**
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) - Technical architecture
-- [TESTING_PLAN.md](TESTING_PLAN.md) - Testing strategy
+- [guides/TESTING.md](guides/TESTING.md) - Testing strategy
 
 **Configuration:**
 

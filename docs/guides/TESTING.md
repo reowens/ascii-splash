@@ -2,15 +2,28 @@
 
 ## Overview
 
-This document outlines the comprehensive testing strategy for ascii-splash, a terminal ASCII animation application with 17 patterns, 102 presets, 5 themes, and an advanced command system.
+This document outlines the comprehensive testing strategy for ascii-splash, a terminal ASCII animation application with 23 procedural patterns + optional `PhotoPattern` (24th, opt-in via `--photo PATH`), 138 procedural presets + 12 photo presets, 5 themes, and an advanced command system.
 
-**Current Status**: ✅ **1505 tests passing** across 28 test suites (100%)  
-**Current Coverage**: 92.35% overall (core components at 96-100%)  
-**Target Coverage**: 80%+ for core logic ✅ **EXCEEDED**  
-**Testing Framework**: Jest 29.7.0 (✅ Installed and configured)  
-**Document Version**: 2.0 (v0.2.0 Published to npm)
+**Current Status**: ✅ **2197 tests passing** across 53 test suites (100%)
+**Current Coverage**: 92%+ overall (core components at 96-100%)
+**Target Coverage**: 80%+ for core logic ✅ **EXCEEDED**
+**Testing Framework**: Jest 30.x (✅ Installed and configured, ESM-compatible)
+**Document Version**: 4.0 (v0.4.0 Phases 1 + 2 done on branch — added halfblock / braille / dither / edges suites)
+
+### v0.4.0 additions (Phases 1 + 2, on `feature/v0.4.0-phase1-photo-pattern`)
+
+| Test suite                                      | Tests | What it covers                                                                                                                |
+| ----------------------------------------------- | ----- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `tests/unit/renderer/HalfBlockRenderer.test.ts` | 19    | Per-pixel ▀ / ▄ emission, transparency, odd-height (unpaired) row, `bgTint`, contrast, threshold, invert                      |
+| `tests/unit/renderer/BrailleRenderer.test.ts`   | 19    | Per-dot bit-mapping (8 cases), all-on / all-off, mean-of-lit-dots color, threshold sweep, alpha, bounds                       |
+| `tests/unit/utils/dither.test.ts`               | 14    | Floyd-Steinberg quantization at levels=2/8, brightness preservation, alpha pass-through, Bayer hue-preserve, matrix structure |
+| `tests/unit/utils/edges.test.ts`                | 14    | BT.601 luminance, Sobel vertical / horizontal step edges, DoG band-pass, σ2 ≤ σ1 error, output clamp                          |
+| `tests/unit/patterns/photo.test.ts` (extended)  | 24    | Lifecycle (load / prepareForSize / render), 12 presets, mode dispatch, edge presets, dither presets                           |
+
+**Total v0.4.0 delta**: +100 tests vs. v0.3.0's 2097 baseline (43 in Phase 1, 57 in Phase 2). New file count: 6.
 
 **Quick Links**:
+
 - 📊 [Current project status](../PROJECT_STATUS.md)
 - 🏗️ [Technical architecture](../ARCHITECTURE.md)
 - 👤 [User guide](../../README.md)
@@ -70,6 +83,7 @@ Test individual classes in isolation without terminal I/O dependencies.
 #### **Target Components**
 
 ##### A. CommandParser (`src/engine/CommandParser.ts`)
+
 **Coverage Goal**: 100% (critical path) ✅ **ACHIEVED**
 
 ```typescript
@@ -137,6 +151,7 @@ describe('CommandParser', () => {
 ```
 
 ##### B. ConfigLoader (`src/config/ConfigLoader.ts`)
+
 **Coverage Goal**: 95% ✅ **ACHIEVED (100%)**
 
 ```typescript
@@ -177,6 +192,7 @@ describe('ConfigLoader', () => {
 ```
 
 ##### C. Buffer (`src/renderer/Buffer.ts`)
+
 **Coverage Goal**: 90% ✅ **ACHIEVED (100%)**
 
 ```typescript
@@ -210,6 +226,7 @@ describe('Buffer', () => {
 ```
 
 ##### D. PerformanceMonitor (`src/engine/PerformanceMonitor.ts`)
+
 **Coverage Goal**: 85% ✅ **ACHIEVED (100%)**
 
 ```typescript
@@ -240,9 +257,11 @@ describe('PerformanceMonitor', () => {
 ```
 
 ##### E. Pattern Presets (All 11 Patterns)
+
 **Coverage Goal**: 80% ✅ **ACHIEVED** (173 tests, coverage range: 53%-94%)
 
 **Test Coverage by Pattern**:
+
 - TunnelPattern: 94.16% ⭐ (excellent)
 - WavePattern: 92.95% ⭐ (excellent)
 - LightningPattern: 84.78% ✅ (good)
@@ -259,18 +278,18 @@ describe('PerformanceMonitor', () => {
 ```typescript
 describe('Pattern Presets', () => {
   describe.each([
-    'WavePattern',      // 38 tests (presets.test.ts)
+    'WavePattern', // 38 tests (presets.test.ts)
     'StarfieldPattern', // 38 tests (presets.test.ts)
-    'MatrixPattern',    // 15 tests (additional-patterns.test.ts)
-    'RainPattern',      // 15 tests
+    'MatrixPattern', // 15 tests (additional-patterns.test.ts)
+    'RainPattern', // 15 tests
     'QuicksilverPattern', // 15 tests
-    'ParticlePattern',  // 15 tests
-    'SpiralPattern',    // 15 tests
-    'PlasmaPattern',    // 15 tests
-    'TunnelPattern',    // 15 tests
+    'ParticlePattern', // 15 tests
+    'SpiralPattern', // 15 tests
+    'PlasmaPattern', // 15 tests
+    'TunnelPattern', // 15 tests
     'LightningPattern', // 15 tests
-    'FireworksPattern'  // 15 tests
-  ])('%s', (patternName) => {
+    'FireworksPattern', // 15 tests
+  ])('%s', patternName => {
     test('getPresets() returns array of 6 presets');
     test('getPresets() preset IDs are sequential 1-6');
     test('getPresets() all presets have required fields');
@@ -289,6 +308,7 @@ describe('Pattern Presets', () => {
 ```
 
 ##### F. Theme System (`src/config/themes.ts`)
+
 **Coverage Goal**: 90% ✅ **ACHIEVED (100%)**
 
 ```typescript
@@ -384,6 +404,7 @@ describe('Snapshot Tests', () => {
 **For EACH pattern (1-11):**
 
 #### Basic Functionality
+
 - [ ] Pattern loads without errors
 - [ ] Animation renders smoothly (no flicker)
 - [ ] Frame rate matches target (check debug overlay)
@@ -391,6 +412,7 @@ describe('Snapshot Tests', () => {
 - [ ] Pattern responds to window resize
 
 #### Mouse Interaction
+
 - [ ] Mouse move creates visual effects
 - [ ] Mouse click creates burst/spawn effects
 - [ ] Effects respect pattern boundaries
@@ -398,6 +420,7 @@ describe('Snapshot Tests', () => {
 - [ ] No crashes from rapid clicking
 
 #### Preset Testing
+
 - [ ] Preset 1 loads (command: `01`)
 - [ ] Preset 2 loads (command: `02`)
 - [ ] Preset 3 loads (command: `03`)
@@ -409,6 +432,7 @@ describe('Snapshot Tests', () => {
 - [ ] Pattern info shows correct preset name
 
 #### Theme Testing
+
 - [ ] Ocean theme colors applied
 - [ ] Matrix theme colors applied
 - [ ] Starlight theme colors applied
@@ -422,6 +446,7 @@ describe('Snapshot Tests', () => {
 ### 2.2 Command System Testing
 
 #### Preset Commands
+
 - [ ] `01` - Load preset 1
 - [ ] `06` - Load preset 6
 - [ ] `012` - Multi-digit preset (if pattern has 12+ presets)
@@ -431,6 +456,7 @@ describe('Snapshot Tests', () => {
 - [ ] `0??` - Shows all presets catalog (17 patterns × 6 presets)
 
 #### Pattern Jump Commands
+
 - [ ] `0p1` - Jump to pattern 1 (Waves)
 - [ ] `0p11` - Jump to pattern 11 (Fireworks)
 - [ ] `0p99` - Invalid pattern shows error
@@ -441,6 +467,7 @@ describe('Snapshot Tests', () => {
 - [ ] `0p1.1` - Pattern + preset combination
 
 #### Theme Commands
+
 - [ ] `0t` - Shows theme picker menu
 - [ ] `0t1` - Jump to theme 1 (Ocean)
 - [ ] `0t5` - Jump to theme 5 (Monochrome)
@@ -451,6 +478,7 @@ describe('Snapshot Tests', () => {
 - [ ] `0tr` - Random theme loads
 
 #### Favorite Commands
+
 - [ ] `0F1` - Save to favorite slot 1
 - [ ] `0f1` - Load favorite slot 1
 - [ ] `0F99` - Save to slot 99 (boundary test)
@@ -461,6 +489,7 @@ describe('Snapshot Tests', () => {
 - [ ] Favorite includes pattern, preset, theme, timestamp
 
 #### Special Commands
+
 - [ ] `0**` - Randomizes pattern + preset + theme
 - [ ] `0r` - Randomizes current pattern settings
 - [ ] `0s` - Saves config to file (verify file updated)
@@ -473,6 +502,7 @@ describe('Snapshot Tests', () => {
 - [ ] `0/fire` - Search finds patterns and themes
 
 #### Combination Commands
+
 - [ ] `0p3+05` - Pattern 3 + preset 5
 - [ ] `0p3+t2` - Pattern 3 + Fire theme
 - [ ] `0p3+05+t2` - Pattern 3 + preset 5 + Fire theme
@@ -480,6 +510,7 @@ describe('Snapshot Tests', () => {
 - [ ] Combinations with whitespace: `0p3 + 05`
 
 #### Command Buffer UI
+
 - [ ] Command overlay appears at bottom: `COMMAND: 0[buffer]_`
 - [ ] Buffer clears after 10 seconds of inactivity
 - [ ] ESC cancels command buffer
@@ -494,6 +525,7 @@ describe('Snapshot Tests', () => {
 ### 2.3 Keyboard Controls
 
 #### Pattern Switching
+
 - [ ] `1` - Switch to Waves
 - [ ] `2` - Switch to Starfield
 - [ ] `3` - Switch to Matrix
@@ -509,6 +541,7 @@ describe('Snapshot Tests', () => {
 - [ ] `p` from pattern 1 wraps to pattern 11
 
 #### Animation Controls
+
 - [ ] `SPACE` - Pause animation
 - [ ] `SPACE` again - Resume animation
 - [ ] `+` - Increase FPS (max 60)
@@ -518,6 +551,7 @@ describe('Snapshot Tests', () => {
 - [ ] Quality change updates FPS accordingly
 
 #### Theme & Display
+
 - [ ] `t` - Cycle to next theme
 - [ ] `t` cycles through all 5 themes
 - [ ] `t` from Monochrome wraps to Ocean
@@ -528,6 +562,7 @@ describe('Snapshot Tests', () => {
 - [ ] `d` again - Hide debug overlay
 
 #### Exit
+
 - [ ] `q` - Quit application
 - [ ] `ESC` - Quit application
 - [ ] `Ctrl+C` - Quit application
@@ -539,12 +574,14 @@ describe('Snapshot Tests', () => {
 ### 2.4 Configuration System
 
 #### Config File Loading
+
 - [ ] App loads config from `~/.config/ascii-splash/.splashrc.json`
 - [ ] Missing config file uses defaults
 - [ ] Corrupted JSON shows error and uses defaults
 - [ ] Partial config merges with defaults
 
 #### CLI Arguments
+
 - [ ] `--pattern waves` - Starts with Waves pattern
 - [ ] `--pattern starfield` - Starts with Starfield
 - [ ] `--pattern invalid` - Shows error
@@ -558,11 +595,13 @@ describe('Snapshot Tests', () => {
 - [ ] `--version` - Shows version number
 
 #### Config Priority
+
 - [ ] CLI arg overrides config file (test with `--fps 60` vs config fps: 30)
 - [ ] Config file overrides defaults (set pattern in config, verify)
 - [ ] Defaults apply when no config or CLI args
 
 #### Config Persistence
+
 - [ ] `0s` command saves current state to config
 - [ ] Favorites saved to config file persist
 - [ ] Pattern-specific configs persist
@@ -585,6 +624,7 @@ describe('Snapshot Tests', () => {
 ### 2.6 Performance Testing
 
 #### FPS & Timing
+
 - [ ] Debug overlay shows accurate FPS
 - [ ] FPS stays at target ±5%
 - [ ] Frame time breakdown is reasonable (update + render < 33ms @ 30 FPS)
@@ -592,6 +632,7 @@ describe('Snapshot Tests', () => {
 - [ ] Changed cell count is reasonable (<20% of screen for most patterns)
 
 #### Resource Usage
+
 - [ ] CPU usage < 5% when idle (no mouse movement)
 - [ ] CPU usage < 15% during active mouse interaction
 - [ ] Memory usage < 50MB
@@ -599,6 +640,7 @@ describe('Snapshot Tests', () => {
 - [ ] No memory leaks after pattern switching 50+ times
 
 #### Stress Testing
+
 - [ ] Rapid pattern switching (1-9 keys spam)
 - [ ] Rapid preset changes (01-06 rapid fire)
 - [ ] Rapid theme cycling (t key spam)
@@ -612,6 +654,7 @@ describe('Snapshot Tests', () => {
 ### 2.7 Edge Cases & Error Handling
 
 #### Terminal Size
+
 - [ ] Very small terminal (20×10) - no crashes
 - [ ] Very large terminal (200×100) - acceptable performance
 - [ ] Resize while animating - smooth transition
@@ -619,6 +662,7 @@ describe('Snapshot Tests', () => {
 - [ ] Rapid resize changes - stable
 
 #### Input Edge Cases
+
 - [ ] Command buffer with 50+ characters
 - [ ] Command buffer timeout (10s idle)
 - [ ] Typing during command execution
@@ -627,6 +671,7 @@ describe('Snapshot Tests', () => {
 - [ ] Mouse events during window resize
 
 #### Error States
+
 - [ ] Non-existent favorite load shows friendly error
 - [ ] Invalid preset number shows error
 - [ ] Invalid pattern name shows suggestions
@@ -641,34 +686,33 @@ describe('Snapshot Tests', () => {
 ### 3.1 Jest Configuration
 
 **Install dependencies:**
+
 ```bash
 npm install --save-dev jest @types/jest ts-jest
 ```
 
 **Create `jest.config.js`:**
+
 ```javascript
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/main.ts',
-    '!src/**/*.d.ts'
-  ],
+  collectCoverageFrom: ['src/**/*.ts', '!src/main.ts', '!src/**/*.d.ts'],
   coverageThreshold: {
     global: {
       branches: 70,
       functions: 75,
       lines: 80,
-      statements: 80
-    }
-  }
+      statements: 80,
+    },
+  },
 };
 ```
 
 **Update `package.json` scripts:**
+
 ```json
 {
   "scripts": {
@@ -713,12 +757,13 @@ tests/
 ### 3.3 Test Utilities
 
 **Create `tests/utils/MockTerminal.ts`:**
+
 ```typescript
 // Mock terminal-kit for testing
 export class MockTerminal {
   width = 80;
   height = 24;
-  
+
   moveTo(x: number, y: number) {}
   str(text: string) {}
   eraseDisplay() {}
@@ -729,13 +774,18 @@ export class MockTerminal {
 ```
 
 **Create `tests/utils/PatternTestHelpers.ts`:**
+
 ```typescript
 import { Pattern, Cell, Size, Point } from '../../src/types';
 
 export function createMockBuffer(width: number, height: number): Cell[][] {
-  return Array(height).fill(null).map(() =>
-    Array(width).fill(null).map(() => ({ char: ' ', color: { r: 0, g: 0, b: 0 } }))
-  );
+  return Array(height)
+    .fill(null)
+    .map(() =>
+      Array(width)
+        .fill(null)
+        .map(() => ({ char: ' ', color: { r: 0, g: 0, b: 0 } }))
+    );
 }
 
 export function renderPattern(pattern: Pattern, time: number, size: Size): Cell[][] {
@@ -756,43 +806,44 @@ export function countNonBlankCells(buffer: Cell[][]): number {
 ### 4.1 GitHub Actions Workflow
 
 **Create `.github/workflows/test.yml`:**
+
 ```yaml
 name: Tests
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         node-version: [16.x, 18.x, 20.x]
-    
+
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Run TypeScript compiler
-      run: npm run build
-    
-    - name: Run tests
-      run: npm test
-    
-    - name: Upload coverage
-      uses: codecov/codecov-action@v3
-      if: matrix.node-version == '20.x'
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript compiler
+        run: npm run build
+
+      - name: Run tests
+        run: npm test
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        if: matrix.node-version == '20.x'
 ```
 
 ---
@@ -800,24 +851,28 @@ jobs:
 ## 5. Testing Milestones
 
 ### Milestone 1: Foundation (Week 1) ✅ **COMPLETE**
+
 - [x] Install Jest and configure
 - [x] Write tests for CommandParser (100% coverage) - 68 tests
 - [x] Write tests for Buffer (90% coverage) - 33 tests
 - [ ] Set up CI/CD pipeline
 
 ### Milestone 2: Core Logic (Week 2) ✅ **COMPLETE**
+
 - [x] Write tests for ConfigLoader (95% coverage) - 28 tests
 - [x] Write tests for PerformanceMonitor (85% coverage) - 35 tests
 - [x] Write tests for Theme system (90% coverage) - 48 tests
 - [ ] Integration tests for command execution flow
 
 ### Milestone 3: Patterns (Week 3) ✅ **COMPLETE**
+
 - [x] Write preset tests for sample patterns (WavePattern, StarfieldPattern) - 38 tests
 - [x] Write preset tests for remaining 9 patterns - 135 tests (additional-patterns.test.ts)
 - [ ] Snapshot tests for pattern rendering (optional - deferred)
 - [ ] Integration tests for pattern switching (optional - deferred)
 
 ### Milestone 4: Manual QA (Week 4)
+
 - [ ] Complete full manual testing checklist
 - [ ] Document any bugs found
 - [ ] Performance testing and profiling
@@ -870,6 +925,7 @@ When issues are found during testing:
 **Severity**: Critical | High | Medium | Low
 **Component**: [Pattern/Command/Config/etc]
 **Steps to Reproduce**:
+
 1. Step 1
 2. Step 2
 3. ...
@@ -886,13 +942,14 @@ When issues are found during testing:
 
 **All Core Testing Complete** ✅
 
-With 1505 tests and 92.35% coverage achieved, all primary testing goals are complete. Future enhancements are **optional** and not required for production:
+With **2197 tests** and **92%+ coverage** (v0.3.0 baseline + v0.4.0 Phases 1 + 2), all primary testing goals are complete. Future enhancements are **optional** and not required for production:
 
 1. **Integration Tests** (Optional) - End-to-end flow testing across components (~30 tests)
 2. **CI/CD Pipeline** (Optional) - Automated testing on push/PR (see [Section 4.1](#41-github-actions-workflow))
 3. **Snapshot Tests** (Optional) - Pattern output regression testing
 4. **Cross-Terminal Testing** (Manual) - Verify behavior across different terminal emulators
 5. **Performance Profiling** (Manual) - Long-running stability tests (5+ hours)
+6. **Visual review of v0.4.0 photo presets** (Manual) - Confirm each of the 12 photo presets looks intended on a real terminal across the 5 themes
 
 **For current project status**, see [PROJECT_STATUS.md](PROJECT_STATUS.md).
 
@@ -923,36 +980,33 @@ npm run build && npm start
 
 ---
 
-**Document Version**: 2.0  
-**Last Updated**: 2025-11-05  
-**Status**: ✅ v0.2.0 Published to npm - All milestones complete, 1505 tests passing (100%), 92.35% coverage achieved, 17 patterns complete
+**Document Version**: 4.0
+**Last Updated**: 2026-05-09 (v0.4.0 Phases 1 + 2 done on `feature/v0.4.0-phase1-photo-pattern`)
+**Status**: 🚧 v0.3.0 published; v0.4.0 Phases 1 + 2 done on branch — **2197 tests passing** (100%), 92%+ coverage, 23 procedural patterns + opt-in `PhotoPattern` complete
 
 ---
 
 ## Test Results Summary
 
-**Current Status** (v0.2.0):
-- ✅ **1505 tests passing** across 28 test suites (100%)
-- ✅ **92.35% overall coverage** (target: 80%+ **EXCEEDED**)
-- ✅ **All 17 patterns tested** (667 pattern tests)
-- ✅ **All engine components tested** (CommandParser, CommandBuffer, CommandExecutor, AnimationEngine)
-- ✅ **All core systems tested** (Config, Buffer, PerformanceMonitor, Themes)
+**Current Status** (v0.3.0 released; v0.4.0 Phases 1 + 2 on branch):
 
-**Test Suite Breakdown**:
-- **Engine Tests** (310 tests): CommandParser (68), CommandBuffer (56), CommandExecutor (96), AnimationEngine (55), PerformanceMonitor (35)
-- **Pattern Tests** (667 tests): All 17 patterns with preset/rendering tests
-- **Config Tests** (76 tests): ConfigLoader (28), Themes (48)
-- **Renderer Tests** (113 tests): Buffer with dirty tracking, TerminalRenderer
-- **Utility Tests** (339 tests): Drawing, math, noise, validation, metaballs, buffer safety
+- ✅ **2197 tests passing** across 53 test suites (100%)
+- ✅ **92%+ overall coverage** (target: 80%+ **EXCEEDED**)
+- ✅ **All 23 procedural patterns tested** plus the optional `PhotoPattern`
+- ✅ **All engine components tested** (CommandParser, CommandBuffer, CommandExecutor, AnimationEngine, SceneGraph, SpriteManager, ParticleSystem, EventBus)
+- ✅ **All core systems tested** (Config, Buffer, PerformanceMonitor, Themes, UI components, Transitions)
+- ✅ **v0.4.0 image pipeline tested** (HalfBlockRenderer, BrailleRenderer, dither, edges, photo presets)
 
-**Coverage by Component**:
-- Core Engine: 96-100% (CommandParser, CommandBuffer, PerformanceMonitor)
-- Animation: 98.14% (AnimationEngine)
-- Configuration: 100% (ConfigLoader, Themes)
-- Rendering: 88.49-100% (Buffer: 100%, TerminalRenderer: 88.49%)
-- Patterns: 95-100% statements for core patterns (average ~97%)
-- Utilities: 91-100% (Drawing: 94.52%, Math: 91.12%, Noise: 92.10%)
+**Test Suite Breakdown** (approximate; counts shift as the suites grow):
 
-**For detailed coverage metrics and test breakdowns**, see [PROJECT_STATUS.md](PROJECT_STATUS.md#testing-coverage).
+- **Engine Tests**: CommandParser, CommandBuffer, CommandExecutor, AnimationEngine, PerformanceMonitor, SceneGraph, SpriteManager, ParticleSystem, EventBus
+- **Pattern Tests**: 23 procedural patterns (+ `tests/unit/patterns/photo.test.ts` from v0.4.0 covering the 24th opt-in pattern)
+- **Renderer Tests**: Buffer with dirty tracking, TerminalRenderer, TransitionManager, HalfBlockRenderer (v0.4.0 Phase 1), BrailleRenderer (v0.4.0 Phase 2)
+- **Utility Tests**: drawing, math, noise, validation, metaballs, buffer safety, **dither** (v0.4.0 Phase 2), **edges** (v0.4.0 Phase 2)
+- **UI Tests**: StatusBar, ToastManager, HelpOverlay
+- **Config Tests**: ConfigLoader, defaults, Themes
+- **Integration Tests**: pattern switching stability, preset switching stability, mouse interaction stability, extended-run stability
+
+**For detailed coverage metrics**, see [PROJECT_STATUS.md](../PROJECT_STATUS.md#testing-coverage). For the v0.4.0 pipeline-test additions specifically, see the table at the top of this file.
 
 ---

@@ -43,15 +43,43 @@ Manages all terminal I/O and rendering:
 
 **Performance Benefit**: Only ~5-10% of cells typically change per frame, reducing terminal writes by 90%
 
-**HalfBlockRenderer** (v0.4.0, `src/renderer/HalfBlockRenderer.ts`)
+**HalfBlockRenderer** (v0.4.0 Phase 1, `src/renderer/HalfBlockRenderer.ts`)
 
 - Pure function: `renderHalfBlock(buffer, pixels, w, h, options) → void`.
-- Direct port of viuer's `block.rs` algorithm targeting our `Cell[][]` model.
+- Direct port of viuer's `block.rs` algorithm (MIT) targeting our `Cell[][]` model.
 - Each terminal cell encodes two stacked source pixels: emits `▄` with
   `color = bottom_pixel`, `bg = top_pixel` (or `▀` for the unpaired last row
   of an odd-height image, or for cells with only one opaque pixel).
-- Reused by `PhotoPattern` (v0.4 Phase 1) and planned for the chafa-style
-  symbol matcher and protocol-fallback paths in Phases 4–5.
+- 2× vertical resolution vs. plain ASCII; 24-bit truecolor fg+bg per cell.
+- Optional preprocessing flags: `invert`, `grayscale`, `contrast`, `threshold`, `bgTint`.
+- Reused by `PhotoPattern` and planned for the chafa-style symbol matcher and
+  protocol-fallback paths in Phases 4–5.
+
+**BrailleRenderer** (v0.4.0 Phase 2, `src/renderer/BrailleRenderer.ts`)
+
+- Pure function: `renderBraille(buffer, pixels, w, h, options) → void`.
+- Re-derived from the Unicode 8-dot Braille spec (drawille is AGPL-3.0; no code
+  was copied).
+- Each terminal cell encodes 2 wide × 4 tall = 8 dots packed into a U+2800–U+28FF
+  codepoint. **8× resolution** vs. plain ASCII.
+- Cell color is the **mean RGB of lit dots** (transparent dots ignored). Cells
+  with no lit dots are emitted as `' '` so the layer below shows through (the
+  engine's space-transparency convention).
+- Options: `threshold` (default 128), `invert`, `preBinarized` (skip luminance
+  calc when input is already 0 or 255 from dither / edge preprocessing).
+- Bit-mapping (per the spec):
+
+  ```
+  ┌─────┬─────┐
+  │ 0x01│ 0x08│   row 0
+  ├─────┼─────┤
+  │ 0x02│ 0x10│   row 1
+  ├─────┼─────┤
+  │ 0x04│ 0x20│   row 2
+  ├─────┼─────┤
+  │ 0x40│ 0x80│   row 3
+  └─────┴─────┘
+  ```
 
 ### 2. Engine Layer (`src/engine/`)
 
@@ -201,6 +229,74 @@ interface Pattern {
 - Mouse coordinates: 0-based (pre-converted from terminal-kit's 1-based)
 - Time parameter: Milliseconds since animation start
 - No external side effects (file I/O, network, etc.)
+
+---
+
+## Photo Rendering Pipeline (v0.4.0 Phases 1 + 2)
+
+`PhotoPattern` is the only pattern that consumes external input (an image file via `--photo PATH`). To keep `render()` synchronous, it splits image work across three lifecycle phases:
+
+```
+constructor()         no I/O — stores config, picks initial preset
+       ↓
+async load()          decode source via sharp into raw RGBA  (called once at startup)
+       ↓
+async prepareForSize() resize to fit terminal × mode-aware canvas (called on resize / mode change)
+       ↓
+sync render()         apply edge → dither → renderer per frame
+```
+
+### Per-frame pipeline
+
+Each frame, `render()` runs:
+
+```
+cached resized RGBA
+        │
+        ▼   (preset.edge ≠ 'off')
+ rgbaToLuminance ─→ sobelMagnitude  or  differenceOfGaussians
+        │
+        ▼   threshold to 0/255 → maskToRgba
+working RGBA buffer
+        │
+        ▼   (preset.dither ≠ 'none')
+ floydSteinberg  or  bayerOrdered (in place, 1-bit or 8-level quantization)
+        │
+        ▼
+ renderHalfBlock  or  renderBraille  (writes into Cell[][])
+```
+
+The pipeline is fully gated by preset config — a preset that sets `edge: 'off'` and `dither: 'none'` skips both stages and feeds the cached pixels straight into the renderer (Phase 1 default behavior).
+
+### Mode-aware resize
+
+The cached resize size depends on the preset's `mode`:
+
+| Mode      | Source canvas (pixels) | Resolution multiplier  |
+| --------- | ---------------------- | ---------------------- |
+| halfblock | `width × height·2`     | 2× vertical            |
+| braille   | `width·2 × height·4`   | 8× total (2× h × 4× v) |
+
+Switching preset (e.g., from preset 6 halfblock-Sobel to preset 11 braille-Sobel) invalidates the resize cache, kicking off an async `prepareForSize()` on the next frame. The first frame after a switch may render against the previous cache; sharp typically completes the new resize in under 16 ms.
+
+### Source-of-truth references
+
+| Algorithm               | Implementation                                       | Tests                                           |
+| ----------------------- | ---------------------------------------------------- | ----------------------------------------------- |
+| Half-block emit         | `src/renderer/HalfBlockRenderer.ts`                  | `tests/unit/renderer/HalfBlockRenderer.test.ts` |
+| Braille bit-pack        | `src/renderer/BrailleRenderer.ts`                    | `tests/unit/renderer/BrailleRenderer.test.ts`   |
+| Floyd-Steinberg dither  | `src/utils/dither.ts` → `floydSteinberg`             | `tests/unit/utils/dither.test.ts`               |
+| Bayer ordered dither    | `src/utils/dither.ts` → `bayerOrdered`, `BAYER_8/16` | `tests/unit/utils/dither.test.ts`               |
+| BT.601 luminance        | `src/utils/edges.ts` → `rgbaToLuminance`             | `tests/unit/utils/edges.test.ts`                |
+| Sobel magnitude         | `src/utils/edges.ts` → `sobelMagnitude`              | `tests/unit/utils/edges.test.ts`                |
+| Difference of Gaussians | `src/utils/edges.ts` → `differenceOfGaussians`       | `tests/unit/utils/edges.test.ts`                |
+| Mask → RGBA bridge      | `src/utils/edges.ts` → `maskToRgba`                  | `tests/unit/utils/edges.test.ts`                |
+
+### Tuning notes
+
+- **DoG defaults**: σ1=1, σ2=2 (changed from canonical Marr–Hildreth σ2=1.6 in May 2026 after empirical comparison on a 71×48 photo showed σ2=1.6 underflows: max magnitude 33/255 vs. 47/255 at σ2=2). Override per-call for higher-resolution sources.
+- **Phase 1 `edge-only` preset (id 6)**: shipped as a hard-threshold stub in Phase 1; upgraded to real Sobel in Phase 2. Existing preset id is preserved.
+- **Future modes**: Phase 4 will add a `mode: 'symbol'` (chafa-style 8×8 bitmap matcher), Phase 5 will add `mode: 'kitty' | 'iterm2' | 'sixel'` (protocol pass-through). Both plug into the same dispatch in `PhotoPattern.render()`.
 
 ---
 

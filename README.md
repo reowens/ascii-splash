@@ -159,6 +159,12 @@ splash --no-mouse
 # Combine options
 splash --pattern quicksilver --quality high --theme starlight --no-mouse
 
+# Render an image (v0.4.0+, requires sharp)
+splash --photo path/to/photo.jpg
+splash --photo ~/Pictures/cat.png --theme matrix
+# After it loads, press `.` / `,` to cycle through 12 photo presets
+# (halfblock, braille, dither, edge — see "Photo Mode" below).
+
 # Show version
 splash --version
 splash -V
@@ -170,15 +176,39 @@ splash -h
 
 ### Available Options
 
-| Option       | Short | Description        | Values                                                                                                                                                                                                         |
-| ------------ | ----- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--pattern`  | `-p`  | Starting pattern   | waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, life, maze, dna, lavalamp, smoke, snow, oceanbeach, campfire, aquarium, nightsky, snowfallpark, metaball |
-| `--quality`  | `-q`  | Performance mode   | low, medium (default), high                                                                                                                                                                                    |
-| `--fps`      | `-f`  | Custom FPS (10-60) | Number (overrides performance mode FPS)                                                                                                                                                                        |
-| `--theme`    | `-t`  | Color theme        | ocean (default), matrix, starlight, fire, monochrome                                                                                                                                                           |
-| `--no-mouse` |       | Disable mouse      | Flag (no value)                                                                                                                                                                                                |
-| `--version`  | `-V`  | Show version       |                                                                                                                                                                                                                |
-| `--help`     | `-h`  | Show help          |                                                                                                                                                                                                                |
+| Option       | Short | Description               | Values                                                                                                                                                                                                         |
+| ------------ | ----- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--pattern`  | `-p`  | Starting pattern          | waves, starfield, matrix, rain, quicksilver, particles, spiral, plasma, tunnel, lightning, fireworks, life, maze, dna, lavalamp, smoke, snow, oceanbeach, campfire, aquarium, nightsky, snowfallpark, metaball |
+| `--quality`  | `-q`  | Performance mode          | low, medium (default), high                                                                                                                                                                                    |
+| `--fps`      | `-f`  | Custom FPS (10-60)        | Number (overrides performance mode FPS)                                                                                                                                                                        |
+| `--theme`    | `-t`  | Color theme               | ocean (default), matrix, starlight, fire, monochrome                                                                                                                                                           |
+| `--photo`    |       | Render an image (v0.4.0+) | Path to a JPEG / PNG / WebP / etc. that `sharp` can decode. Adds a 24th `photo` pattern with 12 presets.                                                                                                       |
+| `--no-mouse` |       | Disable mouse             | Flag (no value)                                                                                                                                                                                                |
+| `--version`  | `-V`  | Show version              |                                                                                                                                                                                                                |
+| `--help`     | `-h`  | Show help                 |                                                                                                                                                                                                                |
+
+### 📸 Photo Mode (v0.4.0+, on `feature/v0.4.0-phase1-photo-pattern`)
+
+`splash --photo PATH` adds a `PhotoPattern` alongside the 23 procedural patterns. The image is decoded via `sharp`, resized to fit the terminal preserving aspect ratio, and drawn into the same `Cell[][]` buffer the procedural patterns use — so themes, the command system, favorites, etc. all keep working.
+
+| Preset | Name              | Mode       | Pipeline                                    |
+| ------ | ----------------- | ---------- | ------------------------------------------- |
+| 1      | Default           | half-block | truecolor, no preprocessing                 |
+| 2      | High Contrast     | half-block | contrast 1.6× around mid-gray               |
+| 3      | Inverted          | half-block | channel inversion                           |
+| 4      | Grayscale         | half-block | BT.601 luminance only                       |
+| 5      | Background Tinted | half-block | space + bg color (single-color cells)       |
+| 6      | Edge-Only (Sobel) | half-block | Sobel magnitude → threshold 64              |
+| 7      | Edge-Only (DoG)   | half-block | Difference-of-Gaussians σ=(1,2) → thresh 16 |
+| 8      | Braille           | braille    | luminance threshold 128, 8× resolution      |
+| 9      | Braille Inverted  | braille    | inverted threshold                          |
+| 10     | Braille Dithered  | braille    | Floyd-Steinberg → braille                   |
+| 11     | Braille Edges     | braille    | Sobel → braille line art                    |
+| 12     | Halfblock Bayer   | half-block | Bayer 8×8 ordered dither, 8 levels          |
+
+Cycle presets at runtime with `.` / `,`, or jump directly with `c08` (preset 8). Half-block presets give 2× vertical resolution via `▀` / `▄` with 24-bit fg+bg ANSI per cell; braille presets pack 8 dots per cell using U+2800–U+28FF for 8× resolution at the cost of being monochrome per cell.
+
+> **Status:** v0.4.0 Phases 1 + 2 are done on the feature branch but not yet released to npm. Phase 3 (scene composition — photo backgrounds with procedural overlays) is the next milestone.
 
 ## 📝 Configuration File
 
@@ -714,13 +744,13 @@ For the complete command reference, see the section above.
 
 The next major release is **v0.4.0 — "From Engine to Canvas"**, which makes images and video first-class inputs alongside the existing procedural patterns. The full plan is in [docs/planning/v0.4.0-ROADMAP.md](docs/planning/v0.4.0-ROADMAP.md). Highlights:
 
-- **`splash --photo path/to/img.jpg`** — render any image at 2× vertical resolution using upper/lower half-block characters (Phase 1, done on a feature branch awaiting review).
-- **Braille mode + dithering + edge detection** for line-art and high-contrast portraits (Phase 2).
-- **Scene composition** — layer procedural patterns over photo backgrounds (Phase 3, the headline feature).
-- **Chafa-style symbol matcher** — wow-mode rendering with implicit edge detection via 8×8 bitmap matching (Phase 4).
-- **Native protocol pass-through** for Kitty / iTerm2 / Sixel terminals — the photo goes straight to the GPU when supported, halfblock fallback otherwise (Phase 5).
-- **Color-mask sprites** — multi-color hand-drawn scenes (Phase 6).
-- **Seeded PRNG + share codes + asciinema export** — `splash share` produces a code that reproduces an exact scene; `splash record` writes a `.cast` you can drop into a PR (Phases 7-8).
+- ✅ **`splash --photo path/to/img.jpg`** — render any image at 2× vertical resolution using upper/lower half-block characters (Phase 1, done on the feature branch).
+- ✅ **Braille mode + Floyd-Steinberg / Bayer dithering + Sobel / DoG edge detection** — line art and high-contrast portraits, 12 photo presets total (Phase 2, done on the feature branch).
+- 📋 **Scene composition** — layer procedural patterns over photo backgrounds (Phase 3, the headline feature; up next).
+- 📋 **Chafa-style symbol matcher** — wow-mode rendering with implicit edge detection via 8×8 bitmap matching (Phase 4).
+- 📋 **Native protocol pass-through** for Kitty / iTerm2 / Sixel terminals — the photo goes straight to the GPU when supported, halfblock fallback otherwise (Phase 5).
+- 📋 **Color-mask sprites** — multi-color hand-drawn scenes (Phase 6).
+- 📋 **Seeded PRNG + share codes + asciinema export** — `splash share` produces a code that reproduces an exact scene; `splash record` writes a `.cast` you can drop into a PR (Phases 7-8).
 
 ## 🤝 Contributing
 
@@ -738,6 +768,14 @@ Built with:
 - [chalk](https://github.com/chalk/chalk) - Color output
 - [commander](https://github.com/tj/commander.js) - CLI argument parsing
 - [conf](https://github.com/sindresorhus/conf) - Configuration management
+- [sharp](https://github.com/lovell/sharp) - Image decode + resize (v0.4.0+, only loaded when `--photo` is used)
+
+Photo-mode rendering is informed by reading (not copying):
+
+- [viuer](https://github.com/atanunq/viuer) (MIT) — the half-block algorithm in `block.rs` is the basis for `HalfBlockRenderer`.
+- [chafa](https://hpjansson.org/chafa/) (LGPL-3.0) — algorithm reference for Bayer dithering and the upcoming symbol matcher.
+- [drawille](https://github.com/asciimoo/drawille) (AGPL-3.0) — Unicode Braille bit-pack reference (re-derived independently from the U+2800 spec).
+- [ascii-image-converter](https://github.com/TheZoraiz/ascii-image-converter) (Apache-2.0) — brightness ramp and braille reference.
 
 ## 🔗 Links
 
