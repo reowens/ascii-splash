@@ -28,6 +28,7 @@ import { NightSkyPattern } from './patterns/NightSkyPattern.js';
 import { AquariumPattern } from './patterns/AquariumPattern.js';
 import { SnowfallParkPattern } from './patterns/SnowfallParkPattern.js';
 import { MetaballPattern } from './patterns/MetaballPattern.js';
+import { PhotoPattern } from './patterns/PhotoPattern.js';
 import { Pattern, CliOptions, QualityPreset, ConfigSchema, Theme } from './types/index.js';
 import { ConfigLoader } from './config/ConfigLoader.js';
 import { getTheme, getNextThemeName } from './config/themes.js';
@@ -84,6 +85,12 @@ function parseCliArguments(): CliOptions {
   // Mouse control
   program.option('--no-mouse', 'Disable mouse interaction');
 
+  // Photo source (v0.4.0 Phase 1)
+  program.option(
+    '--photo <path>',
+    'Render an image file via PhotoPattern (half-block, 2× vertical resolution)'
+  );
+
   program.parse();
   const options = program.opts();
 
@@ -133,6 +140,7 @@ function parseCliArguments(): CliOptions {
     fps: options.fps,
     theme: options.theme?.toLowerCase(),
     mouse: options.mouse,
+    photo: options.photo,
   };
 }
 
@@ -151,7 +159,7 @@ function checkTTY(): void {
   }
 }
 
-function main() {
+async function main() {
   // Parse CLI arguments (allows --help/--version to work without TTY)
   const cliOptions = parseCliArguments();
 
@@ -327,7 +335,7 @@ function main() {
   patterns = createPatternsFromConfig(config, currentTheme);
 
   // Pattern names mapping (internal names)
-  const patternNames = [
+  const patternNames: string[] = [
     'waves',
     'starfield',
     'matrix',
@@ -378,7 +386,26 @@ function main() {
     aquarium: 'Aquarium',
     snowfallpark: 'Snowfall Park',
     metaball: 'Metaball',
+    photo: 'Photo',
   };
+
+  // v0.4.0 Phase 1: optional PhotoPattern when --photo <path> is supplied.
+  // Decoded once up front so the first frame doesn't ship a blank screen.
+  if (cliOptions.photo) {
+    const photoPattern = new PhotoPattern(currentTheme, { source: cliOptions.photo });
+    try {
+      await photoPattern.load();
+      await photoPattern.prepareForSize(renderer.getSize());
+    } catch (err) {
+      renderer.cleanup();
+      console.error(
+        `Error: failed to load --photo "${cliOptions.photo}": ${err instanceof Error ? err.message : String(err)}`
+      );
+      process.exit(1);
+    }
+    patterns.push(photoPattern);
+    patternNames.push('photo');
+  }
 
   // Determine starting pattern from config
   let currentPatternIndex = 0;
@@ -386,6 +413,14 @@ function main() {
     const index = patternNames.indexOf(config.defaultPattern);
     if (index >= 0) {
       currentPatternIndex = index;
+    }
+  }
+
+  // --photo overrides startup selection so the user sees their image immediately.
+  if (cliOptions.photo) {
+    const photoIdx = patternNames.indexOf('photo');
+    if (photoIdx >= 0) {
+      currentPatternIndex = photoIdx;
     }
   }
 
@@ -1134,4 +1169,4 @@ process.on('unhandledRejection', reason => {
 });
 
 // Run the app
-cleanupHandler = main();
+cleanupHandler = await main();

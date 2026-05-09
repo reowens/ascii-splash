@@ -24,6 +24,12 @@ export interface Theme {
 export interface Cell {
   char: string;
   color?: Color;
+  /**
+   * Optional background color. Used by half-block / symbol renderers
+   * (v0.4.0+) to encode two stacked pixels per cell. Patterns that don't
+   * need a background simply leave this undefined.
+   */
+  bg?: Color;
 }
 
 export interface Pattern {
@@ -90,6 +96,8 @@ export interface CliOptions {
   fps?: number;
   theme?: string;
   mouse?: boolean;
+  /** Path to an image file to render via PhotoPattern (v0.4.0+). */
+  photo?: string;
 }
 
 // Pattern-specific configuration interfaces

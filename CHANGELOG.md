@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **PhotoPattern (v0.4.0 Phase 1)**: Render any image into the existing terminal at 2× vertical resolution using upper/lower half-block characters (▀ ▄). Supports truecolor 24-bit output via combined fg + bg ANSI sequences.
+  - New CLI flag: `splash --photo <path>` loads and renders an image immediately on startup.
+  - Six presets: `default`, `high-contrast`, `inverted`, `grayscale`, `bg-tinted`, and `edge-only` (stub for v0.4 Phase 2).
+  - Aspect-preserving fit (mirrors viuer's `fit_dimensions`): square / portrait images are letterboxed rather than stretched to the terminal's aspect.
+  - Direct port of viuer's `block.rs` half-block algorithm (MIT) targeting our `Cell[][]` model.
+- **`HalfBlockRenderer`** (`src/renderer/HalfBlockRenderer.ts`): Pure function that fills a `Cell[][]` from an RGBA pixel buffer. Re-usable by upcoming braille / symbol-matcher modes (Phase 2 / 4).
+- **`Cell.bg`** (background color): New optional field on `Cell`. Required by half-block rendering; will also be used by the symbol matcher in Phase 4 and protocol pass-through in Phase 5. Backward-compatible — existing patterns leave it undefined.
+- **`sharp`** dependency for image decode + resize (ESM-compatible, Node 20+).
+- 32 new unit tests in `tests/unit/renderer/HalfBlockRenderer.test.ts` and `tests/unit/patterns/photo.test.ts`.
+
+### Changed
+
+- `Buffer.getChanges()` now detects background-color changes in addition to char + foreground.
+- `TerminalRenderer.render()` now emits `\x1b[48;2;r;g;bm` background-color escapes when `cell.bg` is set.
+
 ## [0.3.1] - 2026-01-22
 
 ### Fixed
