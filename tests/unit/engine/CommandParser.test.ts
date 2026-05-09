@@ -3,7 +3,7 @@
  * Target: 100% coverage
  */
 
-import { CommandParser } from '../../../src/engine/CommandParser.js';
+import { CommandParser, ParsedCommand } from '../../../src/engine/CommandParser.js';
 
 describe('CommandParser', () => {
   let parser: CommandParser;
@@ -41,7 +41,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'preset',
         args: { presetNumber: 1 },
-        raw: '01'
+        raw: '01',
       });
     });
 
@@ -50,7 +50,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'preset',
         args: { presetNumber: 12 },
-        raw: '012'
+        raw: '012',
       });
     });
 
@@ -59,7 +59,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'preset',
         args: { presetNumber: 123 },
-        raw: '0123'
+        raw: '0123',
       });
     });
 
@@ -68,7 +68,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'preset',
         args: { presetNumber: 5 },
-        raw: '5'
+        raw: '5',
       });
     });
   });
@@ -79,7 +79,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'favorite',
         args: { favoriteSlot: 1 },
-        raw: '0f1'
+        raw: '0f1',
       });
     });
 
@@ -88,7 +88,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'favorite',
         args: { favoriteSlot: 99 },
-        raw: '0f99'
+        raw: '0f99',
       });
     });
 
@@ -97,7 +97,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'saveFavorite',
         args: { favoriteSlot: 1 },
-        raw: '0F1'
+        raw: '0F1',
       });
     });
 
@@ -106,7 +106,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'saveFavorite',
         args: { favoriteSlot: 42 },
-        raw: '0F42'
+        raw: '0F42',
       });
     });
 
@@ -115,7 +115,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'special',
         args: { specialCmd: 'favoriteList' },
-        raw: '0fl'
+        raw: '0fl',
       });
     });
   });
@@ -126,7 +126,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'pattern',
         args: { patternId: 3 },
-        raw: '0p3'
+        raw: '0p3',
       });
     });
 
@@ -135,7 +135,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'pattern',
         args: { patternId: 'waves' },
-        raw: '0pwaves'
+        raw: '0pwaves',
       });
     });
 
@@ -143,11 +143,11 @@ describe('CommandParser', () => {
       const result = parser.parse('0p3.5');
       expect(result).toEqual({
         type: 'pattern',
-        args: { 
+        args: {
           patternId: 3,
-          patternPreset: 5
+          patternPreset: 5,
         },
-        raw: '0p3.5'
+        raw: '0p3.5',
       });
     });
 
@@ -155,11 +155,11 @@ describe('CommandParser', () => {
       const result = parser.parse('0pwaves.2');
       expect(result).toEqual({
         type: 'pattern',
-        args: { 
+        args: {
           patternId: 'waves',
-          patternPreset: 2
+          patternPreset: 2,
         },
-        raw: '0pwaves.2'
+        raw: '0pwaves.2',
       });
     });
 
@@ -168,7 +168,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'special',
         args: { specialCmd: 'patternList' },
-        raw: '0p'
+        raw: '0p',
       });
     });
 
@@ -176,11 +176,11 @@ describe('CommandParser', () => {
       const result = parser.parse('0pwaves.abc');
       expect(result).toEqual({
         type: 'pattern',
-        args: { 
+        args: {
           patternId: 'waves',
-          patternPreset: undefined
+          patternPreset: undefined,
         },
-        raw: '0pwaves.abc'
+        raw: '0pwaves.abc',
       });
     });
   });
@@ -191,7 +191,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'theme',
         args: { themeId: 2 },
-        raw: '0t2'
+        raw: '0t2',
       });
     });
 
@@ -200,7 +200,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'theme',
         args: { themeId: 'fire' },
-        raw: '0tfire'
+        raw: '0tfire',
       });
     });
 
@@ -209,7 +209,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'special',
         args: { specialCmd: 'randomTheme' },
-        raw: '0tr'
+        raw: '0tr',
       });
     });
 
@@ -218,7 +218,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'special',
         args: { specialCmd: 'themePicker' },
-        raw: '0t'
+        raw: '0t',
       });
     });
   });
@@ -229,7 +229,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'special',
         args: { specialCmd: 'randomPreset' },
-        raw: '0*'
+        raw: '0*',
       });
     });
 
@@ -238,7 +238,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'special',
         args: { specialCmd: 'randomAll' },
-        raw: '0**'
+        raw: '0**',
       });
     });
 
@@ -247,7 +247,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'special',
         args: { specialCmd: 'listPresets' },
-        raw: '0?'
+        raw: '0?',
       });
     });
 
@@ -256,7 +256,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'special',
         args: { specialCmd: 'catalogPresets' },
-        raw: '0??'
+        raw: '0??',
       });
     });
 
@@ -265,7 +265,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'special',
         args: { specialCmd: 'randomize' },
-        raw: '0r'
+        raw: '0r',
       });
     });
 
@@ -274,7 +274,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'special',
         args: { specialCmd: 'save' },
-        raw: '0s'
+        raw: '0s',
       });
     });
 
@@ -283,7 +283,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'special',
         args: { specialCmd: 'reset' },
-        raw: '0x'
+        raw: '0x',
       });
     });
 
@@ -292,7 +292,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'special',
         args: { specialCmd: 'shuffle' },
-        raw: '0!'
+        raw: '0!',
       });
     });
 
@@ -301,7 +301,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'special',
         args: { specialCmd: 'shuffleAll' },
-        raw: '0!!'
+        raw: '0!!',
       });
     });
 
@@ -309,11 +309,11 @@ describe('CommandParser', () => {
       const result = parser.parse('0!5');
       expect(result).toEqual({
         type: 'special',
-        args: { 
+        args: {
           specialCmd: 'shuffle',
-          specialArg: '5'
+          specialArg: '5',
         },
-        raw: '0!5'
+        raw: '0!5',
       });
     });
 
@@ -321,11 +321,11 @@ describe('CommandParser', () => {
       const result = parser.parse('0!120');
       expect(result).toEqual({
         type: 'special',
-        args: { 
+        args: {
           specialCmd: 'shuffle',
-          specialArg: '120'
+          specialArg: '120',
         },
-        raw: '0!120'
+        raw: '0!120',
       });
     });
 
@@ -334,7 +334,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'special',
         args: { specialCmd: 'search' },
-        raw: '0/'
+        raw: '0/',
       });
     });
 
@@ -342,11 +342,11 @@ describe('CommandParser', () => {
       const result = parser.parse('0/storm');
       expect(result).toEqual({
         type: 'special',
-        args: { 
+        args: {
           specialCmd: 'search',
-          specialArg: 'storm'
+          specialArg: 'storm',
         },
-        raw: '0/storm'
+        raw: '0/storm',
       });
     });
 
@@ -355,7 +355,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'special',
         args: { specialCmd: 'undo' },
-        raw: '0\\'
+        raw: '0\\',
       });
     });
 
@@ -364,7 +364,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'special',
         args: { specialCmd: 'repeat' },
-        raw: '0.'
+        raw: '0.',
       });
     });
 
@@ -373,7 +373,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'special',
         args: { specialCmd: 'history' },
-        raw: '0h'
+        raw: '0h',
       });
     });
   });
@@ -383,17 +383,18 @@ describe('CommandParser', () => {
       const result = parser.parse('0p3+05');
       expect(result?.type).toBe('combination');
       expect(result?.args.commands).toHaveLength(2);
-      
-      const commands = result?.args.commands!;
+
+      expect(result).not.toBeNull();
+      const commands = result!.args.commands as ParsedCommand[];
       expect(commands[0]).toEqual({
         type: 'pattern',
         args: { patternId: 3 },
-        raw: '0p3'
+        raw: '0p3',
       });
       expect(commands[1]).toEqual({
         type: 'preset',
         args: { presetNumber: 5 },
-        raw: '005' // Parser adds '0' prefix when parsing parts
+        raw: '005', // Parser adds '0' prefix when parsing parts
       });
     });
 
@@ -401,17 +402,18 @@ describe('CommandParser', () => {
       const result = parser.parse('0p3+t2');
       expect(result?.type).toBe('combination');
       expect(result?.args.commands).toHaveLength(2);
-      
-      const commands = result?.args.commands!;
+
+      expect(result).not.toBeNull();
+      const commands = result!.args.commands as ParsedCommand[];
       expect(commands[0]).toEqual({
         type: 'pattern',
         args: { patternId: 3 },
-        raw: '0p3'
+        raw: '0p3',
       });
       expect(commands[1]).toEqual({
         type: 'theme',
         args: { themeId: 2 },
-        raw: '0t2'
+        raw: '0t2',
       });
     });
 
@@ -419,8 +421,9 @@ describe('CommandParser', () => {
       const result = parser.parse('0p3+05+t2');
       expect(result?.type).toBe('combination');
       expect(result?.args.commands).toHaveLength(3);
-      
-      const commands = result?.args.commands!;
+
+      expect(result).not.toBeNull();
+      const commands = result!.args.commands as ParsedCommand[];
       expect(commands[0].type).toBe('pattern');
       expect(commands[1].type).toBe('preset');
       expect(commands[2].type).toBe('theme');
@@ -436,17 +439,18 @@ describe('CommandParser', () => {
       const result = parser.parse('0pwaves+tfire');
       expect(result?.type).toBe('combination');
       expect(result?.args.commands).toHaveLength(2);
-      
-      const commands = result?.args.commands!;
+
+      expect(result).not.toBeNull();
+      const commands = result!.args.commands as ParsedCommand[];
       expect(commands[0]).toEqual({
         type: 'pattern',
         args: { patternId: 'waves' },
-        raw: '0pwaves'
+        raw: '0pwaves',
       });
       expect(commands[1]).toEqual({
         type: 'theme',
         args: { themeId: 'fire' },
-        raw: '0tfire'
+        raw: '0tfire',
       });
     });
 
@@ -473,7 +477,7 @@ describe('CommandParser', () => {
       expect(result).toEqual({
         type: 'preset',
         args: { presetNumber: 99999 },
-        raw: '099999'
+        raw: '099999',
       });
     });
 
@@ -487,7 +491,7 @@ describe('CommandParser', () => {
     test('handles case sensitivity (F vs f)', () => {
       const loadResult = parser.parse('0f5');
       expect(loadResult?.type).toBe('favorite');
-      
+
       const saveResult = parser.parse('0F5');
       expect(saveResult?.type).toBe('saveFavorite');
     });

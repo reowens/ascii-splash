@@ -31,46 +31,87 @@ export class StarfieldPattern implements Pattern {
   private theme: Theme;
   private stars: Star[] = [];
   private starChars = ['.', '·', '*', '✦', '✧', '★'];
-  private explosions: Array<{ x: number; y: number; time: number; particles: Array<{ dx: number; dy: number }> }> = [];
-  private currentTime: number = 0;
+  private explosions: {
+    x: number;
+    y: number;
+    time: number;
+    particles: { dx: number; dy: number }[];
+  }[] = [];
+  private currentTime = 0;
 
   private static readonly PRESETS: StarfieldPreset[] = [
     {
       id: 1,
       name: 'Deep Space',
       description: 'Sparse, slow-moving stars',
-      config: { starCount: 50, speed: 0.5, mouseRepelRadius: 8, twinkleEnabled: false, twinkleIntensity: 0 }
+      config: {
+        starCount: 50,
+        speed: 0.5,
+        mouseRepelRadius: 8,
+        twinkleEnabled: false,
+        twinkleIntensity: 0,
+      },
     },
     {
       id: 2,
       name: 'Warp Speed',
       description: 'Hyperspace jump effect',
-      config: { starCount: 200, speed: 3.0, mouseRepelRadius: 3, twinkleEnabled: false, twinkleIntensity: 0 }
+      config: {
+        starCount: 200,
+        speed: 3.0,
+        mouseRepelRadius: 3,
+        twinkleEnabled: false,
+        twinkleIntensity: 0,
+      },
     },
     {
       id: 3,
       name: 'Asteroid Field',
       description: 'Dense, medium-speed navigation',
-      config: { starCount: 150, speed: 1.5, mouseRepelRadius: 10, twinkleEnabled: false, twinkleIntensity: 0 }
+      config: {
+        starCount: 150,
+        speed: 1.5,
+        mouseRepelRadius: 10,
+        twinkleEnabled: false,
+        twinkleIntensity: 0,
+      },
     },
     {
       id: 4,
       name: 'Milky Way',
       description: 'Balanced cosmic view',
-      config: { starCount: 120, speed: 0.8, mouseRepelRadius: 6, twinkleEnabled: false, twinkleIntensity: 0 }
+      config: {
+        starCount: 120,
+        speed: 0.8,
+        mouseRepelRadius: 6,
+        twinkleEnabled: false,
+        twinkleIntensity: 0,
+      },
     },
     {
       id: 5,
       name: 'Photon Torpedo',
       description: 'Fast, sparse streaks',
-      config: { starCount: 80, speed: 2.5, mouseRepelRadius: 4, twinkleEnabled: false, twinkleIntensity: 0 }
+      config: {
+        starCount: 80,
+        speed: 2.5,
+        mouseRepelRadius: 4,
+        twinkleEnabled: false,
+        twinkleIntensity: 0,
+      },
     },
     {
       id: 6,
       name: 'Pulsing Cosmos',
       description: 'Dramatic pulsating stars',
-      config: { starCount: 100, speed: 0.7, mouseRepelRadius: 5, twinkleEnabled: true, twinkleIntensity: 0.8 }
-    }
+      config: {
+        starCount: 100,
+        speed: 0.7,
+        mouseRepelRadius: 5,
+        twinkleEnabled: true,
+        twinkleIntensity: 0.8,
+      },
+    },
   ];
 
   constructor(theme: Theme, config?: Partial<StarConfig>) {
@@ -81,7 +122,7 @@ export class StarfieldPattern implements Pattern {
       mouseRepelRadius: 5,
       twinkleEnabled: false,
       twinkleIntensity: 0,
-      ...config
+      ...config,
     };
   }
 
@@ -90,7 +131,7 @@ export class StarfieldPattern implements Pattern {
     if (!preset) {
       return false;
     }
-    
+
     this.config = { ...preset.config };
     this.stars = []; // Recreate stars with new count
     return true;
@@ -120,7 +161,7 @@ export class StarfieldPattern implements Pattern {
       speed: Math.random() * 0.5 + 0.5,
       twinklePhase: Math.random() * Math.PI * 2,
       twinkleSpeed: Math.random() * 0.002 + 0.001, // 0.001-0.003
-      size: Math.random() * 1.0 + 0.5 // 0.5-1.5 size multiplier
+      size: Math.random() * 1.0 + 0.5, // 0.5-1.5 size multiplier
     };
   }
 
@@ -137,10 +178,10 @@ export class StarfieldPattern implements Pattern {
     // Update and render stars
     for (let i = 0; i < this.stars.length; i++) {
       const star = this.stars[i];
-      
+
       // Move star toward viewer
       star.z -= speed * star.speed * 0.02;
-      
+
       // Reset star if it's too close
       if (star.z <= 0.1) {
         this.stars[i] = this.createStar(size);
@@ -149,15 +190,15 @@ export class StarfieldPattern implements Pattern {
 
       // Project 3D position to 2D screen
       const scale = 10 / star.z;
-      let screenX = Math.floor((star.x * scale) + width / 2);
-      let screenY = Math.floor((star.y * scale) + height / 2);
+      let screenX = Math.floor(star.x * scale + width / 2);
+      let screenY = Math.floor(star.y * scale + height / 2);
 
       // Apply mouse repulsion
       if (mousePos) {
         const dx = screenX - mousePos.x;
         const dy = screenY - mousePos.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        
+
         if (dist < mouseRepelRadius && dist > 0) {
           const force = (mouseRepelRadius - dist) / mouseRepelRadius;
           screenX += Math.floor((dx / dist) * force * 3);
@@ -171,7 +212,7 @@ export class StarfieldPattern implements Pattern {
         const depth = (1 / star.z) * star.size; // Apply size multiplier to depth
         let charIndex = 0;
         let colorIntensity = 0;
-        
+
         if (depth > 0.9) {
           charIndex = 5; // Closest - biggest
           colorIntensity = 1.0;
@@ -192,7 +233,7 @@ export class StarfieldPattern implements Pattern {
         // Apply twinkling effect if enabled
         if (this.config.twinkleEnabled && this.config.twinkleIntensity > 0) {
           const twinkle = Math.sin(time * star.twinkleSpeed + star.twinklePhase);
-          const twinkleModifier = 1.0 - (twinkle * this.config.twinkleIntensity * 0.5);
+          const twinkleModifier = 1.0 - twinkle * this.config.twinkleIntensity * 0.5;
           colorIntensity *= twinkleModifier;
           // Clamp to valid range
           colorIntensity = Math.max(0, Math.min(1, colorIntensity));
@@ -200,7 +241,7 @@ export class StarfieldPattern implements Pattern {
 
         buffer[screenY][screenX] = {
           char: this.starChars[charIndex],
-          color: this.theme.getColor(colorIntensity)
+          color: this.theme.getColor(colorIntensity),
         };
       }
     }
@@ -210,20 +251,20 @@ export class StarfieldPattern implements Pattern {
     for (const explosion of this.explosions) {
       const age = currentTime - explosion.time;
       const maxAge = 1000;
-      
+
       if (age < maxAge) {
         const progress = age / maxAge;
         const radius = progress * 10;
-        
+
         for (const particle of explosion.particles) {
           const px = Math.floor(explosion.x + particle.dx * radius);
           const py = Math.floor(explosion.y + particle.dy * radius);
-          
+
           if (px >= 0 && px < width && py >= 0 && py < height) {
             const brightness = Math.floor(255 * (1 - progress));
             buffer[py][px] = {
               char: '*',
-              color: { r: brightness, g: brightness, b: brightness }
+              color: { r: brightness, g: brightness, b: brightness },
             };
           }
         }
@@ -234,20 +275,20 @@ export class StarfieldPattern implements Pattern {
     this.explosions = this.explosions.filter(e => currentTime - e.time < 1000);
   }
 
-  onMouseMove(pos: Point): void {
+  onMouseMove(_pos: Point): void {
     // Mouse movement handled in render via repulsion
   }
 
   onMouseClick(pos: Point): void {
     // Create explosion burst
-    const particles: Array<{ dx: number; dy: number }> = [];
+    const particles: { dx: number; dy: number }[] = [];
     const particleCount = 12;
-    
+
     for (let i = 0; i < particleCount; i++) {
       const angle = (i / particleCount) * Math.PI * 2;
       particles.push({
         dx: Math.cos(angle),
-        dy: Math.sin(angle)
+        dy: Math.sin(angle),
       });
     }
 
@@ -255,7 +296,7 @@ export class StarfieldPattern implements Pattern {
       x: pos.x,
       y: pos.y,
       time: this.currentTime || Date.now(), // Use currentTime if available, otherwise Date.now()
-      particles
+      particles,
     });
   }
 
@@ -267,24 +308,22 @@ export class StarfieldPattern implements Pattern {
 
   getMetrics(): Record<string, number> {
     // Calculate depth statistics
-    const avgDepth = this.stars.length > 0
-      ? this.stars.reduce((sum, star) => sum + star.z, 0) / this.stars.length
-      : 0;
-    const minDepth = this.stars.length > 0
-      ? Math.min(...this.stars.map(star => star.z))
-      : 0;
-    const maxDepth = this.stars.length > 0
-      ? Math.max(...this.stars.map(star => star.z))
-      : 0;
-    
+    const avgDepth =
+      this.stars.length > 0
+        ? this.stars.reduce((sum, star) => sum + star.z, 0) / this.stars.length
+        : 0;
+    const minDepth = this.stars.length > 0 ? Math.min(...this.stars.map(star => star.z)) : 0;
+    const maxDepth = this.stars.length > 0 ? Math.max(...this.stars.map(star => star.z)) : 0;
+
     // Calculate size statistics
-    const avgSize = this.stars.length > 0
-      ? this.stars.reduce((sum, star) => sum + star.size, 0) / this.stars.length
-      : 0;
-    
+    const avgSize =
+      this.stars.length > 0
+        ? this.stars.reduce((sum, star) => sum + star.size, 0) / this.stars.length
+        : 0;
+
     // Count total explosion particles
     const explosionParticles = this.explosions.reduce((sum, exp) => sum + exp.particles.length, 0);
-    
+
     return {
       stars: this.stars.length,
       explosions: this.explosions.length,
@@ -294,7 +333,7 @@ export class StarfieldPattern implements Pattern {
       maxDepth: Math.round(maxDepth * 100) / 100,
       avgSize: Math.round(avgSize * 100) / 100,
       speed: this.config.speed,
-      repelRadius: this.config.mouseRepelRadius
+      repelRadius: this.config.mouseRepelRadius,
     };
   }
 }

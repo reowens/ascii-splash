@@ -2,14 +2,14 @@ import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
 import { PerlinNoise } from '../utils/noise.js';
 
 interface SnowConfig {
-  particleCount: number;     // Total particles (20-200)
-  fallSpeed: number;         // Downward speed (0.1-2.0)
-  windStrength: number;      // Horizontal drift (0-2.0)
-  turbulence: number;        // Noise strength (0-2.0)
-  rotationSpeed: number;     // Spin rate (0-5.0)
+  particleCount: number; // Total particles (20-200)
+  fallSpeed: number; // Downward speed (0.1-2.0)
+  windStrength: number; // Horizontal drift (0-2.0)
+  turbulence: number; // Noise strength (0-2.0)
+  rotationSpeed: number; // Spin rate (0-5.0)
   particleType: 'snow' | 'cherry' | 'autumn' | 'confetti' | 'ash';
-  mouseWindForce: number;    // Mouse creates wind (0-5.0)
-  accumulation: boolean;     // Particles briefly stick at bottom
+  mouseWindForce: number; // Mouse creates wind (0-5.0)
+  accumulation: boolean; // Particles briefly stick at bottom
 }
 
 interface SnowPreset {
@@ -22,17 +22,17 @@ interface SnowPreset {
 interface Particle {
   x: number;
   y: number;
-  vx: number;          // Horizontal velocity
-  vy: number;          // Vertical velocity
-  rotation: number;    // Current rotation angle (0-360)
+  vx: number; // Horizontal velocity
+  vy: number; // Vertical velocity
+  rotation: number; // Current rotation angle (0-360)
   rotationSpeed: number; // Degrees per frame
-  char: string;        // Display character
-  size: number;        // Visual size (0-3)
-  opacity: number;     // 0-1
+  char: string; // Display character
+  size: number; // Visual size (0-3)
+  opacity: number; // 0-1
   accumulated: boolean; // Stuck at bottom?
   accumulationTime: number; // How long stuck
-  weight: number;      // Affects fall speed (0.5-2.0)
-  pulsePhase: number;  // Phase for size pulsing (0-2π)
+  weight: number; // Affects fall speed (0.5-2.0)
+  pulsePhase: number; // Phase for size pulsing (0-2π)
 }
 
 export class SnowPattern implements Pattern {
@@ -52,38 +52,92 @@ export class SnowPattern implements Pattern {
       id: 1,
       name: 'Light Flurries',
       description: 'Gentle snowfall with light wind',
-      config: { particleCount: 50, fallSpeed: 0.3, windStrength: 0.5, turbulence: 0.6, rotationSpeed: 1.0, particleType: 'snow', mouseWindForce: 2.0, accumulation: true }
+      config: {
+        particleCount: 50,
+        fallSpeed: 0.3,
+        windStrength: 0.5,
+        turbulence: 0.6,
+        rotationSpeed: 1.0,
+        particleType: 'snow',
+        mouseWindForce: 2.0,
+        accumulation: true,
+      },
     },
     {
       id: 2,
       name: 'Blizzard',
       description: 'Heavy snow with strong wind',
-      config: { particleCount: 150, fallSpeed: 1.2, windStrength: 1.8, turbulence: 1.5, rotationSpeed: 3.0, particleType: 'snow', mouseWindForce: 3.5, accumulation: false }
+      config: {
+        particleCount: 150,
+        fallSpeed: 1.2,
+        windStrength: 1.8,
+        turbulence: 1.5,
+        rotationSpeed: 3.0,
+        particleType: 'snow',
+        mouseWindForce: 3.5,
+        accumulation: false,
+      },
     },
     {
       id: 3,
       name: 'Cherry Blossoms',
       description: 'Delicate pink petals drifting',
-      config: { particleCount: 80, fallSpeed: 0.2, windStrength: 0.8, turbulence: 1.0, rotationSpeed: 2.0, particleType: 'cherry', mouseWindForce: 2.5, accumulation: false }
+      config: {
+        particleCount: 80,
+        fallSpeed: 0.2,
+        windStrength: 0.8,
+        turbulence: 1.0,
+        rotationSpeed: 2.0,
+        particleType: 'cherry',
+        mouseWindForce: 2.5,
+        accumulation: false,
+      },
     },
     {
       id: 4,
       name: 'Autumn Leaves',
       description: 'Colorful falling leaves',
-      config: { particleCount: 60, fallSpeed: 0.5, windStrength: 1.2, turbulence: 1.2, rotationSpeed: 2.5, particleType: 'autumn', mouseWindForce: 3.0, accumulation: true }
+      config: {
+        particleCount: 60,
+        fallSpeed: 0.5,
+        windStrength: 1.2,
+        turbulence: 1.2,
+        rotationSpeed: 2.5,
+        particleType: 'autumn',
+        mouseWindForce: 3.0,
+        accumulation: true,
+      },
     },
     {
       id: 5,
       name: 'Confetti',
       description: 'Celebration confetti burst',
-      config: { particleCount: 120, fallSpeed: 0.8, windStrength: 0.4, turbulence: 0.8, rotationSpeed: 5.0, particleType: 'confetti', mouseWindForce: 4.0, accumulation: false }
+      config: {
+        particleCount: 120,
+        fallSpeed: 0.8,
+        windStrength: 0.4,
+        turbulence: 0.8,
+        rotationSpeed: 5.0,
+        particleType: 'confetti',
+        mouseWindForce: 4.0,
+        accumulation: false,
+      },
     },
     {
       id: 6,
       name: 'Ash',
       description: 'Floating volcanic ash',
-      config: { particleCount: 100, fallSpeed: 0.15, windStrength: 1.5, turbulence: 2.0, rotationSpeed: 0.5, particleType: 'ash', mouseWindForce: 1.5, accumulation: false }
-    }
+      config: {
+        particleCount: 100,
+        fallSpeed: 0.15,
+        windStrength: 1.5,
+        turbulence: 2.0,
+        rotationSpeed: 0.5,
+        particleType: 'ash',
+        mouseWindForce: 1.5,
+        accumulation: false,
+      },
+    },
   ];
 
   constructor(theme: Theme, config?: Partial<SnowConfig>) {
@@ -97,7 +151,7 @@ export class SnowPattern implements Pattern {
       particleType: 'snow',
       mouseWindForce: 2.0,
       accumulation: true,
-      ...config
+      ...config,
     };
     this.noise = new PerlinNoise();
     this.initializeParticles();
@@ -110,11 +164,11 @@ export class SnowPattern implements Pattern {
     }
   }
 
-  private createParticle(randomY: boolean = false): Particle {
+  private createParticle(randomY = false): Particle {
     const chars = this.getParticleChars();
     const char = chars[Math.floor(Math.random() * chars.length)];
     const weight = 0.5 + Math.random() * 1.5;
-    
+
     return {
       x: Math.random() * this.size.width,
       y: randomY ? Math.random() * this.size.height : -1,
@@ -128,7 +182,7 @@ export class SnowPattern implements Pattern {
       accumulated: false,
       accumulationTime: 0,
       weight,
-      pulsePhase: Math.random() * Math.PI * 2
+      pulsePhase: Math.random() * Math.PI * 2,
     };
   }
 
@@ -165,10 +219,7 @@ export class SnowPattern implements Pattern {
     }
 
     // Perlin noise for turbulence
-    const noiseX = this.noise.noise2D(
-      particle.x * 0.01 + this.noiseOffset,
-      particle.y * 0.01
-    );
+    const noiseX = this.noise.noise2D(particle.x * 0.01 + this.noiseOffset, particle.y * 0.01);
     const noiseY = this.noise.noise2D(
       particle.x * 0.01 + this.noiseOffset + 100,
       particle.y * 0.01 + 100
@@ -188,7 +239,7 @@ export class SnowPattern implements Pattern {
       const dy = particle.y - this.mousePos.y;
       const distSq = dx * dx + dy * dy;
       const maxDist = 15;
-      
+
       if (distSq < maxDist * maxDist) {
         const dist = Math.sqrt(distSq);
         const force = (1 - dist / maxDist) * this.config.mouseWindForce;
@@ -200,7 +251,7 @@ export class SnowPattern implements Pattern {
     // Apply velocities with damping
     particle.x += particle.vx * deltaTime * 0.06;
     particle.y += particle.vy * deltaTime * 0.06;
-    
+
     // Damping
     particle.vx *= 0.98;
     particle.vy = this.config.fallSpeed * particle.weight; // Reset to terminal velocity
@@ -264,10 +315,10 @@ export class SnowPattern implements Pattern {
       if (x >= 0 && x < size.width && y >= 0 && y < size.height) {
         // Color based on particle type and theme
         const color = this.getParticleColor(particle);
-        
+
         buffer[y][x] = {
           char: particle.char,
-          color
+          color,
         };
       }
     }
@@ -277,23 +328,23 @@ export class SnowPattern implements Pattern {
     // Apply pulsing to opacity for size variation effect
     const pulseFactor = 0.85 + Math.sin(particle.pulsePhase) * 0.15; // 0.7-1.0 range
     const intensity = particle.opacity * pulseFactor;
-    
+
     switch (this.config.particleType) {
       case 'snow':
         // White/blue tint
         return {
           r: Math.floor(200 + 55 * intensity),
           g: Math.floor(220 + 35 * intensity),
-          b: Math.floor(240 + 15 * intensity)
+          b: Math.floor(240 + 15 * intensity),
         };
       case 'cherry':
         // Pink
         return {
           r: Math.floor(255 * intensity),
           g: Math.floor(150 * intensity),
-          b: Math.floor(200 * intensity)
+          b: Math.floor(200 * intensity),
         };
-      case 'autumn':
+      case 'autumn': {
         // Orange/red/yellow mix
         const hue = Math.random();
         if (hue < 0.33) {
@@ -303,30 +354,33 @@ export class SnowPattern implements Pattern {
         } else {
           return { r: Math.floor(255 * intensity), g: Math.floor(200 * intensity), b: 0 }; // Yellow
         }
-      case 'confetti':
+      }
+      case 'confetti': {
         // Random rainbow colors
         const colors = [
-          { r: 255, g: 0, b: 0 },     // Red
-          { r: 255, g: 127, b: 0 },   // Orange
-          { r: 255, g: 255, b: 0 },   // Yellow
-          { r: 0, g: 255, b: 0 },     // Green
-          { r: 0, g: 0, b: 255 },     // Blue
-          { r: 139, g: 0, b: 255 }    // Purple
+          { r: 255, g: 0, b: 0 }, // Red
+          { r: 255, g: 127, b: 0 }, // Orange
+          { r: 255, g: 255, b: 0 }, // Yellow
+          { r: 0, g: 255, b: 0 }, // Green
+          { r: 0, g: 0, b: 255 }, // Blue
+          { r: 139, g: 0, b: 255 }, // Purple
         ];
         const color = colors[Math.floor(particle.x * 7) % colors.length];
         return {
           r: Math.floor(color.r * intensity),
           g: Math.floor(color.g * intensity),
-          b: Math.floor(color.b * intensity)
+          b: Math.floor(color.b * intensity),
         };
-      case 'ash':
+      }
+      case 'ash': {
         // Gray with theme tint
         const baseColor = this.theme.getColor(0.3);
         return {
           r: Math.floor((baseColor.r * 0.3 + 100) * intensity),
           g: Math.floor((baseColor.g * 0.3 + 100) * intensity),
-          b: Math.floor((baseColor.b * 0.3 + 100) * intensity)
+          b: Math.floor((baseColor.b * 0.3 + 100) * intensity),
         };
+      }
       default:
         return this.theme.getColor(intensity);
     }
@@ -385,13 +439,14 @@ export class SnowPattern implements Pattern {
   getMetrics(): Record<string, number> {
     const activeParticles = this.particles.filter(p => !p.accumulated).length;
     const accumulatedParticles = this.particles.filter(p => p.accumulated).length;
-    const avgVelocity = this.particles.reduce((sum, p) => 
-      sum + Math.sqrt(p.vx * p.vx + p.vy * p.vy), 0) / this.particles.length;
+    const avgVelocity =
+      this.particles.reduce((sum, p) => sum + Math.sqrt(p.vx * p.vx + p.vy * p.vy), 0) /
+      this.particles.length;
 
     return {
       activeParticles: activeParticles,
       accumulated: accumulatedParticles,
-      avgVelocity: Math.round(avgVelocity * 100) / 100
+      avgVelocity: Math.round(avgVelocity * 100) / 100,
     };
   }
 }

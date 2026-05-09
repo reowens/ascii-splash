@@ -1,7 +1,12 @@
 import Conf from 'conf';
-import type { Options } from 'conf';
-import { ConfigSchema, CliOptions, QualityPreset } from '../types/index.js';
+import { ConfigSchema, CliOptions, FavoriteSlot } from '../types/index.js';
 import { defaultConfig, qualityPresets } from './defaults.js';
+
+/**
+ * Recursive deep-merge type. Used to keep `deepMerge` typed without `any`.
+ * Both target and source must be plain objects keyed by `string`.
+ */
+type DeepMergeable = Record<string, unknown>;
 
 /**
  * ConfigLoader manages loading and merging configuration from multiple sources.
@@ -31,7 +36,7 @@ export class ConfigLoader {
 
     // Merge with config file (if it exists)
     const fileConfig = this.loadFromFile();
-    this.deepMerge(config, fileConfig);
+    this.deepMerge(config as DeepMergeable, fileConfig as DeepMergeable);
 
     // Override with CLI options (highest priority)
     if (cliOptions.pattern !== undefined) {
@@ -60,7 +65,7 @@ export class ConfigLoader {
     try {
       // Get all config values from the store
       const fileConfig: Partial<ConfigSchema> = {};
-      
+
       // Load global settings
       if (this.store.has('defaultPattern')) {
         fileConfig.defaultPattern = this.store.get('defaultPattern');
@@ -89,7 +94,7 @@ export class ConfigLoader {
       }
 
       return fileConfig;
-    } catch (error) {
+    } catch {
       // If config file doesn't exist or has errors, return empty config
       console.warn('Warning: Could not load config file, using defaults');
       return {};
@@ -122,21 +127,24 @@ export class ConfigLoader {
   }
 
   /**
-   * Deep merge two objects (modifies target)
+   * Deep merge `source` into `target` (modifies target).
+   * Recurses into plain object values; primitives and arrays overwrite.
    */
-  private deepMerge(target: any, source: any): void {
-    for (const key in source) {
-      if (source.hasOwnProperty(key)) {
-        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-          // Recursively merge objects
-          if (!target[key]) {
-            target[key] = {};
-          }
-          this.deepMerge(target[key], source[key]);
-        } else {
-          // Override primitives and arrays
-          target[key] = source[key];
-        }
+  private deepMerge(target: DeepMergeable, source: DeepMergeable): void {
+    for (const key of Object.keys(source)) {
+      const sourceVal = source[key];
+      if (sourceVal !== null && typeof sourceVal === 'object' && !Array.isArray(sourceVal)) {
+        // Recursively merge nested objects.
+        const existing = target[key];
+        const nested: DeepMergeable =
+          existing !== null && typeof existing === 'object' && !Array.isArray(existing)
+            ? (existing as DeepMergeable)
+            : {};
+        target[key] = nested;
+        this.deepMerge(nested, sourceVal as DeepMergeable);
+      } else {
+        // Primitives, null, and arrays overwrite directly.
+        target[key] = sourceVal;
       }
     }
   }
@@ -151,22 +159,22 @@ export class ConfigLoader {
     }
     // Otherwise use quality preset
     const quality = config.quality || 'medium';
-    return qualityPresets[quality as QualityPreset];
+    return qualityPresets[quality];
   }
 
   /**
    * Get a favorite from the config file
    */
-  getFavorite(slot: number): any {
-    const favorites = this.store.get('favorites') || {};
+  getFavorite(slot: number): FavoriteSlot | undefined {
+    const favorites = this.store.get('favorites') ?? {};
     return favorites[slot];
   }
 
   /**
    * Save a favorite to the config file
    */
-  saveFavorite(slot: number, favorite: any): void {
-    const favorites = this.store.get('favorites') || {};
+  saveFavorite(slot: number, favorite: FavoriteSlot): void {
+    const favorites = this.store.get('favorites') ?? {};
     favorites[slot] = favorite;
     this.store.set('favorites', favorites);
   }
@@ -174,16 +182,20 @@ export class ConfigLoader {
   /**
    * Get all favorites
    */
-  getAllFavorites(): Record<number, any> {
-    return this.store.get('favorites') || {};
+  getAllFavorites(): Record<number, FavoriteSlot> {
+    return this.store.get('favorites') ?? {};
   }
 
   /**
    * Delete a favorite
    */
   deleteFavorite(slot: number): void {
-    const favorites = this.store.get('favorites') || {};
-    delete favorites[slot];
-    this.store.set('favorites', favorites);
+    const favorites: Record<number, FavoriteSlot> = this.store.get('favorites') ?? {};
+    const next: Record<number, FavoriteSlot> = {};
+    for (const key of Object.keys(favorites)) {
+      const k = Number(key);
+      if (k !== slot) next[k] = favorites[k];
+    }
+    this.store.set('favorites', next);
   }
 }

@@ -46,7 +46,7 @@ describe('AnimationEngine', () => {
       clear: jest.fn(),
       getBuffer: jest.fn().mockReturnValue([]),
       swap: jest.fn(),
-      getChanges: jest.fn().mockReturnValue([])
+      getChanges: jest.fn().mockReturnValue([]),
     } as any;
 
     // Create mock renderer
@@ -54,7 +54,7 @@ describe('AnimationEngine', () => {
       getSize: jest.fn().mockReturnValue({ width: 80, height: 24 }),
       getBuffer: jest.fn().mockReturnValue(mockBuffer),
       render: jest.fn().mockReturnValue(10), // 10 changed cells
-      clearScreen: jest.fn() // Clear terminal screen
+      clearScreen: jest.fn(), // Clear terminal screen
     } as any;
 
     // Create mock pattern
@@ -95,8 +95,9 @@ describe('AnimationEngine', () => {
     });
 
     it('starts in stopped state', () => {
-      const engine = new AnimationEngine(mockRenderer, mockPattern);
-      // Engine should not be running yet (verified by no auto-rendering)
+      // Construct an engine without start(). We don't keep the reference —
+      // the assertion is that simply constructing one doesn't trigger a render.
+      new AnimationEngine(mockRenderer, mockPattern);
       expect(mockPattern.renderCalled).toBe(false);
     });
   });
@@ -115,7 +116,7 @@ describe('AnimationEngine', () => {
     it('stop() halts the animation loop', () => {
       const engine = new AnimationEngine(mockRenderer, mockPattern, 30);
       engine.start();
-      
+
       // Advance time and verify rendering started
       jest.advanceTimersByTime(35);
       expect(mockPattern.renderCalled).toBe(true);
@@ -140,7 +141,7 @@ describe('AnimationEngine', () => {
 
     it('can restart after stopping', () => {
       const engine = new AnimationEngine(mockRenderer, mockPattern, 30);
-      
+
       // Start, render, stop
       engine.start();
       jest.advanceTimersByTime(35);
@@ -368,7 +369,6 @@ describe('AnimationEngine', () => {
 
     it('setFps() updates performance monitor target', () => {
       const engine = new AnimationEngine(mockRenderer, mockPattern, 30);
-      const perfMonitor = engine.getPerformanceMonitor();
 
       engine.setFps(45);
 
@@ -436,7 +436,7 @@ describe('AnimationEngine', () => {
 
     it('passes time parameter to pattern', () => {
       const engine = new AnimationEngine(mockRenderer, mockPattern, 30);
-      
+
       const startTime = Date.now();
       engine.start();
       jest.advanceTimersByTime(35);
@@ -453,7 +453,10 @@ describe('AnimationEngine', () => {
       jest.advanceTimersByTime(35);
 
       // Pattern receives height - 1 (bottom row reserved for banner)
-      expect(mockPattern.lastSize).toEqual({ width: customSize.width, height: customSize.height - 1 });
+      expect(mockPattern.lastSize).toEqual({
+        width: customSize.width,
+        height: customSize.height - 1,
+      });
     });
 
     it('records performance metrics each frame', () => {
@@ -475,7 +478,7 @@ describe('AnimationEngine', () => {
       const callback = jest.fn();
 
       engine.setAfterRenderCallback(callback);
-      
+
       expect(callback).not.toHaveBeenCalled();
     });
 
@@ -496,7 +499,7 @@ describe('AnimationEngine', () => {
 
       engine.setAfterRenderCallback(callback);
       engine.start();
-      
+
       // Three frames
       jest.advanceTimersByTime(35);
       jest.advanceTimersByTime(35);
@@ -512,7 +515,7 @@ describe('AnimationEngine', () => {
       engine.setAfterRenderCallback(callback);
       engine.start();
       engine.pause();
-      
+
       jest.advanceTimersByTime(100);
 
       expect(callback).not.toHaveBeenCalled();
@@ -525,7 +528,7 @@ describe('AnimationEngine', () => {
       engine.setAfterRenderCallback(callback);
       engine.start();
       jest.advanceTimersByTime(35);
-      
+
       callback.mockClear();
       engine.stop();
       jest.advanceTimersByTime(100);
@@ -546,7 +549,7 @@ describe('AnimationEngine', () => {
       // Change callback
       engine.setAfterRenderCallback(callback2);
       jest.advanceTimersByTime(35);
-      
+
       expect(callback1).toHaveBeenCalledTimes(1); // Not called again
       expect(callback2).toHaveBeenCalledTimes(1); // New callback called
     });
@@ -556,7 +559,7 @@ describe('AnimationEngine', () => {
     it('getPerformanceMonitor() returns the monitor instance', () => {
       const engine = new AnimationEngine(mockRenderer, mockPattern);
       const perfMonitor = engine.getPerformanceMonitor();
-      
+
       expect(perfMonitor).toBeDefined();
       expect(perfMonitor.getStats).toBeDefined();
     });

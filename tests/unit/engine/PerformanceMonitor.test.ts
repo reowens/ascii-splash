@@ -35,14 +35,16 @@ describe('PerformanceMonitor', () => {
 
     it('calculates FPS after two frames', () => {
       monitor.startFrame();
-      
+
       // Wait a bit to simulate frame time
       const start = performance.now();
-      while (performance.now() - start < 16) {} // ~16ms = 60fps
-      
+      while (performance.now() - start < 16) {
+        /* busy-wait */
+      } // ~16ms = 60fps
+
       monitor.startFrame();
       const metrics = monitor.getMetrics();
-      
+
       expect(metrics.fps).toBeGreaterThan(0);
       expect(metrics.frameTime).toBeGreaterThan(0);
     });
@@ -53,7 +55,9 @@ describe('PerformanceMonitor', () => {
         monitor.startFrame();
         // Small delay
         const start = performance.now();
-        while (performance.now() - start < 1) {}
+        while (performance.now() - start < 1) {
+          /* busy-wait */
+        }
       }
 
       const stats = monitor.getStats();
@@ -63,16 +67,18 @@ describe('PerformanceMonitor', () => {
 
     it('detects frame drops when frame time exceeds target by 50%', () => {
       monitor.startFrame();
-      
+
       // Simulate a slow frame (> 50ms for 30fps target)
       // Target frame time = 1000/30 = 33.33ms
       // 50% over = 50ms
       const start = performance.now();
-      while (performance.now() - start < 60) {} // 60ms is definitely a drop
-      
+      while (performance.now() - start < 60) {
+        /* busy-wait */
+      } // 60ms is definitely a drop
+
       monitor.startFrame();
       const metrics = monitor.getMetrics();
-      
+
       expect(metrics.frameDrops).toBeGreaterThan(0);
     });
 
@@ -121,17 +127,19 @@ describe('PerformanceMonitor', () => {
 
     it('affects frame drop detection threshold', () => {
       monitor.setTargetFps(60); // 16.67ms per frame
-      
+
       monitor.startFrame();
-      
+
       // Simulate frame time well under drop threshold (25ms = 1.5x 16.67ms)
       // Use 10ms to have a very safe margin and avoid timing flakiness
       const start = performance.now();
-      while (performance.now() - start < 10) {}
-      
+      while (performance.now() - start < 10) {
+        /* busy-wait */
+      }
+
       monitor.startFrame();
       const metrics = monitor.getMetrics();
-      
+
       // Should not detect drop with 10ms at 60fps (threshold is 25ms)
       expect(metrics.frameDrops).toBe(0);
     });
@@ -141,7 +149,7 @@ describe('PerformanceMonitor', () => {
     it('returns a copy of metrics (not reference)', () => {
       const metrics1 = monitor.getMetrics();
       metrics1.fps = 999;
-      
+
       const metrics2 = monitor.getMetrics();
       expect(metrics2.fps).not.toBe(999);
     });
@@ -151,7 +159,7 @@ describe('PerformanceMonitor', () => {
       monitor.recordPatternRenderTime(5);
       monitor.recordRenderTime(3);
       monitor.recordChangedCells(200);
-      
+
       const metrics = monitor.getMetrics();
       expect(metrics.updateTime).toBe(10);
       expect(metrics.patternRenderTime).toBe(5);
@@ -174,22 +182,28 @@ describe('PerformanceMonitor', () => {
     it('calculates min/max FPS from history', () => {
       // Simulate varying frame rates
       monitor.startFrame();
-      
+
       // Fast frame
       let start = performance.now();
-      while (performance.now() - start < 10) {}
+      while (performance.now() - start < 10) {
+        /* busy-wait */
+      }
       monitor.startFrame();
-      
+
       // Slow frame
       start = performance.now();
-      while (performance.now() - start < 50) {}
+      while (performance.now() - start < 50) {
+        /* busy-wait */
+      }
       monitor.startFrame();
-      
+
       // Medium frame
       start = performance.now();
-      while (performance.now() - start < 20) {}
+      while (performance.now() - start < 20) {
+        /* busy-wait */
+      }
       monitor.startFrame();
-      
+
       const stats = monitor.getStats();
       expect(stats.minFps).toBeGreaterThan(0);
       expect(stats.maxFps).toBeGreaterThan(stats.minFps);
@@ -198,17 +212,21 @@ describe('PerformanceMonitor', () => {
 
     it('tracks total frames and dropped frames', () => {
       monitor.startFrame();
-      
+
       // Normal frame
       let start = performance.now();
-      while (performance.now() - start < 20) {}
+      while (performance.now() - start < 20) {
+        /* busy-wait */
+      }
       monitor.startFrame();
-      
+
       // Dropped frame (> 50ms for 30fps)
       start = performance.now();
-      while (performance.now() - start < 60) {}
+      while (performance.now() - start < 60) {
+        /* busy-wait */
+      }
       monitor.startFrame();
-      
+
       const stats = monitor.getStats();
       expect(stats.totalFrames).toBe(3);
       expect(stats.totalDroppedFrames).toBeGreaterThan(0);
@@ -219,21 +237,23 @@ describe('PerformanceMonitor', () => {
     it('clears frame history', () => {
       monitor.startFrame();
       const start = performance.now();
-      while (performance.now() - start < 16) {}
+      while (performance.now() - start < 16) {
+        /* busy-wait */
+      }
       monitor.startFrame();
-      
+
       // Get FPS before reset to verify it changes
       const beforeMetrics = monitor.getMetrics();
       expect(beforeMetrics.fps).toBeGreaterThan(0);
-      
+
       monitor.reset();
-      
+
       // After reset, frame history is cleared but current FPS value remains
       // until next frame is recorded (which will use empty history)
       const stats = monitor.getStats();
       expect(stats.totalFrames).toBe(0);
       expect(stats.totalDroppedFrames).toBe(0);
-      
+
       const metrics = monitor.getMetrics();
       expect(metrics.frameDrops).toBe(0);
     });
@@ -242,9 +262,9 @@ describe('PerformanceMonitor', () => {
       monitor.startFrame();
       monitor.startFrame();
       monitor.startFrame();
-      
+
       monitor.reset();
-      
+
       const stats = monitor.getStats();
       expect(stats.totalFrames).toBe(0);
       expect(stats.totalDroppedFrames).toBe(0);
@@ -253,9 +273,9 @@ describe('PerformanceMonitor', () => {
     it('does not reset recorded times', () => {
       monitor.recordUpdateTime(10);
       monitor.recordRenderTime(5);
-      
+
       monitor.reset();
-      
+
       const metrics = monitor.getMetrics();
       expect(metrics.updateTime).toBe(10);
       expect(metrics.renderTime).toBe(5);
@@ -264,7 +284,7 @@ describe('PerformanceMonitor', () => {
     it('does not reset target FPS', () => {
       monitor.setTargetFps(60);
       monitor.reset();
-      
+
       const metrics = monitor.getMetrics();
       expect(metrics.targetFps).toBe(60);
     });
@@ -281,10 +301,12 @@ describe('PerformanceMonitor', () => {
       monitor.startFrame();
       for (let i = 0; i < 10; i++) {
         const start = performance.now();
-        while (performance.now() - start < 10 + i * 2) {} // Varying times
+        while (performance.now() - start < 10 + i * 2) {
+          /* busy-wait */
+        } // Varying times
         monitor.startFrame();
       }
-      
+
       const median = monitor.getPercentile(50);
       expect(median).toBeGreaterThan(0);
     });
@@ -293,13 +315,15 @@ describe('PerformanceMonitor', () => {
       monitor.startFrame();
       for (let i = 0; i < 20; i++) {
         const start = performance.now();
-        while (performance.now() - start < 10) {}
+        while (performance.now() - start < 10) {
+          /* busy-wait */
+        }
         monitor.startFrame();
       }
-      
+
       const p95 = monitor.getPercentile(95);
       const p50 = monitor.getPercentile(50);
-      
+
       expect(p95).toBeGreaterThan(0);
       expect(p95).toBeGreaterThanOrEqual(p50);
     });
@@ -307,12 +331,14 @@ describe('PerformanceMonitor', () => {
     it('handles percentile at boundaries', () => {
       monitor.startFrame();
       const start = performance.now();
-      while (performance.now() - start < 16) {}
+      while (performance.now() - start < 16) {
+        /* busy-wait */
+      }
       monitor.startFrame();
-      
+
       const p0 = monitor.getPercentile(0);
       const p99 = monitor.getPercentile(99); // Use 99 instead of 100 to avoid off-by-one
-      
+
       expect(p0).toBeGreaterThan(0);
       expect(p99).toBeGreaterThan(0);
       expect(p99).toBeGreaterThanOrEqual(p0);
@@ -324,29 +350,37 @@ describe('PerformanceMonitor', () => {
       // Simulate a real animation loop
       for (let frame = 0; frame < 30; frame++) {
         monitor.startFrame();
-        
+
         // Simulate pattern rendering
         const patternStart = performance.now();
-        while (performance.now() - patternStart < 2) {}
+        while (performance.now() - patternStart < 2) {
+          /* busy-wait */
+        }
         monitor.recordPatternRenderTime(performance.now() - patternStart);
-        
+
         // Simulate buffer update
         const updateStart = performance.now();
-        while (performance.now() - updateStart < 1) {}
+        while (performance.now() - updateStart < 1) {
+          /* busy-wait */
+        }
         monitor.recordUpdateTime(performance.now() - updateStart);
-        
+
         // Simulate render
         const renderStart = performance.now();
-        while (performance.now() - renderStart < 1) {}
+        while (performance.now() - renderStart < 1) {
+          /* busy-wait */
+        }
         monitor.recordRenderTime(performance.now() - renderStart);
-        
+
         monitor.recordChangedCells(50 + Math.floor(Math.random() * 100));
-        
+
         // Small delay to next frame
         const frameDelay = performance.now();
-        while (performance.now() - frameDelay < 10) {}
+        while (performance.now() - frameDelay < 10) {
+          /* busy-wait */
+        }
       }
-      
+
       const stats = monitor.getStats();
       expect(stats.totalFrames).toBe(30);
       expect(stats.avgFps).toBeGreaterThan(0);
@@ -357,19 +391,23 @@ describe('PerformanceMonitor', () => {
       for (let i = 0; i < 10; i++) {
         monitor.startFrame();
         const start = performance.now();
-        while (performance.now() - start < 16) {} // 60fps
+        while (performance.now() - start < 16) {
+          /* busy-wait */
+        } // 60fps
       }
-      
+
       const goodStats = monitor.getStats();
       const goodAvgFps = goodStats.avgFps;
-      
+
       // Bad frames
       for (let i = 0; i < 10; i++) {
         const start = performance.now();
-        while (performance.now() - start < 60) {} // 16fps
+        while (performance.now() - start < 60) {
+          /* busy-wait */
+        } // 16fps
         monitor.startFrame();
       }
-      
+
       const badStats = monitor.getStats();
       expect(badStats.avgFps).toBeLessThan(goodAvgFps);
       expect(badStats.totalDroppedFrames).toBeGreaterThan(0);
@@ -380,11 +418,13 @@ describe('PerformanceMonitor', () => {
     it('handles very high FPS target', () => {
       const highFpsMonitor = new PerformanceMonitor(120);
       highFpsMonitor.startFrame();
-      
+
       const start = performance.now();
-      while (performance.now() - start < 8) {} // ~120fps
+      while (performance.now() - start < 8) {
+        /* busy-wait */
+      } // ~120fps
       highFpsMonitor.startFrame();
-      
+
       const metrics = highFpsMonitor.getMetrics();
       expect(metrics.targetFps).toBe(120);
       expect(metrics.fps).toBeGreaterThan(0);
@@ -393,11 +433,13 @@ describe('PerformanceMonitor', () => {
     it('handles very low FPS target', () => {
       const lowFpsMonitor = new PerformanceMonitor(10);
       lowFpsMonitor.startFrame();
-      
+
       const start = performance.now();
-      while (performance.now() - start < 100) {} // ~10fps
+      while (performance.now() - start < 100) {
+        /* busy-wait */
+      } // ~10fps
       lowFpsMonitor.startFrame();
-      
+
       const metrics = lowFpsMonitor.getMetrics();
       expect(metrics.targetFps).toBe(10);
     });
@@ -407,7 +449,7 @@ describe('PerformanceMonitor', () => {
       monitor.recordRenderTime(0);
       monitor.recordPatternRenderTime(0);
       monitor.recordChangedCells(0);
-      
+
       const metrics = monitor.getMetrics();
       expect(metrics.updateTime).toBe(0);
       expect(metrics.renderTime).toBe(0);
@@ -419,7 +461,7 @@ describe('PerformanceMonitor', () => {
       // Edge case: shouldn't happen, but monitor doesn't validate
       monitor.recordUpdateTime(-5);
       monitor.recordRenderTime(-3);
-      
+
       const metrics = monitor.getMetrics();
       expect(metrics.updateTime).toBe(-5);
       expect(metrics.renderTime).toBe(-3);
@@ -438,10 +480,12 @@ describe('PerformanceMonitor', () => {
       monitor.startFrame();
       for (let i = 0; i < 30; i++) {
         const start = performance.now();
-        while (performance.now() - start < 33) {} // ~30fps
+        while (performance.now() - start < 33) {
+          /* busy-wait */
+        } // ~30fps
         monitor.startFrame();
       }
-      
+
       const metrics = monitor.getMetrics();
       // Should be close to 30fps (with some variance)
       expect(metrics.fps).toBeGreaterThan(20);
@@ -453,21 +497,25 @@ describe('PerformanceMonitor', () => {
       monitor.startFrame();
       for (let i = 0; i < 10; i++) {
         const start = performance.now();
-        while (performance.now() - start < 16) {} // 60fps
+        while (performance.now() - start < 16) {
+          /* busy-wait */
+        } // 60fps
         monitor.startFrame();
       }
-      
+
       const fastMetrics = monitor.getMetrics();
-      
+
       // Slow down
       for (let i = 0; i < 50; i++) {
         const start = performance.now();
-        while (performance.now() - start < 33) {} // 30fps
+        while (performance.now() - start < 33) {
+          /* busy-wait */
+        } // 30fps
         monitor.startFrame();
       }
-      
+
       const slowMetrics = monitor.getMetrics();
-      
+
       // Average should shift toward slower rate
       expect(slowMetrics.fps).toBeLessThan(fastMetrics.fps);
     });

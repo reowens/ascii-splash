@@ -3,13 +3,13 @@ import { vec2Add, vec2Multiply, inBounds, lerp } from '../utils/math.js';
 
 /**
  * ParticleSystem - Enhanced particle system with emitters and force fields
- * 
+ *
  * Provides:
  * - Particle emitters (continuous or burst mode)
  * - Force fields (gravity, wind, vortex)
  * - Particle pooling for performance
  * - Batch rendering with color interpolation
- * 
+ *
  * Used by v0.3.0 scene-based patterns for effects like:
  * - Campfire sparks & smoke
  * - Ocean foam & bubbles
@@ -21,7 +21,7 @@ export class ParticleSystem {
   private particles: Particle[] = [];
   private maxParticles: number;
 
-  constructor(maxParticles: number = 1000) {
+  constructor(maxParticles = 1000) {
     this.maxParticles = maxParticles;
   }
 
@@ -100,10 +100,10 @@ export class ParticleSystem {
   update(deltaTime: number): void {
     // Track particles count before emission so we don't update newly created ones
     const particlesBeforeEmission = this.particles.length;
-    
+
     // Emit new particles from active emitters
     const emittersToRemove: ParticleEmitter[] = [];
-    
+
     for (const emitter of this.emitters) {
       if (emitter.burstMode) {
         // Burst mode: emit all particles at once
@@ -125,7 +125,7 @@ export class ParticleSystem {
         }
       }
     }
-    
+
     // Remove burst emitters after iteration
     for (const emitter of emittersToRemove) {
       this.removeEmitter(emitter);
@@ -176,7 +176,7 @@ export class ParticleSystem {
 
       buffer[y][x] = {
         char: particle.char,
-        color: fadedColor
+        color: fadedColor,
       };
     }
   }
@@ -190,7 +190,7 @@ export class ParticleSystem {
     // Random velocity within range
     const velocity = {
       x: this.randomRange(emitter.initialVelocity.min.x, emitter.initialVelocity.max.x),
-      y: this.randomRange(emitter.initialVelocity.min.y, emitter.initialVelocity.max.y)
+      y: this.randomRange(emitter.initialVelocity.min.y, emitter.initialVelocity.max.y),
     };
 
     // Random character from set
@@ -201,7 +201,7 @@ export class ParticleSystem {
     const color = {
       r: Math.floor(lerp(emitter.colorRange.start.r, emitter.colorRange.end.r, t)),
       g: Math.floor(lerp(emitter.colorRange.start.g, emitter.colorRange.end.g, t)),
-      b: Math.floor(lerp(emitter.colorRange.start.b, emitter.colorRange.end.b, t))
+      b: Math.floor(lerp(emitter.colorRange.start.b, emitter.colorRange.end.b, t)),
     };
 
     return {
@@ -212,7 +212,7 @@ export class ParticleSystem {
       maxLife: emitter.particleLife,
       color,
       char,
-      active: true
+      active: true,
     };
   }
 
@@ -237,7 +237,7 @@ export class ParticleSystem {
     return {
       r: Math.floor(color.r * fadeFactor),
       g: Math.floor(color.g * fadeFactor),
-      b: Math.floor(color.b * fadeFactor)
+      b: Math.floor(color.b * fadeFactor),
     };
   }
 
@@ -251,7 +251,7 @@ export class ParticleSystem {
       totalParticles: this.particles.length,
       maxParticles: this.maxParticles,
       emitterCount: this.emitters.length,
-      utilizationPercent: (this.getParticleCount() / this.maxParticles) * 100
+      utilizationPercent: (this.getParticleCount() / this.maxParticles) * 100,
     };
   }
 
@@ -263,27 +263,22 @@ export class ParticleSystem {
    * @param life - Particle lifetime in seconds
    * @returns New ParticleEmitter
    */
-  static createEmitter(
-    x: number,
-    y: number,
-    rate: number,
-    life: number
-  ): ParticleEmitter {
+  static createEmitter(x: number, y: number, rate: number, life: number): ParticleEmitter {
     return {
       position: { x, y },
       emissionRate: rate,
       particleLife: life,
       initialVelocity: {
         min: { x: -10, y: -10 },
-        max: { x: 10, y: 10 }
+        max: { x: 10, y: 10 },
       },
       acceleration: { x: 0, y: 0 },
       colorRange: {
         start: { r: 255, g: 255, b: 255 },
-        end: { r: 255, g: 255, b: 255 }
+        end: { r: 255, g: 255, b: 255 },
       },
       characters: ['*', '·', '°'],
-      burstMode: false
+      burstMode: false,
     };
   }
 
@@ -295,28 +290,23 @@ export class ParticleSystem {
    * @param life - Particle lifetime in seconds
    * @returns New ParticleEmitter in burst mode
    */
-  static createBurstEmitter(
-    x: number,
-    y: number,
-    count: number,
-    life: number
-  ): ParticleEmitter {
+  static createBurstEmitter(x: number, y: number, count: number, life: number): ParticleEmitter {
     return {
       position: { x, y },
       emissionRate: 0, // Unused in burst mode
       particleLife: life,
       initialVelocity: {
         min: { x: -20, y: -20 },
-        max: { x: 20, y: 20 }
+        max: { x: 20, y: 20 },
       },
       acceleration: { x: 0, y: 10 }, // Default gravity
       colorRange: {
         start: { r: 255, g: 255, b: 255 },
-        end: { r: 255, g: 255, b: 255 }
+        end: { r: 255, g: 255, b: 255 },
       },
       characters: ['*', '·', '°'],
       burstMode: true,
-      burstCount: count
+      burstCount: count,
     };
   }
 }

@@ -36,7 +36,7 @@ export class MazePattern implements Pattern {
   private currentCell?: Point;
   private stack: Point[] = [];
   private frontierCells: Point[] = [];
-  private sets: Map<string, number> = new Map();
+  private sets = new Map<string, number>();
   private setCounter = 0;
   private wilsonPath: Point[] = [];
   private solutionPath: Point[] = []; // Path from start to end
@@ -49,80 +49,80 @@ export class MazePattern implements Pattern {
       id: 1,
       name: 'DFS Classic',
       description: 'Depth-First Search - Long winding passages',
-      config: { 
-        algorithm: 'dfs', 
-        cellSize: 3, 
+      config: {
+        algorithm: 'dfs',
+        cellSize: 3,
         generationSpeed: 10,
         wallChar: '█',
         pathChar: ' ',
-        animateGeneration: true
-      }
+        animateGeneration: true,
+      },
     },
     {
       id: 2,
       name: "Prim's Algorithm",
       description: 'Random maze with shorter paths',
-      config: { 
-        algorithm: 'prim', 
-        cellSize: 3, 
+      config: {
+        algorithm: 'prim',
+        cellSize: 3,
         generationSpeed: 15,
         wallChar: '▓',
         pathChar: '·',
-        animateGeneration: true
-      }
+        animateGeneration: true,
+      },
     },
     {
       id: 3,
       name: 'Recursive Division',
       description: 'Room-based maze with walls dividing space',
-      config: { 
-        algorithm: 'recursive-division', 
-        cellSize: 2, 
+      config: {
+        algorithm: 'recursive-division',
+        cellSize: 2,
         generationSpeed: 5,
         wallChar: '║',
         pathChar: ' ',
-        animateGeneration: true
-      }
+        animateGeneration: true,
+      },
     },
     {
       id: 4,
       name: "Kruskal's Algorithm",
       description: 'Uniform complexity, tree-based generation',
-      config: { 
-        algorithm: 'kruskal', 
-        cellSize: 3, 
+      config: {
+        algorithm: 'kruskal',
+        cellSize: 3,
         generationSpeed: 12,
         wallChar: '▒',
         pathChar: ' ',
-        animateGeneration: true
-      }
+        animateGeneration: true,
+      },
     },
     {
       id: 5,
       name: "Eller's Algorithm",
       description: 'Row-by-row generation, memory efficient',
-      config: { 
-        algorithm: 'eller', 
-        cellSize: 3, 
+      config: {
+        algorithm: 'eller',
+        cellSize: 3,
         generationSpeed: 8,
         wallChar: '░',
         pathChar: ' ',
-        animateGeneration: true
-      }
+        animateGeneration: true,
+      },
     },
     {
       id: 6,
       name: "Wilson's Algorithm",
       description: 'Loop-erased random walk, uniform spanning tree',
-      config: { 
-        algorithm: 'wilson', 
-        cellSize: 3, 
+      config: {
+        algorithm: 'wilson',
+        cellSize: 3,
         generationSpeed: 20,
         wallChar: '█',
         pathChar: '·',
-        animateGeneration: true
-      }
-    }
+        animateGeneration: true,
+      },
+    },
   ];
 
   constructor(theme: Theme, config?: Partial<MazeConfig>) {
@@ -134,7 +134,7 @@ export class MazePattern implements Pattern {
       wallChar: '█',
       pathChar: ' ',
       animateGeneration: true,
-      ...config
+      ...config,
     };
   }
 
@@ -143,7 +143,7 @@ export class MazePattern implements Pattern {
     if (!preset) {
       return false;
     }
-    
+
     this.config = { ...preset.config };
     this.reset();
     return true;
@@ -186,7 +186,7 @@ export class MazePattern implements Pattern {
           walls: { top: true, right: true, bottom: true, left: true },
           visited: false,
           inMaze: false,
-          visitOrder: -1
+          visitOrder: -1,
         };
       }
     }
@@ -234,14 +234,14 @@ export class MazePattern implements Pattern {
     if (neighbors.length > 0) {
       // Choose random neighbor
       const next = neighbors[Math.floor(Math.random() * neighbors.length)];
-      
+
       // Remove wall between current and next
       this.removeWall(x, y, next.x, next.y);
-      
+
       // Mark as visited
       this.maze[next.y][next.x].visited = true;
       this.maze[next.y][next.x].visitOrder = this.generationProgress++;
-      
+
       // Push to stack and move
       this.stack.push(next);
       this.currentCell = next;
@@ -259,7 +259,7 @@ export class MazePattern implements Pattern {
     const startX = Math.floor(Math.random() * this.gridWidth);
     const startY = Math.floor(Math.random() * this.gridHeight);
     this.maze[startY][startX].inMaze = true;
-    
+
     // Add neighbors to frontier
     this.addNeighborsToFrontier(startX, startY);
   }
@@ -276,18 +276,18 @@ export class MazePattern implements Pattern {
 
     // Find neighbors in maze
     const inMazeNeighbors = this.getInMazeNeighbors(cell.x, cell.y);
-    
+
     if (inMazeNeighbors.length > 0) {
       // Pick random neighbor to connect to
       const neighbor = inMazeNeighbors[Math.floor(Math.random() * inMazeNeighbors.length)];
-      
+
       // Remove wall
       this.removeWall(cell.x, cell.y, neighbor.x, neighbor.y);
-      
+
       // Add to maze
       this.maze[cell.y][cell.x].inMaze = true;
       this.maze[cell.y][cell.x].visitOrder = this.generationProgress++;
-      
+
       // Add new frontier cells
       this.addNeighborsToFrontier(cell.x, cell.y);
     }
@@ -304,7 +304,7 @@ export class MazePattern implements Pattern {
         this.maze[y][x].inMaze = true;
       }
     }
-    
+
     // Add border walls
     for (let x = 0; x < this.gridWidth; x++) {
       this.maze[0][x].walls.top = true;
@@ -314,7 +314,7 @@ export class MazePattern implements Pattern {
       this.maze[y][0].walls.left = true;
       this.maze[y][this.gridWidth - 1].walls.right = true;
     }
-    
+
     this.generationComplete = true; // Instant generation for simplicity
   }
 
@@ -323,7 +323,7 @@ export class MazePattern implements Pattern {
     // Each cell starts in its own set
     for (let y = 0; y < this.gridHeight; y++) {
       for (let x = 0; x < this.gridWidth; x++) {
-        const key = `${x},${y}`;
+        const key = `${String(x)},${String(y)}`;
         this.sets.set(key, this.setCounter++);
       }
     }
@@ -333,34 +333,34 @@ export class MazePattern implements Pattern {
     // Try to merge random adjacent cells
     const x = Math.floor(Math.random() * this.gridWidth);
     const y = Math.floor(Math.random() * this.gridHeight);
-    
+
     const directions = [
       { dx: 1, dy: 0 },
-      { dx: 0, dy: 1 }
+      { dx: 0, dy: 1 },
     ];
-    
+
     const dir = directions[Math.floor(Math.random() * directions.length)];
     const nx = x + dir.dx;
     const ny = y + dir.dy;
-    
+
     if (nx < this.gridWidth && ny < this.gridHeight) {
-      const set1 = this.sets.get(`${x},${y}`);
-      const set2 = this.sets.get(`${nx},${ny}`);
-      
-      if (set1 !== set2) {
+      const set1 = this.sets.get(`${String(x)},${String(y)}`);
+      const set2 = this.sets.get(`${String(nx)},${String(ny)}`);
+
+      if (set1 !== undefined && set1 !== set2) {
         // Merge sets
         this.removeWall(x, y, nx, ny);
         this.maze[y][x].visitOrder = this.generationProgress++;
-        
+
         // Union operation
         for (const [key, value] of this.sets.entries()) {
           if (value === set2) {
-            this.sets.set(key, set1!);
+            this.sets.set(key, set1);
           }
         }
       }
     }
-    
+
     // Check if all cells are in one set
     const uniqueSets = new Set(this.sets.values());
     return uniqueSets.size > 1;
@@ -370,37 +370,37 @@ export class MazePattern implements Pattern {
   private initializeEller(): void {
     // Start with first row in separate sets
     for (let x = 0; x < this.gridWidth; x++) {
-      this.sets.set(`${x},0`, x);
+      this.sets.set(`${String(x)},0`, x);
     }
   }
 
   private stepEller(): boolean {
     // Simplified Eller's - process row by row
     const y = Math.floor(this.generationProgress / this.gridWidth);
-    
+
     if (y >= this.gridHeight - 1) {
       return false;
     }
-    
+
     const x = this.generationProgress % this.gridWidth;
-    
+
     // Randomly connect horizontal cells in same row
     if (x < this.gridWidth - 1 && Math.random() > 0.5) {
-      const set1 = this.sets.get(`${x},${y}`);
-      const set2 = this.sets.get(`${x + 1},${y}`);
-      
-      if (set1 !== set2) {
+      const set1 = this.sets.get(`${String(x)},${String(y)}`);
+      const set2 = this.sets.get(`${String(x + 1)},${String(y)}`);
+
+      if (set1 !== undefined && set1 !== set2) {
         this.removeWall(x, y, x + 1, y);
-        
+
         // Merge sets
         for (const [key, value] of this.sets.entries()) {
           if (value === set2) {
-            this.sets.set(key, set1!);
+            this.sets.set(key, set1);
           }
         }
       }
     }
-    
+
     this.generationProgress++;
     return true;
   }
@@ -420,22 +420,22 @@ export class MazePattern implements Pattern {
       if (unvisited.length === 0) {
         return false; // All cells visited
       }
-      
+
       const start = unvisited[Math.floor(Math.random() * unvisited.length)];
       this.wilsonPath = [start];
     }
-    
+
     // Continue random walk
     const current = this.wilsonPath[this.wilsonPath.length - 1];
     const neighbors = this.getAllNeighbors(current.x, current.y);
-    
+
     if (neighbors.length === 0) {
       this.wilsonPath = [];
       return true;
     }
-    
+
     const next = neighbors[Math.floor(Math.random() * neighbors.length)];
-    
+
     // Check if we hit the maze
     if (this.maze[next.y][next.x].inMaze) {
       // Carve path
@@ -443,16 +443,16 @@ export class MazePattern implements Pattern {
         const cell = this.wilsonPath[i];
         this.maze[cell.y][cell.x].inMaze = true;
         this.maze[cell.y][cell.x].visitOrder = this.generationProgress++;
-        
+
         if (i < this.wilsonPath.length - 1) {
           const nextCell = this.wilsonPath[i + 1];
           this.removeWall(cell.x, cell.y, nextCell.x, nextCell.y);
         }
       }
-      
+
       // Connect last segment
       this.removeWall(current.x, current.y, next.x, next.y);
-      
+
       this.wilsonPath = [];
     } else {
       // Check for loop erasure
@@ -464,7 +464,7 @@ export class MazePattern implements Pattern {
         this.wilsonPath.push(next);
       }
     }
-    
+
     return true;
   }
 
@@ -473,15 +473,15 @@ export class MazePattern implements Pattern {
     const neighbors: Point[] = [];
     const directions = [
       { dx: 0, dy: -1 }, // top
-      { dx: 1, dy: 0 },  // right
-      { dx: 0, dy: 1 },  // bottom
-      { dx: -1, dy: 0 }  // left
+      { dx: 1, dy: 0 }, // right
+      { dx: 0, dy: 1 }, // bottom
+      { dx: -1, dy: 0 }, // left
     ];
 
     for (const dir of directions) {
       const nx = x + dir.dx;
       const ny = y + dir.dy;
-      
+
       if (nx >= 0 && nx < this.gridWidth && ny >= 0 && ny < this.gridHeight) {
         if (!this.maze[ny][nx].visited) {
           neighbors.push({ x: nx, y: ny });
@@ -496,15 +496,15 @@ export class MazePattern implements Pattern {
     const neighbors: Point[] = [];
     const directions = [
       { dx: 0, dy: -1 }, // top
-      { dx: 1, dy: 0 },  // right
-      { dx: 0, dy: 1 },  // bottom
-      { dx: -1, dy: 0 }  // left
+      { dx: 1, dy: 0 }, // right
+      { dx: 0, dy: 1 }, // bottom
+      { dx: -1, dy: 0 }, // left
     ];
 
     for (const dir of directions) {
       const nx = x + dir.dx;
       const ny = y + dir.dy;
-      
+
       if (nx >= 0 && nx < this.gridWidth && ny >= 0 && ny < this.gridHeight) {
         neighbors.push({ x: nx, y: ny });
       }
@@ -517,15 +517,15 @@ export class MazePattern implements Pattern {
     const neighbors: Point[] = [];
     const directions = [
       { dx: 0, dy: -1 }, // top
-      { dx: 1, dy: 0 },  // right
-      { dx: 0, dy: 1 },  // bottom
-      { dx: -1, dy: 0 }  // left
+      { dx: 1, dy: 0 }, // right
+      { dx: 0, dy: 1 }, // bottom
+      { dx: -1, dy: 0 }, // left
     ];
 
     for (const dir of directions) {
       const nx = x + dir.dx;
       const ny = y + dir.dy;
-      
+
       if (nx >= 0 && nx < this.gridWidth && ny >= 0 && ny < this.gridHeight) {
         if (this.maze[ny][nx].inMaze) {
           neighbors.push({ x: nx, y: ny });
@@ -539,15 +539,15 @@ export class MazePattern implements Pattern {
   private addNeighborsToFrontier(x: number, y: number): void {
     const directions = [
       { dx: 0, dy: -1 }, // top
-      { dx: 1, dy: 0 },  // right
-      { dx: 0, dy: 1 },  // bottom
-      { dx: -1, dy: 0 }  // left
+      { dx: 1, dy: 0 }, // right
+      { dx: 0, dy: 1 }, // bottom
+      { dx: -1, dy: 0 }, // left
     ];
 
     for (const dir of directions) {
       const nx = x + dir.dx;
       const ny = y + dir.dy;
-      
+
       if (nx >= 0 && nx < this.gridWidth && ny >= 0 && ny < this.gridHeight) {
         if (!this.maze[ny][nx].inMaze) {
           const exists = this.frontierCells.some(p => p.x === nx && p.y === ny);
@@ -589,37 +589,38 @@ export class MazePattern implements Pattern {
       this.maze[y2][x2].walls.bottom = false;
     }
   }
-  
+
   private findSolutionPath(): void {
     // BFS to find path from top-left to bottom-right
     const start = { x: 0, y: 0 };
     const end = { x: this.gridWidth - 1, y: this.gridHeight - 1 };
-    
+
     const queue: Point[] = [start];
     const visited = new Set<string>();
     const parent = new Map<string, Point>();
-    visited.add(`${start.x},${start.y}`);
-    
+    visited.add(`${String(start.x)},${String(start.y)}`);
+
     while (queue.length > 0) {
-      const current = queue.shift()!;
-      
+      const current = queue.shift();
+      if (!current) break;
+
       if (current.x === end.x && current.y === end.y) {
         // Reconstruct path
         this.solutionPath = [];
         let cell: Point | undefined = end;
-        
+
         while (cell) {
           this.solutionPath.unshift(cell);
-          const key = `${cell.x},${cell.y}`;
+          const key = `${String(cell.x)},${String(cell.y)}`;
           cell = parent.get(key);
         }
         return;
       }
-      
+
       // Check all valid neighbors (no wall between)
       const cell = this.maze[current.y][current.x];
       const neighbors: Point[] = [];
-      
+
       if (!cell.walls.top && current.y > 0) {
         neighbors.push({ x: current.x, y: current.y - 1 });
       }
@@ -632,9 +633,9 @@ export class MazePattern implements Pattern {
       if (!cell.walls.left && current.x > 0) {
         neighbors.push({ x: current.x - 1, y: current.y });
       }
-      
+
       for (const neighbor of neighbors) {
-        const key = `${neighbor.x},${neighbor.y}`;
+        const key = `${String(neighbor.x)},${String(neighbor.y)}`;
         if (!visited.has(key)) {
           visited.add(key);
           parent.set(key, current);
@@ -642,7 +643,7 @@ export class MazePattern implements Pattern {
         }
       }
     }
-    
+
     // No path found
     this.solutionPath = [];
   }
@@ -667,10 +668,10 @@ export class MazePattern implements Pattern {
     if (this.config.animateGeneration && !this.generationComplete) {
       const elapsed = time - this.lastGenerationTime;
       const steps = Math.floor(elapsed / (1000 / this.config.generationSpeed));
-      
+
       for (let i = 0; i < steps && !this.generationComplete; i++) {
         let continueGeneration = false;
-        
+
         switch (this.config.algorithm) {
           case 'dfs':
             continueGeneration = this.stepDFS();
@@ -688,13 +689,13 @@ export class MazePattern implements Pattern {
             continueGeneration = this.stepWilson();
             break;
         }
-        
+
         if (!continueGeneration) {
           this.generationComplete = true;
           this.findSolutionPath(); // Find solution when generation completes
         }
       }
-      
+
       this.lastGenerationTime = time;
     }
 
@@ -731,20 +732,20 @@ export class MazePattern implements Pattern {
 
             buffer[screenY][screenX] = {
               char: isWall ? this.config.wallChar : this.config.pathChar,
-              color: isWall ? color : undefined
+              color: isWall ? color : undefined,
             };
           }
         }
 
         // Highlight current cell being processed
-        if (this.currentCell && this.currentCell.x === x && this.currentCell.y === y) {
+        if (this.currentCell?.x === x && this.currentCell.y === y) {
           const centerX = baseX + Math.floor(this.config.cellSize / 2);
           const centerY = baseY + Math.floor(this.config.cellSize / 2);
-          
+
           if (centerX < size.width && centerY < size.height) {
             buffer[centerY][centerX] = {
               char: '●',
-              color: this.theme.getColor(1.0)
+              color: this.theme.getColor(1.0),
             };
           }
         }
@@ -754,27 +755,27 @@ export class MazePattern implements Pattern {
           if (pathCell.x === x && pathCell.y === y) {
             const centerX = baseX + Math.floor(this.config.cellSize / 2);
             const centerY = baseY + Math.floor(this.config.cellSize / 2);
-            
+
             if (centerX < size.width && centerY < size.height) {
               buffer[centerY][centerX] = {
                 char: '○',
-                color: this.theme.getColor(0.8)
+                color: this.theme.getColor(0.8),
               };
             }
           }
         }
-        
+
         // Highlight solution path (only when generation complete)
         if (this.generationComplete) {
           for (const pathCell of this.solutionPath) {
             if (pathCell.x === x && pathCell.y === y) {
               const centerX = baseX + Math.floor(this.config.cellSize / 2);
               const centerY = baseY + Math.floor(this.config.cellSize / 2);
-              
+
               if (centerX < size.width && centerY < size.height) {
                 buffer[centerY][centerX] = {
                   char: '·',
-                  color: this.theme.getColor(0.9) // Bright highlight for solution
+                  color: this.theme.getColor(0.9), // Bright highlight for solution
                 };
               }
             }
@@ -795,8 +796,11 @@ export class MazePattern implements Pattern {
 
     if (cellX >= 0 && cellX < this.gridWidth && cellY >= 0 && cellY < this.gridHeight) {
       this.reset();
-      this.initializeMaze(this.gridWidth * this.config.cellSize, this.gridHeight * this.config.cellSize);
-      
+      this.initializeMaze(
+        this.gridWidth * this.config.cellSize,
+        this.gridHeight * this.config.cellSize
+      );
+
       // Start generation from clicked cell
       if (this.config.algorithm === 'dfs') {
         this.currentCell = { x: cellX, y: cellY };
@@ -819,7 +823,7 @@ export class MazePattern implements Pattern {
       generationProgress: this.generationProgress,
       generationComplete: this.generationComplete ? 1 : 0,
       stackSize: this.stack.length,
-      frontierSize: this.frontierCells.length
+      frontierSize: this.frontierCells.length,
     };
   }
 }

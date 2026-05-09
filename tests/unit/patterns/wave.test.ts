@@ -1,5 +1,10 @@
 import { WavePattern } from '../../../src/patterns/WavePattern.js';
-import { createMockTheme, createMockBuffer, createMockSize, createMockPoint } from '../../utils/mocks.js';
+import {
+  createMockTheme,
+  createMockBuffer,
+  createMockSize,
+  createMockPoint,
+} from '../../utils/mocks.js';
 import { Cell } from '../../../src/types/index.js';
 
 describe('WavePattern', () => {
@@ -78,7 +83,7 @@ describe('WavePattern', () => {
       const highThresholdPattern = new WavePattern(theme, {
         foamEnabled: true,
         foamThreshold: 0.95,
-        foamDensity: 1.0 // Guarantee density
+        foamDensity: 1.0, // Guarantee density
       });
 
       highThresholdPattern.render(buffer, 0, size);
@@ -98,7 +103,7 @@ describe('WavePattern', () => {
       const lowThresholdPattern = new WavePattern(theme, {
         foamEnabled: true,
         foamThreshold: 0.1,
-        foamDensity: 1.0 // Guarantee density
+        foamDensity: 1.0, // Guarantee density
       });
 
       const buffer2 = createMockBuffer(size.width, size.height);
@@ -122,7 +127,7 @@ describe('WavePattern', () => {
       const highDensityPattern = new WavePattern(theme, {
         foamEnabled: true,
         foamThreshold: 0.5,
-        foamDensity: 0.9
+        foamDensity: 0.9,
       });
 
       highDensityPattern.render(buffer, 0, size);
@@ -142,7 +147,7 @@ describe('WavePattern', () => {
       const lowDensityPattern = new WavePattern(theme, {
         foamEnabled: true,
         foamThreshold: 0.5,
-        foamDensity: 0.1
+        foamDensity: 0.1,
       });
 
       const buffer2 = createMockBuffer(size.width, size.height);
@@ -170,7 +175,6 @@ describe('WavePattern', () => {
         pattern.render(testBuffer, t * 100, size);
 
         const foamChars = ['◦', '∘', '°', '·'];
-        const waveChars = ['~', '≈', '∼', '-', '.'];
 
         // Collect foam positions
         for (let y = 0; y < size.height; y++) {
@@ -191,7 +195,7 @@ describe('WavePattern', () => {
     it('should use foam characters correctly', () => {
       pattern.applyPreset(5); // Stormy Seas
 
-      let foundFoamChars = new Set<string>();
+      const foundFoamChars = new Set<string>();
 
       // Render many times to catch foam
       for (let t = 0; t < 20; t++) {
@@ -249,7 +253,7 @@ describe('WavePattern', () => {
     it('should disable foam when foamDensity is 0', () => {
       const noFoamPattern = new WavePattern(theme, {
         foamEnabled: true,
-        foamDensity: 0 // No foam
+        foamDensity: 0, // No foam
       });
 
       noFoamPattern.render(buffer, 0, size);
@@ -273,7 +277,7 @@ describe('WavePattern', () => {
         foamEnabled: true,
         foamDensity: 1.0,
         foamThreshold: 0,
-        amplitude: 5
+        amplitude: 5,
       });
 
       maxFoamPattern.render(buffer, 0, size);
@@ -325,7 +329,7 @@ describe('WavePattern', () => {
         foamEnabled: true,
         foamThreshold: 0.01,
         foamDensity: 1.0,
-        amplitude: 2 // Small amplitude to make foam area predictable
+        amplitude: 2, // Small amplitude to make foam area predictable
       });
 
       foamOnlyPattern.render(buffer, 0, size);
@@ -378,12 +382,12 @@ describe('WavePattern', () => {
       // Test edge cases
       const lowThreshold = new WavePattern(theme, {
         foamEnabled: true,
-        foamThreshold: 0
+        foamThreshold: 0,
       });
 
       const highThreshold = new WavePattern(theme, {
         foamEnabled: true,
-        foamThreshold: 1.0
+        foamThreshold: 1.0,
       });
 
       // Should not crash
@@ -397,12 +401,12 @@ describe('WavePattern', () => {
       // Test edge cases
       const zeroDensity = new WavePattern(theme, {
         foamEnabled: true,
-        foamDensity: 0
+        foamDensity: 0,
       });
 
       const maxDensity = new WavePattern(theme, {
         foamEnabled: true,
-        foamDensity: 1.0
+        foamDensity: 1.0,
       });
 
       // Should not crash
@@ -418,7 +422,7 @@ describe('WavePattern', () => {
         foamEnabled: true,
         amplitude: 20,
         foamThreshold: 0.5,
-        foamDensity: 0.8
+        foamDensity: 0.8,
       });
 
       highAmpPattern.render(buffer, 0, size);
@@ -428,7 +432,7 @@ describe('WavePattern', () => {
         foamEnabled: true,
         amplitude: 1,
         foamThreshold: 0.5,
-        foamDensity: 0.8
+        foamDensity: 0.8,
       });
 
       const buffer2 = createMockBuffer(size.width, size.height);
@@ -443,7 +447,7 @@ describe('WavePattern', () => {
       const highFreqPattern = new WavePattern(theme, {
         foamEnabled: true,
         frequency: 0.5,
-        foamThreshold: 0.5
+        foamThreshold: 0.5,
       });
 
       highFreqPattern.render(buffer, 0, size);
@@ -451,7 +455,7 @@ describe('WavePattern', () => {
       const lowFreqPattern = new WavePattern(theme, {
         foamEnabled: true,
         frequency: 0.05,
-        foamThreshold: 0.5
+        foamThreshold: 0.5,
       });
 
       const buffer2 = createMockBuffer(size.width, size.height);
@@ -540,10 +544,10 @@ describe('WavePattern', () => {
 
     it('should maintain foam config when switching between presets', () => {
       pattern.applyPreset(5); // With foam
-      let metrics1 = pattern.getMetrics();
+      const metrics1 = pattern.getMetrics();
 
       pattern.applyPreset(6); // Also with foam
-      let metrics2 = pattern.getMetrics();
+      const metrics2 = pattern.getMetrics();
 
       // Both should have same config structure
       expect(metrics1.waveLayers).toBeDefined();

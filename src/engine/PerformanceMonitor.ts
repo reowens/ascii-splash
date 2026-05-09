@@ -23,10 +23,10 @@ export class PerformanceMonitor {
   private frameHistory: number[] = [];
   private frameTimeHistory: number[] = [];
   private maxHistorySize = 60; // Track last 60 frames (1 second at 60fps)
-  private startTime: number = 0;
-  private lastFrameTime: number = 0;
-  private totalFrames: number = 0;
-  private totalDroppedFrames: number = 0;
+  private startTime = 0;
+  private lastFrameTime = 0;
+  private totalFrames = 0;
+  private totalDroppedFrames = 0;
 
   constructor(targetFps: number) {
     this.metrics = {
@@ -37,31 +37,31 @@ export class PerformanceMonitor {
       updateTime: 0,
       changedCells: 0,
       patternRenderTime: 0,
-      frameDrops: 0
+      frameDrops: 0,
     };
   }
 
   startFrame(): void {
     this.startTime = performance.now();
-    
+
     if (this.lastFrameTime > 0) {
       const delta = this.startTime - this.lastFrameTime;
       this.metrics.frameTime = delta;
-      
+
       // Calculate FPS from actual frame time
       const currentFps = 1000 / delta;
       this.frameHistory.push(currentFps);
       this.frameTimeHistory.push(delta);
-      
+
       // Keep history limited
       if (this.frameHistory.length > this.maxHistorySize) {
         this.frameHistory.shift();
         this.frameTimeHistory.shift();
       }
-      
+
       // Calculate average FPS from history
       this.metrics.fps = this.frameHistory.reduce((a, b) => a + b, 0) / this.frameHistory.length;
-      
+
       // Track frame drops (when frame time exceeds target by 50%)
       const targetFrameTime = 1000 / this.metrics.targetFps;
       if (delta > targetFrameTime * 1.5) {
@@ -69,7 +69,7 @@ export class PerformanceMonitor {
         this.totalDroppedFrames++;
       }
     }
-    
+
     this.lastFrameTime = this.startTime;
     this.totalFrames++;
   }
@@ -99,15 +99,12 @@ export class PerformanceMonitor {
   }
 
   getStats(): PerformanceStats {
-    const minFps = this.frameHistory.length > 0 
-      ? Math.min(...this.frameHistory) 
-      : 0;
-    const maxFps = this.frameHistory.length > 0 
-      ? Math.max(...this.frameHistory) 
-      : 0;
-    const avgFrameTime = this.frameTimeHistory.length > 0
-      ? this.frameTimeHistory.reduce((a, b) => a + b, 0) / this.frameTimeHistory.length
-      : 0;
+    const minFps = this.frameHistory.length > 0 ? Math.min(...this.frameHistory) : 0;
+    const maxFps = this.frameHistory.length > 0 ? Math.max(...this.frameHistory) : 0;
+    const avgFrameTime =
+      this.frameTimeHistory.length > 0
+        ? this.frameTimeHistory.reduce((a, b) => a + b, 0) / this.frameTimeHistory.length
+        : 0;
 
     return {
       avgFps: this.metrics.fps,
@@ -115,7 +112,7 @@ export class PerformanceMonitor {
       maxFps,
       avgFrameTime,
       totalFrames: this.totalFrames,
-      totalDroppedFrames: this.totalDroppedFrames
+      totalDroppedFrames: this.totalDroppedFrames,
     };
   }
 
@@ -129,7 +126,7 @@ export class PerformanceMonitor {
 
   getPercentile(percentile: number): number {
     if (this.frameHistory.length === 0) return 0;
-    
+
     const sorted = [...this.frameHistory].sort((a, b) => a - b);
     const index = Math.floor((percentile / 100) * sorted.length);
     return sorted[index];

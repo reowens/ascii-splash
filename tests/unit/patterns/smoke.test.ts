@@ -1,5 +1,5 @@
 import { SmokePattern } from '../../../src/patterns/SmokePattern.js';
-import { Cell, Theme, Point } from '../../../src/types/index.js';
+import { Cell, Theme } from '../../../src/types/index.js';
 import { createMockTheme, createMockBuffer } from '../../utils/mocks.js';
 
 describe('SmokePattern', () => {
@@ -29,7 +29,7 @@ describe('SmokePattern', () => {
         turbulence: 1.5,
         spread: 8,
         windStrength: 0.3,
-        mouseBlowForce: 5.0
+        mouseBlowForce: 5.0,
       });
       expect(customPattern).toBeDefined();
     });
@@ -44,7 +44,7 @@ describe('SmokePattern', () => {
 
     it('should fill buffer with smoke particles', () => {
       pattern.render(buffer, 1000, size);
-      
+
       // Check that cells are set
       let filledCells = 0;
       for (let y = 0; y < size.height; y++) {
@@ -54,7 +54,7 @@ describe('SmokePattern', () => {
           }
         }
       }
-      
+
       // Should have some smoke particles visible
       expect(filledCells).toBeGreaterThan(0);
     });
@@ -67,9 +67,9 @@ describe('SmokePattern', () => {
           buffer1[y][x] = { ...buffer[y][x] };
         }
       }
-      
+
       pattern.render(buffer, 2000, size);
-      
+
       // Buffer should change over time
       let differences = 0;
       for (let y = 0; y < size.height; y++) {
@@ -79,13 +79,13 @@ describe('SmokePattern', () => {
           }
         }
       }
-      
+
       expect(differences).toBeGreaterThan(0);
     });
 
     it('should use theme colors', () => {
       pattern.render(buffer, 1000, size);
-      
+
       // Find a smoke particle
       let foundColor = false;
       for (let y = 0; y < size.height; y++) {
@@ -100,13 +100,13 @@ describe('SmokePattern', () => {
         }
         if (foundColor) break;
       }
-      
+
       expect(foundColor).toBe(true);
     });
 
     it('should use appropriate characters for different opacities', () => {
       pattern.render(buffer, 1000, size);
-      
+
       const validChars = [' ', '·', '░', '▒', '▓'];
       for (let y = 0; y < size.height; y++) {
         for (let x = 0; x < size.width; x++) {
@@ -118,7 +118,7 @@ describe('SmokePattern', () => {
     it('should handle very small terminal', () => {
       const smallSize = { width: 20, height: 10 };
       const smallBuffer = createMockBuffer(smallSize.width, smallSize.height);
-      
+
       expect(() => {
         pattern.render(smallBuffer, 1000, smallSize);
       }).not.toThrow();
@@ -127,7 +127,7 @@ describe('SmokePattern', () => {
     it('should handle very large terminal', () => {
       const largeSize = { width: 200, height: 60 };
       const largeBuffer = createMockBuffer(largeSize.width, largeSize.height);
-      
+
       expect(() => {
         pattern.render(largeBuffer, 1000, largeSize);
       }).not.toThrow();
@@ -149,7 +149,7 @@ describe('SmokePattern', () => {
       if (!pattern.onMouseMove) {
         throw new Error('onMouseMove not defined');
       }
-      
+
       // Render initial state
       pattern.render(buffer, 1000, size);
       const buffer1 = createMockBuffer(size.width, size.height);
@@ -158,13 +158,13 @@ describe('SmokePattern', () => {
           buffer1[y][x] = { ...buffer[y][x] };
         }
       }
-      
+
       // Move mouse through center
       pattern.onMouseMove({ x: size.width / 2, y: size.height / 2 });
-      
+
       // Render again
       pattern.render(buffer, 1100, size);
-      
+
       // Should cause changes (particles blown away)
       let differences = 0;
       for (let y = 0; y < size.height; y++) {
@@ -174,7 +174,7 @@ describe('SmokePattern', () => {
           }
         }
       }
-      
+
       expect(differences).toBeGreaterThan(0);
     });
 
@@ -182,7 +182,7 @@ describe('SmokePattern', () => {
       if (!pattern.onMouseClick) {
         throw new Error('onMouseClick not defined');
       }
-      
+
       // Render initial state
       pattern.render(buffer, 1000, size);
       const buffer1 = createMockBuffer(size.width, size.height);
@@ -191,13 +191,13 @@ describe('SmokePattern', () => {
           buffer1[y][x] = { ...buffer[y][x] };
         }
       }
-      
+
       // Click in center
       pattern.onMouseClick({ x: size.width / 2, y: size.height / 2 });
-      
+
       // Render again
       pattern.render(buffer, 1100, size);
-      
+
       // Should spawn new particles
       let differences = 0;
       for (let y = 0; y < size.height; y++) {
@@ -207,7 +207,7 @@ describe('SmokePattern', () => {
           }
         }
       }
-      
+
       expect(differences).toBeGreaterThan(0);
     });
 
@@ -215,7 +215,7 @@ describe('SmokePattern', () => {
       if (!pattern.onMouseMove) {
         throw new Error('onMouseMove not defined');
       }
-      
+
       expect(() => {
         pattern.onMouseMove!({ x: 0, y: 0 });
         pattern.onMouseMove!({ x: size.width - 1, y: size.height - 1 });
@@ -226,7 +226,7 @@ describe('SmokePattern', () => {
       if (!pattern.onMouseClick) {
         throw new Error('onMouseClick not defined');
       }
-      
+
       expect(() => {
         for (let i = 0; i < 10; i++) {
           pattern.onMouseClick!({ x: 40 + i, y: 12 });
@@ -241,14 +241,14 @@ describe('SmokePattern', () => {
       if (!pattern.onMouseClick) {
         throw new Error('onMouseClick not defined');
       }
-      
+
       // Render and interact
       pattern.render(buffer, 1000, size);
       pattern.onMouseClick({ x: size.width / 2, y: size.height / 2 });
-      
+
       // Reset
       pattern.reset();
-      
+
       // Should be able to render without issues
       expect(() => {
         pattern.render(buffer, 0, size);
@@ -278,7 +278,7 @@ describe('SmokePattern', () => {
     it('should apply Gentle Wisp preset (1)', () => {
       const result = pattern.applyPreset!(1);
       expect(result).toBe(true);
-      
+
       // Should render without errors
       expect(() => {
         pattern.render(buffer, 1000, size);
@@ -288,7 +288,7 @@ describe('SmokePattern', () => {
     it('should apply Campfire preset (2)', () => {
       const result = pattern.applyPreset!(2);
       expect(result).toBe(true);
-      
+
       expect(() => {
         pattern.render(buffer, 1000, size);
       }).not.toThrow();
@@ -297,7 +297,7 @@ describe('SmokePattern', () => {
     it('should apply Industrial preset (3)', () => {
       const result = pattern.applyPreset!(3);
       expect(result).toBe(true);
-      
+
       expect(() => {
         pattern.render(buffer, 1000, size);
       }).not.toThrow();
@@ -306,7 +306,7 @@ describe('SmokePattern', () => {
     it('should apply Incense preset (4)', () => {
       const result = pattern.applyPreset!(4);
       expect(result).toBe(true);
-      
+
       expect(() => {
         pattern.render(buffer, 1000, size);
       }).not.toThrow();
@@ -315,7 +315,7 @@ describe('SmokePattern', () => {
     it('should apply Fog preset (5)', () => {
       const result = pattern.applyPreset!(5);
       expect(result).toBe(true);
-      
+
       expect(() => {
         pattern.render(buffer, 1000, size);
       }).not.toThrow();
@@ -324,7 +324,7 @@ describe('SmokePattern', () => {
     it('should apply Steam preset (6)', () => {
       const result = pattern.applyPreset!(6);
       expect(result).toBe(true);
-      
+
       expect(() => {
         pattern.render(buffer, 1000, size);
       }).not.toThrow();
@@ -349,7 +349,7 @@ describe('SmokePattern', () => {
     it('should return metrics after render', () => {
       pattern.render(buffer, 1000, size);
       const metrics = pattern.getMetrics!();
-      
+
       expect(metrics).toBeDefined();
       expect(typeof metrics.particles).toBe('number');
       expect(typeof metrics.plumes).toBe('number');
@@ -359,21 +359,21 @@ describe('SmokePattern', () => {
     it('should track particle count', () => {
       pattern.render(buffer, 1000, size);
       const metrics = pattern.getMetrics!();
-      
+
       expect(metrics.particles).toBeGreaterThanOrEqual(0);
     });
 
     it('should track plume count', () => {
       pattern.render(buffer, 1000, size);
       const metrics = pattern.getMetrics!();
-      
+
       expect(metrics.plumes).toBeGreaterThanOrEqual(0);
     });
 
     it('should track average opacity', () => {
       pattern.render(buffer, 1000, size);
       const metrics = pattern.getMetrics!();
-      
+
       expect(metrics.avgOpacity).toBeGreaterThanOrEqual(0);
       expect(metrics.avgOpacity).toBeLessThanOrEqual(1);
     });
@@ -385,7 +385,7 @@ describe('SmokePattern', () => {
       pattern.render(buffer, 0, size);
       pattern.render(buffer, 100, size);
       pattern.render(buffer, 200, size);
-      
+
       // Get snapshot of positions after initial frames
       const initialPositionSet = new Set<string>();
       for (let y = 0; y < size.height; y++) {
@@ -395,15 +395,15 @@ describe('SmokePattern', () => {
           }
         }
       }
-      
+
       // Ensure we have some particles to track
       expect(initialPositionSet.size).toBeGreaterThan(0);
-      
+
       // Advance time significantly and render multiple frames
       pattern.render(buffer, 5000, size);
       pattern.render(buffer, 5100, size);
       pattern.render(buffer, 5200, size);
-      
+
       // Get final positions
       const finalPositionSet = new Set<string>();
       for (let y = 0; y < size.height; y++) {
@@ -413,30 +413,29 @@ describe('SmokePattern', () => {
           }
         }
       }
-      
+
       // Ensure we still have particles
       expect(finalPositionSet.size).toBeGreaterThan(0);
-      
+
       // Check that positions changed - compare sets
       // At least some positions should be different (particles moved/spawned/dissipated)
-      const setsAreIdentical = 
+      const setsAreIdentical =
         initialPositionSet.size === finalPositionSet.size &&
         Array.from(initialPositionSet).every(pos => finalPositionSet.has(pos));
-      
+
       expect(setsAreIdentical).toBe(false);
     });
 
     it('should dissipate particles over time', () => {
       pattern.render(buffer, 0, size);
-      const metrics1 = pattern.getMetrics!();
-      
+
       // Run for a long time
       for (let t = 0; t < 10000; t += 100) {
         pattern.render(buffer, t, size);
       }
-      
+
       const metrics2 = pattern.getMetrics!();
-      
+
       // Particles should have some churn (spawning and dissipating)
       // We can't test exact count due to spawning, but opacity should reflect dissipation
       expect(metrics2.avgOpacity).toBeGreaterThanOrEqual(0);
@@ -454,10 +453,10 @@ describe('SmokePattern', () => {
 
     it('should handle size changes', () => {
       pattern.render(buffer, 1000, size);
-      
+
       const newSize = { width: 100, height: 30 };
       const newBuffer = createMockBuffer(newSize.width, newSize.height);
-      
+
       expect(() => {
         pattern.render(newBuffer, 1100, newSize);
       }).not.toThrow();
@@ -472,9 +471,9 @@ describe('SmokePattern', () => {
         turbulence: 0.1,
         spread: 1,
         windStrength: 0.0,
-        mouseBlowForce: 0.5
+        mouseBlowForce: 0.5,
       });
-      
+
       expect(() => {
         extremePattern.render(buffer, 1000, size);
       }).not.toThrow();

@@ -27,9 +27,9 @@ interface Ring {
 }
 
 interface StreamParticle {
-  x: number;        // Position in normalized space (-1 to 1)
+  x: number; // Position in normalized space (-1 to 1)
   y: number;
-  z: number;        // Depth (0 = far, 1 = near)
+  z: number; // Depth (0 = far, 1 = near)
   speed: number;
   trailLength: number;
 }
@@ -47,116 +47,116 @@ export class TunnelPattern implements Pattern {
   private rings: Ring[] = [];
   private particles: StreamParticle[] = [];
   private speedLines: SpeedLine[] = [];
-  private time: number = 0;
-  private lastTime: number = 0;
+  private time = 0;
+  private lastTime = 0;
   private vanishingOffset: Point = { x: 0, y: 0 };
-  private boostActive: boolean = false;
-  private boostEndTime: number = 0;
-  private turbulenceOffset: number = 0;
+  private boostActive = false;
+  private boostEndTime = 0;
+  private turbulenceOffset = 0;
 
   private static readonly PRESETS: TunnelPreset[] = [
     {
       id: 1,
       name: 'Warp Speed',
       description: 'Fast tunnel with intense streaming particles',
-      config: { 
-        shape: 'circle', 
-        ringCount: 35, 
-        speed: 2.5, 
-        particleCount: 80, 
-        speedLineCount: 25, 
-        turbulence: 0.1, 
-        glowIntensity: 0.8, 
+      config: {
+        shape: 'circle',
+        ringCount: 35,
+        speed: 2.5,
+        particleCount: 80,
+        speedLineCount: 25,
+        turbulence: 0.1,
+        glowIntensity: 0.8,
         chromatic: false,
         rotationSpeed: 0.3,
-        radius: 0.75
-      }
+        radius: 0.75,
+      },
     },
     {
       id: 2,
       name: 'Hyperspace Jump',
       description: 'Square tunnel with chromatic aberration, wild speed',
-      config: { 
-        shape: 'square', 
-        ringCount: 40, 
-        speed: 3.5, 
-        particleCount: 100, 
-        speedLineCount: 30, 
-        turbulence: 0.2, 
-        glowIntensity: 1.0, 
+      config: {
+        shape: 'square',
+        ringCount: 40,
+        speed: 3.5,
+        particleCount: 100,
+        speedLineCount: 30,
+        turbulence: 0.2,
+        glowIntensity: 1.0,
         chromatic: true,
         rotationSpeed: 0.5,
-        radius: 0.7
-      }
+        radius: 0.7,
+      },
     },
     {
       id: 3,
       name: 'Gentle Cruise',
       description: 'Slow, calm, meditative tunnel flight',
-      config: { 
-        shape: 'circle', 
-        ringCount: 25, 
-        speed: 0.8, 
-        particleCount: 30, 
-        speedLineCount: 10, 
-        turbulence: 0.0, 
-        glowIntensity: 0.4, 
+      config: {
+        shape: 'circle',
+        ringCount: 25,
+        speed: 0.8,
+        particleCount: 30,
+        speedLineCount: 10,
+        turbulence: 0.0,
+        glowIntensity: 0.4,
         chromatic: false,
         rotationSpeed: 0.1,
-        radius: 0.6
-      }
+        radius: 0.6,
+      },
     },
     {
       id: 4,
       name: 'Asteroid Tunnel',
       description: 'Hexagon tunnel, turbulent, chaotic navigation',
-      config: { 
-        shape: 'hexagon', 
-        ringCount: 30, 
-        speed: 1.8, 
-        particleCount: 60, 
-        speedLineCount: 20, 
-        turbulence: 0.4, 
-        glowIntensity: 0.6, 
+      config: {
+        shape: 'hexagon',
+        ringCount: 30,
+        speed: 1.8,
+        particleCount: 60,
+        speedLineCount: 20,
+        turbulence: 0.4,
+        glowIntensity: 0.6,
         chromatic: false,
         rotationSpeed: 0.4,
-        radius: 0.65
-      }
+        radius: 0.65,
+      },
     },
     {
       id: 5,
       name: 'Stargate',
       description: 'Star-shaped portal, mystical glowing rings',
-      config: { 
-        shape: 'star', 
-        ringCount: 30, 
-        speed: 1.2, 
-        particleCount: 50, 
-        speedLineCount: 15, 
-        turbulence: 0.05, 
-        glowIntensity: 0.9, 
+      config: {
+        shape: 'star',
+        ringCount: 30,
+        speed: 1.2,
+        particleCount: 50,
+        speedLineCount: 15,
+        turbulence: 0.05,
+        glowIntensity: 0.9,
         chromatic: false,
         rotationSpeed: 0.2,
-        radius: 0.7
-      }
+        radius: 0.7,
+      },
     },
     {
       id: 6,
       name: 'Lightspeed',
       description: 'Maximum speed, blur effect, absolutely insane',
-      config: { 
-        shape: 'circle', 
-        ringCount: 50, 
-        speed: 4.5, 
-        particleCount: 120, 
-        speedLineCount: 40, 
-        turbulence: 0.15, 
-        glowIntensity: 1.2, 
+      config: {
+        shape: 'circle',
+        ringCount: 50,
+        speed: 4.5,
+        particleCount: 120,
+        speedLineCount: 40,
+        turbulence: 0.15,
+        glowIntensity: 1.2,
         chromatic: true,
         rotationSpeed: 0.8,
-        radius: 0.8
-      }
-    }
+        radius: 0.8,
+      },
+    },
   ];
 
   constructor(theme: Theme, config?: Partial<TunnelConfig>) {
@@ -172,7 +172,7 @@ export class TunnelPattern implements Pattern {
       chromatic: false,
       rotationSpeed: 0.3,
       radius: 0.75,
-      ...config
+      ...config,
     };
     this.initializeRings();
     this.initializeParticles();
@@ -184,7 +184,7 @@ export class TunnelPattern implements Pattern {
     for (let i = 0; i < this.config.ringCount; i++) {
       this.rings.push({
         z: i / this.config.ringCount,
-        rotation: Math.random() * Math.PI * 2
+        rotation: Math.random() * Math.PI * 2,
       });
     }
   }
@@ -197,7 +197,7 @@ export class TunnelPattern implements Pattern {
         y: (Math.random() - 0.5) * 2,
         z: Math.random(),
         speed: 0.5 + Math.random() * 0.5,
-        trailLength: 3 + Math.floor(Math.random() * 5)
+        trailLength: 3 + Math.floor(Math.random() * 5),
       });
     }
   }
@@ -208,7 +208,7 @@ export class TunnelPattern implements Pattern {
       this.speedLines.push({
         angle: Math.random() * Math.PI * 2,
         length: 0.3 + Math.random() * 0.4,
-        offset: Math.random()
+        offset: Math.random(),
       });
     }
   }
@@ -227,14 +227,14 @@ export class TunnelPattern implements Pattern {
 
   private getShapePoints(sides: number, radius: number, rotation: number): Point[] {
     const points: Point[] = [];
-    
+
     if (this.config.shape === 'circle') {
       const circlePoints = Math.max(20, Math.floor(radius * 8));
       for (let i = 0; i < circlePoints; i++) {
         const angle = (Math.PI * 2 * i) / circlePoints + rotation;
         points.push({
           x: Math.cos(angle) * radius,
-          y: Math.sin(angle) * radius
+          y: Math.sin(angle) * radius,
         });
       }
     } else if (this.config.shape === 'star') {
@@ -244,7 +244,7 @@ export class TunnelPattern implements Pattern {
         const r = i % 2 === 0 ? radius : radius * 0.4;
         points.push({
           x: Math.cos(angle) * r,
-          y: Math.sin(angle) * r
+          y: Math.sin(angle) * r,
         });
       }
     } else {
@@ -252,11 +252,11 @@ export class TunnelPattern implements Pattern {
         const angle = (Math.PI * 2 * i) / sides + rotation;
         points.push({
           x: Math.cos(angle) * radius,
-          y: Math.sin(angle) * radius
+          y: Math.sin(angle) * radius,
         });
       }
     }
-    
+
     return points;
   }
 
@@ -301,8 +301,26 @@ export class TunnelPattern implements Pattern {
 
     // Render tunnel layers
     this.renderSpeedLines(buffer, size, time, effectiveSpeed, centerX, centerY);
-    this.updateAndRenderRings(buffer, size, effectiveSpeed, deltaTime, centerX, centerY, width, height);
-    this.updateAndRenderParticles(buffer, size, effectiveSpeed, deltaTime, centerX, centerY, width, height);
+    this.updateAndRenderRings(
+      buffer,
+      size,
+      effectiveSpeed,
+      deltaTime,
+      centerX,
+      centerY,
+      width,
+      height
+    );
+    this.updateAndRenderParticles(
+      buffer,
+      size,
+      effectiveSpeed,
+      deltaTime,
+      centerX,
+      centerY,
+      width,
+      height
+    );
     this.renderCenterMarker(buffer, size, time, centerX, centerY, width, height);
   }
 
@@ -322,17 +340,26 @@ export class TunnelPattern implements Pattern {
     for (const line of this.speedLines) {
       const animOffset = (time / 1000) * effectiveSpeed;
       const linePhase = (line.offset + animOffset) % 1;
-      
+
       const startDist = linePhase * 0.5;
       const endDist = startDist + line.length;
-      
+
       const x1 = centerX + Math.cos(line.angle) * startDist * maxDim;
       const y1 = centerY + Math.sin(line.angle) * startDist * maxDim;
       const x2 = centerX + Math.cos(line.angle) * endDist * maxDim;
       const y2 = centerY + Math.sin(line.angle) * endDist * maxDim;
-      
+
       const intensity = speedLineIntensity * (1 - linePhase);
-      this.drawLine(buffer, Math.floor(x1), Math.floor(y1), Math.floor(x2), Math.floor(y2), lineChar, intensity, size);
+      this.drawLine(
+        buffer,
+        Math.floor(x1),
+        Math.floor(y1),
+        Math.floor(x2),
+        Math.floor(y2),
+        lineChar,
+        intensity,
+        size
+      );
     }
   }
 
@@ -347,7 +374,7 @@ export class TunnelPattern implements Pattern {
     height: number
   ): void {
     const deltaSeconds = deltaTime / 1000;
-    
+
     // Update ring positions
     for (const ring of this.rings) {
       ring.z += effectiveSpeed * deltaSeconds * 0.5;
@@ -369,7 +396,7 @@ export class TunnelPattern implements Pattern {
 
       const scale = ring.z;
       let scaledRadius = baseRadius * scale;
-      
+
       // Apply turbulence
       if (this.config.turbulence > 0) {
         const wobble = Math.sin(this.turbulenceOffset + ring.z * 10) * this.config.turbulence * 5;
@@ -378,11 +405,11 @@ export class TunnelPattern implements Pattern {
 
       // Add pulsing effect to wall brightness (subtle rhythmic pulse)
       const pulseFrequency = 0.002; // Speed of pulse
-      const pulseAmplitude = 0.15;  // How much brightness varies (15%)
+      const pulseAmplitude = 0.15; // How much brightness varies (15%)
       const pulseOffset = Math.sin(this.time * pulseFrequency + ring.z * 2) * pulseAmplitude;
       const baseIntensity = Math.max(0.2, ring.z * this.config.glowIntensity);
       const intensity = Math.max(0.1, Math.min(1.0, baseIntensity + pulseOffset));
-      
+
       const points = this.getShapePoints(sides, scaledRadius, ring.rotation);
       const charIndex = Math.min(chars.length - 1, Math.floor(ring.z * chars.length));
       const char = chars[charIndex];
@@ -440,11 +467,11 @@ export class TunnelPattern implements Pattern {
 
         if (x >= 0 && x < width && y >= 0 && y < height) {
           const trailIntensity = particle.z * (1 - t / trailSteps) * 0.5;
-          const trailChar = t === 0 ? '●' : (t < 2 ? '○' : '·');
-          
+          const trailChar = t === 0 ? '●' : t < 2 ? '○' : '·';
+
           buffer[y][x] = {
             char: trailChar,
-            color: this.theme.getColor(trailIntensity)
+            color: this.theme.getColor(trailIntensity),
           };
         }
       }
@@ -462,16 +489,16 @@ export class TunnelPattern implements Pattern {
   ): void {
     if (this.boostActive) {
       const pulseSize = Math.floor(3 + Math.sin(time / 50) * 2);
-      
+
       for (let dx = -pulseSize; dx <= pulseSize; dx++) {
         for (let dy = -pulseSize; dy <= pulseSize; dy++) {
           const distSquared = dx * dx + dy * dy;
           const pulseSizeSquared = pulseSize * pulseSize;
-          
+
           if (distSquared <= pulseSizeSquared) {
             const x = Math.floor(centerX + dx);
             const y = Math.floor(centerY + dy);
-            
+
             if (x >= 0 && x < width && y >= 0 && y < height) {
               // Optimization: Use squared distance for character selection
               const pulseSizeHalfSquared = (pulseSize / 2) * (pulseSize / 2);
@@ -479,7 +506,7 @@ export class TunnelPattern implements Pattern {
               const intensity = (1 - dist / pulseSize) * 0.8;
               buffer[y][x] = {
                 char: distSquared < pulseSizeHalfSquared ? '◉' : '○',
-                color: this.theme.getColor(intensity)
+                color: this.theme.getColor(intensity),
               };
             }
           }
@@ -492,7 +519,7 @@ export class TunnelPattern implements Pattern {
       if (vpX >= 0 && vpX < width && vpY >= 0 && vpY < height) {
         buffer[vpY][vpX] = {
           char: '+',
-          color: this.theme.getColor(0.3)
+          color: this.theme.getColor(0.3),
         };
       }
     }
@@ -503,7 +530,7 @@ export class TunnelPattern implements Pattern {
     const maxOffset = 8;
     this.vanishingOffset = {
       x: Math.max(-maxOffset, Math.min(maxOffset, (pos.x - 40) * 0.08)),
-      y: Math.max(-maxOffset, Math.min(maxOffset, (pos.y - 12) * 0.08))
+      y: Math.max(-maxOffset, Math.min(maxOffset, (pos.y - 12) * 0.08)),
     };
   }
 
@@ -517,7 +544,7 @@ export class TunnelPattern implements Pattern {
     return {
       rings: this.rings.length,
       particles: this.particles.length,
-      boost: this.boostActive ? 1 : 0
+      boost: this.boostActive ? 1 : 0,
     };
   }
 

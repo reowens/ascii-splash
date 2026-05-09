@@ -44,8 +44,8 @@ export class LifePattern implements Pattern {
         aliveChar: '█',
         deadChar: ' ',
         randomDensity: 0.3,
-        initialPattern: 'random'
-      }
+        initialPattern: 'random',
+      },
     },
     {
       id: 2,
@@ -58,8 +58,8 @@ export class LifePattern implements Pattern {
         aliveChar: '●',
         deadChar: '·',
         randomDensity: 0,
-        initialPattern: 'gliders'
-      }
+        initialPattern: 'gliders',
+      },
     },
     {
       id: 3,
@@ -72,8 +72,8 @@ export class LifePattern implements Pattern {
         aliveChar: '▓',
         deadChar: ' ',
         randomDensity: 0,
-        initialPattern: 'oscillators'
-      }
+        initialPattern: 'oscillators',
+      },
     },
     {
       id: 4,
@@ -86,8 +86,8 @@ export class LifePattern implements Pattern {
         aliveChar: '█',
         deadChar: ' ',
         randomDensity: 0.5,
-        initialPattern: 'random'
-      }
+        initialPattern: 'random',
+      },
     },
     {
       id: 5,
@@ -100,8 +100,8 @@ export class LifePattern implements Pattern {
         aliveChar: '■',
         deadChar: ' ',
         randomDensity: 0,
-        initialPattern: 'methuselah'
-      }
+        initialPattern: 'methuselah',
+      },
     },
     {
       id: 6,
@@ -114,9 +114,9 @@ export class LifePattern implements Pattern {
         aliveChar: '◆',
         deadChar: ' ',
         randomDensity: 0.1,
-        initialPattern: 'still-life'
-      }
-    }
+        initialPattern: 'still-life',
+      },
+    },
   ];
 
   constructor(theme: Theme, config?: Partial<LifeConfig>) {
@@ -129,7 +129,7 @@ export class LifePattern implements Pattern {
       deadChar: ' ',
       randomDensity: 0.3,
       initialPattern: 'random',
-      ...config
+      ...config,
     };
   }
 
@@ -165,18 +165,20 @@ export class LifePattern implements Pattern {
     this.gridWidth = Math.floor(width / this.config.cellSize);
     this.gridHeight = Math.floor(height / this.config.cellSize);
 
-    // Initialize grids
-    this.grid = Array(this.gridHeight).fill(null).map(() => 
-      Array(this.gridWidth).fill(false)
+    // Initialize grids — `Array(N).fill(null).map(...)` produces `any[][]` in
+    // strict-type-checked mode because `.fill(null)` widens the type. Use
+    // `from({length})` instead, which keeps element types from the callback.
+    this.grid = Array.from({ length: this.gridHeight }, () =>
+      Array.from<boolean>({ length: this.gridWidth }).fill(false)
     );
-    this.nextGrid = Array(this.gridHeight).fill(null).map(() => 
-      Array(this.gridWidth).fill(false)
+    this.nextGrid = Array.from({ length: this.gridHeight }, () =>
+      Array.from<boolean>({ length: this.gridWidth }).fill(false)
     );
-    this.neighborCounts = Array(this.gridHeight).fill(null).map(() => 
-      Array(this.gridWidth).fill(0)
+    this.neighborCounts = Array.from({ length: this.gridHeight }, () =>
+      Array.from<number>({ length: this.gridWidth }).fill(0)
     );
-    this.cellAge = Array(this.gridHeight).fill(null).map(() => 
-      Array(this.gridWidth).fill(0)
+    this.cellAge = Array.from({ length: this.gridHeight }, () =>
+      Array.from<number>({ length: this.gridWidth }).fill(0)
     );
 
     // Apply initial pattern
@@ -249,20 +251,18 @@ export class LifePattern implements Pattern {
     this.placePattern(x, y, [
       [0, 1, 0],
       [0, 0, 1],
-      [1, 1, 1]
+      [1, 1, 1],
     ]);
   }
 
   private placeBlinker(x: number, y: number): void {
-    this.placePattern(x, y, [
-      [1, 1, 1]
-    ]);
+    this.placePattern(x, y, [[1, 1, 1]]);
   }
 
   private placeToad(x: number, y: number): void {
     this.placePattern(x, y, [
       [0, 1, 1, 1],
-      [1, 1, 1, 0]
+      [1, 1, 1, 0],
     ]);
   }
 
@@ -271,25 +271,25 @@ export class LifePattern implements Pattern {
       [1, 1, 0, 0],
       [1, 1, 0, 0],
       [0, 0, 1, 1],
-      [0, 0, 1, 1]
+      [0, 0, 1, 1],
     ]);
   }
 
   private placePulsar(x: number, y: number): void {
     this.placePattern(x - 6, y - 6, [
-      [0,0,1,1,1,0,0,0,1,1,1,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [1,0,0,0,0,1,0,1,0,0,0,0,1],
-      [1,0,0,0,0,1,0,1,0,0,0,0,1],
-      [1,0,0,0,0,1,0,1,0,0,0,0,1],
-      [0,0,1,1,1,0,0,0,1,1,1,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,1,1,1,0,0,0,1,1,1,0,0],
-      [1,0,0,0,0,1,0,1,0,0,0,0,1],
-      [1,0,0,0,0,1,0,1,0,0,0,0,1],
-      [1,0,0,0,0,1,0,1,0,0,0,0,1],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,1,1,1,0,0,0,1,1,1,0,0]
+      [0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1],
+      [1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1],
+      [1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1],
+      [0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0],
+      [1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1],
+      [1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1],
+      [1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0],
     ]);
   }
 
@@ -297,7 +297,7 @@ export class LifePattern implements Pattern {
     this.placePattern(x, y, [
       [0, 1, 1],
       [1, 1, 0],
-      [0, 1, 0]
+      [0, 1, 0],
     ]);
   }
 
@@ -305,14 +305,14 @@ export class LifePattern implements Pattern {
     this.placePattern(x, y, [
       [0, 1, 0, 0, 0, 0, 0],
       [0, 0, 0, 1, 0, 0, 0],
-      [1, 1, 0, 0, 1, 1, 1]
+      [1, 1, 0, 0, 1, 1, 1],
     ]);
   }
 
   private placeBlock(x: number, y: number): void {
     this.placePattern(x, y, [
       [1, 1],
-      [1, 1]
+      [1, 1],
     ]);
   }
 
@@ -320,7 +320,7 @@ export class LifePattern implements Pattern {
     this.placePattern(x, y, [
       [0, 1, 1, 0],
       [1, 0, 0, 1],
-      [0, 1, 1, 0]
+      [0, 1, 1, 0],
     ]);
   }
 
@@ -329,7 +329,7 @@ export class LifePattern implements Pattern {
       [0, 1, 1, 0],
       [1, 0, 0, 1],
       [0, 1, 0, 1],
-      [0, 0, 1, 0]
+      [0, 0, 1, 0],
     ]);
   }
 
@@ -376,7 +376,7 @@ export class LifePattern implements Pattern {
           // Cell becomes alive if it has exactly 3 neighbors
           this.nextGrid[y][x] = neighbors === 3;
         }
-        
+
         // Update cell age
         if (this.nextGrid[y][x]) {
           // Cell is/becomes alive - increment age
@@ -409,8 +409,12 @@ export class LifePattern implements Pattern {
     // Initialize grid on first render or size change
     const expectedWidth = Math.floor(size.width / this.config.cellSize);
     const expectedHeight = Math.floor(size.height / this.config.cellSize);
-    
-    if (this.grid.length === 0 || this.gridWidth !== expectedWidth || this.gridHeight !== expectedHeight) {
+
+    if (
+      this.grid.length === 0 ||
+      this.gridWidth !== expectedWidth ||
+      this.gridHeight !== expectedHeight
+    ) {
       this.initializeGrid(size.width, size.height);
     }
 
@@ -429,7 +433,7 @@ export class LifePattern implements Pattern {
         if (gx < this.gridWidth && gy < this.gridHeight) {
           const isAlive = this.grid[gy][gx];
           const char = isAlive ? this.config.aliveChar : this.config.deadChar;
-          
+
           // Color based on cell age for visual interest
           let intensity = 0.2;
           if (isAlive) {
@@ -441,7 +445,7 @@ export class LifePattern implements Pattern {
 
           buffer[y][x] = {
             char,
-            color: this.theme.getColor(intensity)
+            color: this.theme.getColor(intensity),
           };
         }
       }
@@ -465,9 +469,10 @@ export class LifePattern implements Pattern {
   }
 
   getMetrics(): Record<string, number> {
-    const density = this.gridWidth * this.gridHeight > 0 
-      ? (this.population / (this.gridWidth * this.gridHeight) * 100)
-      : 0;
+    const density =
+      this.gridWidth * this.gridHeight > 0
+        ? (this.population / (this.gridWidth * this.gridHeight)) * 100
+        : 0;
 
     return {
       generation: this.generation,
@@ -477,7 +482,7 @@ export class LifePattern implements Pattern {
       cellSize: this.config.cellSize,
       updateSpeed: this.config.updateSpeed,
       wrapEdges: this.config.wrapEdges ? 1 : 0,
-      density: Math.round(density * 10) / 10 // Round to 1 decimal
+      density: Math.round(density * 10) / 10, // Round to 1 decimal
     };
   }
 }
