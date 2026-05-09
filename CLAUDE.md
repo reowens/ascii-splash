@@ -14,15 +14,21 @@
 
 **ascii-splash** is a lightweight terminal ASCII animation application that displays interactive animated patterns in a terminal window. Designed for IDE workspaces as an ambient visual effect.
 
-**Key Stats**:
+**Key Stats** (released v0.3.0):
 
 - **23 interactive patterns** with full theme support (including 5 scene-based patterns)
 - **138 total presets** (6 per pattern)
 - **5 color themes** (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **40+ commands** via multi-key command system
-- **2097 tests** with 92%+ coverage
+- **2140 tests** with 92%+ coverage (2097 in v0.3.0; +43 from in-flight v0.4.0 Phase 1)
 - **Performance**: <5% CPU, ~40-50MB RAM
 - **Target**: Node.js 20+
+
+**v0.4.0 in flight** (branch `feature/v0.4.0-phase1-photo-pattern`):
+
+- **Phase 1 done on branch**: `PhotoPattern` (24th, optional via `--photo <path>`), `HalfBlockRenderer`, `Cell.bg` field for two-tone cells, 6 photo presets, `sharp` runtime dep.
+- Phases 2–9 planned: braille mode, Floyd-Steinberg + Bayer dithering, edge detection, scene composition (photo bg + procedural overlay), chafa-style symbol matcher, Kitty/iTerm2/Sixel pass-through, color-mask sprites, seeded PRNG + share codes, asciinema export.
+- Full plan: [docs/planning/v0.4.0-ROADMAP.md](docs/planning/v0.4.0-ROADMAP.md).
 
 **Tech Stack**:
 
@@ -31,6 +37,7 @@
 - `chalk` - Color output
 - `commander` - CLI parsing
 - `conf` v15.0.2 - Config file management (updated in v0.2.0)
+- `sharp` v0.34+ — image decode + resize (added v0.4.0, only loaded on `--photo`)
 
 ---
 
@@ -121,8 +128,8 @@ splash/
 │       ├── SnowfallParkPattern.ts # Scene-based (v0.3.0)
 │       └── MetaballPattern.ts     # Enhanced (v0.3.0)
 │
-├── tests/                        # Jest test suites (2097 tests)
-│   ├── unit/patterns/           # Pattern tests (23 patterns)
+├── tests/                        # Jest test suites (2140 tests)
+│   ├── unit/patterns/           # Pattern tests (23 + optional Photo)
 │   ├── unit/engine/             # SceneGraph, SpriteManager, ParticleSystem
 │   ├── unit/ui/                 # StatusBar, ToastManager, HelpOverlay
 │   └── unit/renderer/           # Buffer, TransitionManager
@@ -238,7 +245,7 @@ interface Pattern {
 
 - **Config file**: `~/.config/ascii-splash/.splashrc.json`
 - **Priority**: CLI args > Config file > Defaults
-- **Patterns**: 23 patterns, each with custom config options
+- **Patterns**: 23 patterns + optional `PhotoPattern` (loaded only when `--photo <path>` is supplied), each with custom config options
 - **Themes**: 5 themes (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **Favorites**: Save/load pattern+preset+theme combinations
 
@@ -300,9 +307,10 @@ interface Theme {
 
 ## Current Status (AI Awareness)
 
-**Status**: v0.3.0 - Next-Generation Terminal Graphics ✅ **STABLE RELEASE**
+**Released**: v0.3.0 - Next-Generation Terminal Graphics ✅ **STABLE RELEASE**
+**In flight**: v0.4.0 Phase 1 on branch `feature/v0.4.0-phase1-photo-pattern`
 
-**Completion**:
+**v0.3.0 (released)**:
 
 - ✅ 23 Interactive patterns (17 classic + 5 scene-based + enhanced Metaball)
 - ✅ 138 presets (6 per pattern)
@@ -312,7 +320,6 @@ interface Theme {
 - ✅ 2097 tests, **92%+ coverage**
 - ✅ **Scene-based Architecture** - SceneGraph, SpriteManager, ParticleSystem
 - ✅ **UI Components** - StatusBar, ToastManager, HelpOverlay, TransitionManager
-- ✅ Complete documentation
 - ✅ Published to npm (v0.3.0: Dec 25, 2025)
 
 **v0.3.0 Highlights**:
@@ -322,12 +329,23 @@ interface Theme {
 - SceneGraph architecture for hierarchical rendering
 - New UI components integrated throughout
 
-**Future Opportunities** (see PROJECT_STATUS.md):
+**v0.4.0 progress** (see [docs/planning/v0.4.0-ROADMAP.md](docs/planning/v0.4.0-ROADMAP.md)):
 
-- Pattern Composer (layer/combine patterns)
-- Audio Reactive Mode
-- Additional patterns (Rainy City, Space Station, Underwater Cave, etc.)
-- Plugin system for community patterns
+- ✅ **Phase 1 — Half-block PhotoPattern** (done on branch, awaiting review)
+  - `splash --photo <path>` renders any image at 2× vertical resolution
+  - 6 presets, aspect-preserving fit, truecolor fg+bg ANSI per cell
+  - New `Cell.bg?: Color` field; backward-compatible
+  - 43 new tests; total 2140
+- 📋 **Phase 2** — braille (8× resolution), Floyd-Steinberg + Bayer dither, edge detection
+- 📋 **Phase 3** — scene composition (photo bg + procedural overlay; the v0.4 headline)
+- 📋 **Phase 4–5** — chafa-style symbol matcher (~200 LOC port); Kitty / iTerm2 / Sixel pass-through
+- 📋 **Phase 6** — color-mask sprites (richer hand-drawn scenes)
+- 📋 **Phase 7–8** — seeded PRNG + share codes; asciinema `.cast` export
+- 📋 **Phase 9 (stretch)** — GIF export
+
+**Post-v0.4 stretch ideas** (in roadmap, deferred to v0.5+):
+
+- Audio-reactive overlays, video-to-ASCII, SDF/raymarching framework, fluid sandbox, plugin system, marketplace, time-of-day automation, theme designer mode.
 
 ---
 
@@ -356,13 +374,13 @@ npm run test:coverage # Coverage report
 
 **Test Organization**:
 
-- `tests/unit/patterns/`: Pattern-specific tests (23 patterns)
+- `tests/unit/patterns/`: Pattern-specific tests (23 patterns + optional Photo)
 - `tests/unit/engine/`: Engine tests (AnimationEngine, PerformanceMonitor, SceneGraph, SpriteManager, ParticleSystem)
 - `tests/unit/config/`: Configuration tests (ConfigLoader, defaults)
 - `tests/unit/renderer/`: Renderer, Buffer & TransitionManager tests
 - `tests/unit/ui/`: UI component tests (StatusBar, ToastManager, HelpOverlay)
 
-**Coverage**: 92%+ (2097 tests)
+**Coverage**: 92%+ (2140 tests)
 
 ---
 

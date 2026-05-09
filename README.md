@@ -710,6 +710,18 @@ Press **c** to enter command mode for advanced features:
 
 For the complete command reference, see the section above.
 
+## 🗺️ What's Next
+
+The next major release is **v0.4.0 — "From Engine to Canvas"**, which makes images and video first-class inputs alongside the existing procedural patterns. The full plan is in [docs/planning/v0.4.0-ROADMAP.md](docs/planning/v0.4.0-ROADMAP.md). Highlights:
+
+- **`splash --photo path/to/img.jpg`** — render any image at 2× vertical resolution using upper/lower half-block characters (Phase 1, done on a feature branch awaiting review).
+- **Braille mode + dithering + edge detection** for line-art and high-contrast portraits (Phase 2).
+- **Scene composition** — layer procedural patterns over photo backgrounds (Phase 3, the headline feature).
+- **Chafa-style symbol matcher** — wow-mode rendering with implicit edge detection via 8×8 bitmap matching (Phase 4).
+- **Native protocol pass-through** for Kitty / iTerm2 / Sixel terminals — the photo goes straight to the GPU when supported, halfblock fallback otherwise (Phase 5).
+- **Color-mask sprites** — multi-color hand-drawn scenes (Phase 6).
+- **Seeded PRNG + share codes + asciinema export** — `splash share` produces a code that reproduces an exact scene; `splash record` writes a `.cast` you can drop into a PR (Phases 7-8).
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
@@ -733,6 +745,7 @@ Built with:
 - [npm Package](https://www.npmjs.com/package/ascii-splash)
 - [Report Issues](https://github.com/reowens/ascii-splash/issues)
 - [Technical Architecture](https://github.com/reowens/ascii-splash/blob/main/docs/ARCHITECTURE.md)
+- [v0.4.0 Roadmap](https://github.com/reowens/ascii-splash/blob/main/docs/planning/v0.4.0-ROADMAP.md)
 
 ---
 
