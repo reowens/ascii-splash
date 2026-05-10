@@ -657,4 +657,53 @@ describe('WavePattern', () => {
       expect(buffer[0][0].char).toBeDefined();
     });
   });
+
+  // v0.4.0 Phase 3: layered scene composition.
+  describe('transparentBg (Phase 3 layered overlay)', () => {
+    it('default: writes to every cell (including the " " fall-through)', () => {
+      const opaque = new WavePattern(theme);
+      const buf = createMockBuffer(40, 12);
+      for (let y = 0; y < 12; y++) {
+        for (let x = 0; x < 40; x++) buf[y][x] = { char: '#' };
+      }
+      opaque.render(buf, 0, createMockSize(40, 12));
+      let preservedSentinel = 0;
+      for (let y = 0; y < 12; y++) {
+        for (let x = 0; x < 40; x++) if (buf[y][x].char === '#') preservedSentinel++;
+      }
+      expect(preservedSentinel).toBe(0);
+    });
+
+    it('transparentBg: true skips writes when char would be " "', () => {
+      const transparent = new WavePattern(theme, { transparentBg: true });
+      const buf = createMockBuffer(40, 12);
+      for (let y = 0; y < 12; y++) {
+        for (let x = 0; x < 40; x++) buf[y][x] = { char: '#' };
+      }
+      transparent.render(buf, 0, createMockSize(40, 12));
+      let preservedSentinel = 0;
+      for (let y = 0; y < 12; y++) {
+        for (let x = 0; x < 40; x++) {
+          if (buf[y][x].char === '#') preservedSentinel++;
+          expect(buf[y][x].char).not.toBe(' ');
+        }
+      }
+      expect(preservedSentinel).toBeGreaterThan(0);
+    });
+
+    it('preserves transparentBg across applyPreset cycling', () => {
+      const transparent = new WavePattern(theme, { transparentBg: true });
+      transparent.applyPreset(2);
+      const buf = createMockBuffer(40, 12);
+      for (let y = 0; y < 12; y++) {
+        for (let x = 0; x < 40; x++) buf[y][x] = { char: '#' };
+      }
+      transparent.render(buf, 0, createMockSize(40, 12));
+      let preservedSentinel = 0;
+      for (let y = 0; y < 12; y++) {
+        for (let x = 0; x < 40; x++) if (buf[y][x].char === '#') preservedSentinel++;
+      }
+      expect(preservedSentinel).toBeGreaterThan(0);
+    });
+  });
 });

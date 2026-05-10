@@ -6,6 +6,7 @@ interface PlasmaConfig {
   complexity: number;
   colorShift: boolean; // Enable color cycling
   shiftSpeed: number; // Speed of color shift (0 to 1)
+  transparentBg?: boolean; // v0.4.0 Phase 3 — skip writes when char === ' '
 }
 
 interface PlasmaPreset {
@@ -71,6 +72,7 @@ export class PlasmaPattern implements Pattern {
       complexity: 3,
       colorShift: false,
       shiftSpeed: 0,
+      transparentBg: false,
       ...config,
     };
   }
@@ -167,9 +169,18 @@ export class PlasmaPattern implements Pattern {
           intensity = (intensity + colorOffset) % 1.0;
         }
 
-        // Choose character based on intensity
-        const charIndex = Math.floor(intensity * (this.plasmaChars.length - 1));
+        // Choose character based on intensity. Each of the 8 chars maps
+        // to a 1/8-wide bin of the [0, 1] intensity range; clamp the
+        // top edge so intensity === 1.0 doesn't overflow into index 8.
+        const charIndex = Math.min(
+          this.plasmaChars.length - 1,
+          Math.floor(intensity * this.plasmaChars.length)
+        );
         const char = this.plasmaChars[charIndex];
+
+        // Phase 3 layered-render support: skip blank cells so a photo
+        // background shows through plasma's dimmest regions.
+        if (this.config.transparentBg && char === ' ') continue;
 
         // Use theme color with intensity
         buffer[y][x] = {
@@ -213,7 +224,9 @@ export class PlasmaPattern implements Pattern {
     const preset = PlasmaPattern.PRESETS.find(p => p.id === presetId);
     if (!preset) return false;
 
-    this.config = { ...preset.config };
+    // Preserve transparentBg across preset cycling — it's a layered-render
+    // flag, not part of an aesthetic preset.
+    this.config = { ...preset.config, transparentBg: this.config.transparentBg };
     this.reset();
     return true;
   }

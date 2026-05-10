@@ -29,6 +29,7 @@ import { AquariumPattern } from './patterns/AquariumPattern.js';
 import { SnowfallParkPattern } from './patterns/SnowfallParkPattern.js';
 import { MetaballPattern } from './patterns/MetaballPattern.js';
 import { PhotoPattern } from './patterns/PhotoPattern.js';
+import { LayeredPattern } from './patterns/LayeredPattern.js';
 import { Pattern, CliOptions, QualityPreset, ConfigSchema, Theme } from './types/index.js';
 import { ConfigLoader } from './config/ConfigLoader.js';
 import { getTheme, getNextThemeName } from './config/themes.js';
@@ -192,6 +193,12 @@ async function main() {
   // Create patterns with configuration
   let patterns: Pattern[] = [];
 
+  // v0.4.0 Phase 1+3: photo + optional layered scene. These references
+  // outlive the patterns array so theme-cycle rebuilds can re-attach them.
+  let photoPattern: PhotoPattern | null = null;
+  const layeredOverlayName: string | null =
+    cliOptions.photo && cliOptions.pattern ? cliOptions.pattern : null;
+
   function createPatternsFromConfig(cfg: ConfigSchema, theme: Theme): Pattern[] {
     return [
       new WavePattern(theme, {
@@ -332,6 +339,59 @@ async function main() {
     ];
   }
 
+  /**
+   * v0.4.0 Phase 3: build the procedural overlay used inside a
+   * {@link LayeredPattern}. Dense patterns (Wave, Plasma) need a fresh
+   * instance with `transparentBg: true` so the photo shows through. Sparse
+   * patterns (Matrix, Starfield, Lightning, …) don't paint background
+   * cells — the standalone instance composes naturally.
+   */
+  function makeLayeredOverlay(
+    name: string,
+    cfg: ConfigSchema,
+    theme: Theme,
+    fallback: Pattern
+  ): Pattern {
+    if (name === 'waves') {
+      return new WavePattern(theme, {
+        layers: cfg.patterns?.waves?.layers,
+        amplitude: cfg.patterns?.waves?.amplitude,
+        speed: cfg.patterns?.waves?.speed,
+        frequency: cfg.patterns?.waves?.frequency,
+        transparentBg: true,
+      });
+    }
+    if (name === 'plasma') {
+      return new PlasmaPattern(theme, {
+        frequency: cfg.patterns?.plasma?.frequency,
+        speed: cfg.patterns?.plasma?.speed,
+        complexity: cfg.patterns?.plasma?.complexity,
+        transparentBg: true,
+      });
+    }
+    return fallback;
+  }
+
+  /**
+   * v0.4.0: wraps {@link createPatternsFromConfig} to re-attach the loaded
+   * PhotoPattern + a {@link LayeredPattern} slot on every theme rebuild.
+   * Without this, cycling themes while on the photo or layered slot would
+   * leave `patterns[currentPatternIndex]` undefined.
+   */
+  function buildPatterns(cfg: ConfigSchema, theme: Theme): Pattern[] {
+    const list = createPatternsFromConfig(cfg, theme);
+    if (!photoPattern) return list;
+    list.push(photoPattern);
+    if (layeredOverlayName) {
+      const overlayIdx = patternNames.indexOf(layeredOverlayName);
+      if (overlayIdx >= 0) {
+        const overlay = makeLayeredOverlay(layeredOverlayName, cfg, theme, list[overlayIdx]);
+        list.push(new LayeredPattern(photoPattern, overlay));
+      }
+    }
+    return list;
+  }
+
   patterns = createPatternsFromConfig(config, currentTheme);
 
   // Pattern names mapping (internal names)
@@ -391,8 +451,10 @@ async function main() {
 
   // v0.4.0 Phase 1: optional PhotoPattern when --photo <path> is supplied.
   // Decoded once up front so the first frame doesn't ship a blank screen.
+  // v0.4.0 Phase 3: when --pattern is also supplied, build a LayeredPattern
+  // slot that composes the photo with the chosen procedural overlay.
   if (cliOptions.photo) {
-    const photoPattern = new PhotoPattern(currentTheme, { source: cliOptions.photo });
+    photoPattern = new PhotoPattern(currentTheme, { source: cliOptions.photo });
     try {
       await photoPattern.load();
       await photoPattern.prepareForSize(renderer.getSize());
@@ -403,8 +465,14 @@ async function main() {
       );
       process.exit(1);
     }
-    patterns.push(photoPattern);
     patternNames.push('photo');
+    if (layeredOverlayName) {
+      patternNames.push('layered');
+      const overlayDisplay = patternDisplayNames[layeredOverlayName] ?? layeredOverlayName;
+      patternDisplayNames.layered = `Photo + ${overlayDisplay}`;
+    }
+    // Rebuild now that photoPattern + layered slot are available.
+    patterns = buildPatterns(config, currentTheme);
   }
 
   // Determine starting pattern from config
@@ -416,11 +484,13 @@ async function main() {
     }
   }
 
-  // --photo overrides startup selection so the user sees their image immediately.
+  // --photo overrides startup selection so the user sees their image
+  // immediately. With --photo + --pattern, start in the layered slot.
   if (cliOptions.photo) {
-    const photoIdx = patternNames.indexOf('photo');
-    if (photoIdx >= 0) {
-      currentPatternIndex = photoIdx;
+    const targetName = layeredOverlayName ? 'layered' : 'photo';
+    const targetIdx = patternNames.indexOf(targetName);
+    if (targetIdx >= 0) {
+      currentPatternIndex = targetIdx;
     }
   }
 
@@ -483,7 +553,7 @@ async function main() {
     const themeNames = ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'];
     currentTheme = getTheme(themeNames[themeIndex]);
     currentThemeIndex = themeIndex;
-    patterns = createPatternsFromConfig(config, currentTheme);
+    patterns = buildPatterns(config, currentTheme);
     engine.setPattern(patterns[currentPatternIndex]);
     commandExecutor.updateState(currentPatternIndex, currentThemeIndex);
     // Update status bar
@@ -538,7 +608,7 @@ async function main() {
 
     // Update config with new quality
     config.quality = quality;
-    patterns = createPatternsFromConfig(config, currentTheme);
+    patterns = buildPatterns(config, currentTheme);
     engine.setFps(qualityFpsPresets[quality]);
     engine.setPattern(patterns[currentPatternIndex]);
 
@@ -557,7 +627,7 @@ async function main() {
     );
 
     // Recreate patterns with new theme
-    patterns = createPatternsFromConfig(config, currentTheme);
+    patterns = buildPatterns(config, currentTheme);
     engine.setPattern(patterns[currentPatternIndex]);
     commandExecutor.updateState(currentPatternIndex, currentThemeIndex);
 

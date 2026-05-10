@@ -107,6 +107,13 @@ export interface WavePatternConfig {
   speed?: number;
   layers?: number;
   rippleDuration?: number;
+  /**
+   * v0.4.0 Phase 3: when true, cells the wave would render with `' '`
+   * (i.e. far enough from the wave height to fall through every intensity
+   * bin) are left untouched, allowing a lower layer (e.g. PhotoPattern in
+   * a {@link LayeredPattern}) to remain visible.
+   */
+  transparentBg?: boolean;
 }
 
 export interface StarfieldPatternConfig {
@@ -159,6 +166,13 @@ export interface PlasmaPatternConfig {
   frequency?: number;
   speed?: number;
   complexity?: number;
+  /**
+   * v0.4.0 Phase 3: when true, cells the plasma would render with `' '`
+   * (the highest-intensity bin in its char ramp) are left untouched,
+   * letting a lower layer (e.g. PhotoPattern in a {@link LayeredPattern})
+   * remain visible through the brightest plasma regions.
+   */
+  transparentBg?: boolean;
 }
 
 export interface TunnelPatternConfig {

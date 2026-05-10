@@ -165,6 +165,13 @@ splash --photo ~/Pictures/cat.png --theme matrix
 # After it loads, press `.` / `,` to cycle through 12 photo presets
 # (halfblock, braille, dither, edge — see "Photo Mode" below).
 
+# Layered scene: photo background + procedural overlay (v0.4.0 Phase 3+)
+splash --photo ~/Pictures/beach.jpg --pattern wave
+splash --photo ~/Pictures/night-sky.jpg --pattern starfield
+splash --photo ~/Pictures/code-screenshot.png --pattern matrix
+# Status bar reads "Photo + <Overlay>". Cycle to the standalone photo
+# or any procedural pattern with `n` / `b`.
+
 # Show version
 splash --version
 splash -V
@@ -208,7 +215,33 @@ splash -h
 
 Cycle presets at runtime with `.` / `,`, or jump directly with `c08` (preset 8). Half-block presets give 2× vertical resolution via `▀` / `▄` with 24-bit fg+bg ANSI per cell; braille presets pack 8 dots per cell using U+2800–U+28FF for 8× resolution at the cost of being monochrome per cell.
 
-> **Status:** v0.4.0 Phases 1 + 2 are done on the feature branch but not yet released to npm. Phase 3 (scene composition — photo backgrounds with procedural overlays) is the next milestone.
+### 🎬 Layered scenes (v0.4.0 Phase 3+, on `feature/v0.4.0-phase1-photo-pattern`)
+
+`splash --photo bg.jpg --pattern X` adds a `'layered'` slot that composes the photo background with the chosen procedural overlay. The status bar reads `Photo + <Overlay>`. Cycling with `n` / `b` still reaches every procedural pattern + the standalone photo — the layered slot is one entry alongside them.
+
+**Sparse overlays** compose naturally — they paint a few cells, leaving the rest as photo:
+
+| Overlay   | What you see                             |
+| --------- | ---------------------------------------- |
+| starfield | Stars drift across the photo             |
+| lightning | Lightning strikes flash across the photo |
+| rain      | Raindrops fall through the photo         |
+| snow      | Snowflakes drift down                    |
+| matrix    | Green code rain over the photo           |
+| fireworks | Bursts on top of the photo               |
+| dna       | DNA helix on top                         |
+| particles | Particles + trails over the photo        |
+| smoke     | Rising smoke plumes                      |
+
+**Dense overlays** (Plasma, Wave) opt-in via the `transparentBg` flag (passed automatically when used in layered mode). Plasma's dimmest cells and Wave's far-from-crest cells are skipped, letting the photo show through.
+
+**Demo combinations to try:**
+
+- `splash --photo ~/Pictures/beach.jpg --pattern wave` — beach with overlaid waves cresting across the photo
+- `splash --photo ~/Pictures/night-sky.jpg --pattern starfield` — additional moving starfield over a star photo
+- `splash --photo ~/Pictures/code-screenshot.png --pattern matrix` — green matrix rain falling through the source code
+
+> **Status:** v0.4.0 Phases 1 + 2 + 3 are done on the feature branch but not yet released to npm. Phase 4 (chafa-style symbol matcher — the wow-mode rendering) is the next milestone.
 
 ## 📝 Configuration File
 
@@ -746,7 +779,7 @@ The next major release is **v0.4.0 — "From Engine to Canvas"**, which makes im
 
 - ✅ **`splash --photo path/to/img.jpg`** — render any image at 2× vertical resolution using upper/lower half-block characters (Phase 1, done on the feature branch).
 - ✅ **Braille mode + Floyd-Steinberg / Bayer dithering + Sobel / DoG edge detection** — line art and high-contrast portraits, 12 photo presets total (Phase 2, done on the feature branch).
-- 📋 **Scene composition** — layer procedural patterns over photo backgrounds (Phase 3, the headline feature; up next).
+- ✅ **Scene composition** — layer procedural patterns over photo backgrounds via `splash --photo bg.jpg --pattern starfield` (Phase 3, done on the feature branch; the v0.4 headline).
 - 📋 **Chafa-style symbol matcher** — wow-mode rendering with implicit edge detection via 8×8 bitmap matching (Phase 4).
 - 📋 **Native protocol pass-through** for Kitty / iTerm2 / Sixel terminals — the photo goes straight to the GPU when supported, halfblock fallback otherwise (Phase 5).
 - 📋 **Color-mask sprites** — multi-color hand-drawn scenes (Phase 6).

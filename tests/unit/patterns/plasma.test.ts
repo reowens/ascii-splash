@@ -568,4 +568,63 @@ describe('PlasmaPattern', () => {
       }).not.toThrow();
     });
   });
+
+  // v0.4.0 Phase 3: layered scene composition.
+  describe('transparentBg (Phase 3 layered overlay)', () => {
+    it('default: writes to every cell', () => {
+      const opaque = new PlasmaPattern(theme);
+      const buf = createMockBuffer(40, 12);
+      // Pre-fill with a sentinel that plasma would never emit.
+      for (let y = 0; y < 12; y++) {
+        for (let x = 0; x < 40; x++) buf[y][x] = { char: '#' };
+      }
+      opaque.render(buf, 1000, { width: 40, height: 12 });
+      // Without transparentBg every cell is overwritten.
+      for (let y = 0; y < 12; y++) {
+        for (let x = 0; x < 40; x++) expect(buf[y][x].char).not.toBe('#');
+      }
+    });
+
+    it('transparentBg: true skips writes when char would be " "', () => {
+      const transparent = new PlasmaPattern(theme, { transparentBg: true });
+      // Find a (time, size) combination where at least one cell falls in
+      // the highest-intensity bin (char === ' '). The default plasma is
+      // smooth enough that this is essentially guaranteed for a 40x12 grid.
+      const buf = createMockBuffer(40, 12);
+      for (let y = 0; y < 12; y++) {
+        for (let x = 0; x < 40; x++) buf[y][x] = { char: '#' };
+      }
+      transparent.render(buf, 0, { width: 40, height: 12 });
+      // Some cells must remain at the sentinel (proving the skip works);
+      // and no cell should be ' ' (because we either kept '#' or got a
+      // non-space plasma char).
+      let preservedSentinel = 0;
+      for (let y = 0; y < 12; y++) {
+        for (let x = 0; x < 40; x++) {
+          if (buf[y][x].char === '#') preservedSentinel++;
+          expect(buf[y][x].char).not.toBe(' ');
+        }
+      }
+      expect(preservedSentinel).toBeGreaterThan(0);
+    });
+
+    it('preserves transparentBg across applyPreset cycling', () => {
+      const transparent = new PlasmaPattern(theme, { transparentBg: true });
+      // Preset 2 ('Standard Plasma') matches default config and reliably
+      // produces top-bin (sparse) cells that the skip predicate catches.
+      // After cycling, transparentBg must still apply — proving applyPreset
+      // didn't drop the flag.
+      transparent.applyPreset(2);
+      const buf = createMockBuffer(60, 20);
+      for (let y = 0; y < 20; y++) {
+        for (let x = 0; x < 60; x++) buf[y][x] = { char: '#' };
+      }
+      transparent.render(buf, 0, { width: 60, height: 20 });
+      let preservedSentinel = 0;
+      for (let y = 0; y < 20; y++) {
+        for (let x = 0; x < 60; x++) if (buf[y][x].char === '#') preservedSentinel++;
+      }
+      expect(preservedSentinel).toBeGreaterThan(0);
+    });
+  });
 });

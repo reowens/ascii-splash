@@ -8,6 +8,7 @@ interface WaveConfig {
   foamEnabled: boolean;
   foamThreshold: number; // Wave height threshold (0-1) for foam generation
   foamDensity: number; // 0-1: probability of foam appearing
+  transparentBg?: boolean; // v0.4.0 Phase 3 — skip writes when char === ' '
 }
 
 interface WavePreset {
@@ -123,6 +124,7 @@ export class WavePattern implements Pattern {
       foamEnabled: false,
       foamThreshold: 0,
       foamDensity: 0,
+      transparentBg: false,
       ...config,
     };
   }
@@ -136,7 +138,10 @@ export class WavePattern implements Pattern {
       return false;
     }
 
-    this.config = { ...preset.config };
+    // transparentBg is a layered-render flag, not an aesthetic preset
+    // concern — preserve it across preset cycling so the photo stays
+    // visible underneath when the user switches presets in layered mode.
+    this.config = { ...preset.config, transparentBg: this.config.transparentBg };
     this.ripples = []; // Clear ripples when changing preset
     return true;
   }
@@ -240,6 +245,11 @@ export class WavePattern implements Pattern {
             }
           }
         }
+
+        // Phase 3 layered-render support: leave ' ' cells untouched so a
+        // photo background underneath remains visible far from the wave
+        // height (where char would otherwise default to ' ').
+        if (this.config.transparentBg && char === ' ') continue;
 
         const color = this.theme.getColor(colorIntensity);
 
