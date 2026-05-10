@@ -17,8 +17,8 @@ ascii-splash is a terminal ASCII animation app that displays animated patterns i
 ## Current Status
 
 - **Released**: v0.3.0 (Next-Generation Terminal Graphics) — Dec 25, 2025 ✅
-- **In flight**: v0.4.0 Phases 1 + 2 — done on branch `feature/v0.4.0-phase1-photo-pattern`, awaiting review. Phase 1 = Half-block PhotoPattern; Phase 2 = Braille mode, FS / Bayer dither, Sobel / DoG edges, 12 photo presets total.
-- **Next**: v0.4.0 Phase 3 — scene composition (photo background + procedural overlay; the v0.4 headline). See [roadmap](planning/v0.4.0-ROADMAP.md).
+- **In flight**: v0.4.0 Phases 1 + 2 + 3 — done on branch `feature/v0.4.0-phase1-photo-pattern`, awaiting review. Phase 1 = Half-block PhotoPattern; Phase 2 = Braille mode, FS / Bayer dither, Sobel / DoG edges, 12 photo presets total; Phase 3 = `LayeredPattern` composes photo + procedural overlay (`splash --photo bg.jpg --pattern starfield`), `transparentBg` opt-in for Plasma + Wave.
+- **Next**: v0.4.0 Phase 4 — chafa-style symbol matcher (the wow-mode rendering). See [roadmap](planning/v0.4.0-ROADMAP.md).
 
 ### Released (v0.3.0)
 
@@ -30,9 +30,10 @@ ascii-splash is a terminal ASCII animation app that displays animated patterns i
 
 - **23 Patterns** with **138 Presets** (6 per pattern — standardized)
 - **+ optional `PhotoPattern`** when `--photo <path>` is supplied (v0.4.0 Phases 1 + 2, on branch — 12 photo presets, halfblock + braille modes, FS / Bayer dither, Sobel + DoG edges)
+- **+ optional `LayeredPattern`** when `--photo + --pattern` are both supplied (v0.4.0 Phase 3, on branch — composes photo background with procedural overlay; sparse overlays compose naturally, dense Plasma + Wave have an opt-in `transparentBg`)
 - **5 Color Themes** (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **40+ Commands** via advanced command system
-- **2197 Tests** with **92%+ Coverage** (2097 in v0.3.0 + 43 in v0.4.0 Phase 1 + 57 in Phase 2)
+- **2216 Tests** with **92%+ Coverage** (2097 in v0.3.0 + 43 in Phase 1 + 57 in Phase 2 + 19 in Phase 3)
 - **Scene-Based Architecture**: SceneGraph → SpriteManager → ParticleSystem
   - For technical details, see [ARCHITECTURE.md](ARCHITECTURE.md)
 - **UI Components**: StatusBar, ToastManager, HelpOverlay, TransitionManager
@@ -40,7 +41,7 @@ ascii-splash is a terminal ASCII animation app that displays animated patterns i
 
 ### v0.4.0 In-Flight Highlights (May 2026) 🚧
 
-Phases 1 + 2 are committed on `feature/v0.4.0-phase1-photo-pattern`. Not yet released to npm.
+Phases 1 + 2 + 3 are committed on `feature/v0.4.0-phase1-photo-pattern`. Not yet released to npm.
 
 - **Optional 24th pattern**: `PhotoPattern` loaded only when `splash --photo PATH` is supplied. Decodes any image `sharp` can handle (JPEG / PNG / WebP / etc.) into the existing `Cell[][]` buffer.
 - **`HalfBlockRenderer`** (Phase 1): RGBA → `▀` / `▄` with 24-bit fg+bg ANSI per cell. Direct port of viuer's MIT-licensed `block.rs`. 2× vertical resolution.
@@ -50,8 +51,11 @@ Phases 1 + 2 are committed on `feature/v0.4.0-phase1-photo-pattern`. Not yet rel
 - **Sobel + Difference-of-Gaussians edge detection** (Phase 2, `src/utils/edges.ts`): 3×3 gradient and band-pass operators. DoG defaults σ=(1, 2) tuned for small canvas sizes; Marr–Hildreth σ=1.6 underflows on ~70×50 inputs.
 - **12 photo presets**: 6 Phase-1 halfblock variants + 6 Phase-2 entries covering DoG edges, braille, braille-inverted, braille-dithered, braille-edges, and halfblock-Bayer. Phase-1 `edge-only` (preset 6) was a hard-threshold stub; upgraded to real Sobel in Phase 2.
 - **Mode-aware resize**: Switching between halfblock and braille presets invalidates the cached resized image and triggers an async re-resize at the larger 2W × 4H source canvas (vs. W × 2H for halfblock).
-- **Testing**: +43 in Phase 1, +57 in Phase 2 = +100 vs. v0.3.0's 2097 baseline → **2197 tests passing**, 92%+ coverage maintained.
-- **No new CLI flags** beyond `--photo`. All Phase 2 capabilities reachable via runtime preset cycling. The principled "lock to exact state" mechanism arrives in Phase 7 (seeded PRNG + share codes).
+- **`LayeredPattern`** (Phase 3, `src/patterns/LayeredPattern.ts`): Pattern-shaped composite that wraps a `PhotoPattern` background + an arbitrary overlay `Pattern`. Sequential render — photo first, overlay on top. `SceneGraph` was deliberately bypassed: it has zero production callers, so the SceneLayer adapter glue would have been ~120 LOC for the same observable behavior as a 30-LOC sequential render. CLI: `splash --photo bg.jpg --pattern starfield`.
+- **`transparentBg`** (Phase 3): Opt-in flag on `PlasmaPatternConfig` + `WavePatternConfig`. Plasma skips its top 2 brightness bins when set; Wave skips its `' '` fall-through. Sparse patterns (Matrix, Starfield, Lightning, Fireworks, Rain, Snow, DNA, Particles, Smoke, Snowfall, Quicksilver) need no flag — their cleared cells already let the photo through. Other dense patterns (Tunnel, Spiral, Maze, Life, LavaLamp, Metaball, scene-based) deferred until requested.
+- **Bonus fix**: latent Phase 1 theme-cycle crash fixed via `buildPatterns()` helper in `main.ts` — `createPatternsFromConfig` previously dropped `PhotoPattern` on every theme rebuild, leaving `patterns[currentPatternIndex]` undefined.
+- **Testing**: +43 in Phase 1, +57 in Phase 2, +19 in Phase 3 = +119 vs. v0.3.0's 2097 baseline → **2216 tests passing**, 92%+ coverage maintained.
+- **No new CLI flags** beyond `--photo` + the existing `--pattern`. All Phase 2/3 capabilities reachable via runtime preset cycling and the `--photo + --pattern` combo. The principled "lock to exact state" mechanism arrives in Phase 7 (seeded PRNG + share codes).
 
 ### v0.3.0 Development Highlights (December 2025) 🚀
 
@@ -138,6 +142,7 @@ Phases 1 + 2 are committed on `feature/v0.4.0-phase1-photo-pattern`. Not yet rel
 | **v0.4.0 - From Engine to Canvas**      |                      |
 | Phase 1 - Half-block PhotoPattern       | ✅ DONE ON BRANCH    |
 | Phase 2 - Braille + dither + edges      | ✅ DONE ON BRANCH    |
+| Phase 3 - Scene composition (layered)   | ✅ DONE ON BRANCH    |
 | Phase 3 - Scene composition             | 📋 NEXT              |
 | Phase 4 - Symbol matcher (chafa-style)  | 📋 PLANNED           |
 | Phase 5 - Protocol pass-through         | 📋 PLANNED           |
@@ -154,6 +159,7 @@ Phases 1 + 2 are committed on `feature/v0.4.0-phase1-photo-pattern`. Not yet rel
 
 - 23 procedural patterns with 138 presets, 5 themes
 - Optional 24th pattern: `PhotoPattern` (`splash --photo PATH`, v0.4.0+, 12 photo presets)
+- Optional `LayeredPattern` (`splash --photo PATH --pattern X`, v0.4.0 Phase 3+) — adds a 25th `'layered'` slot composing photo + procedural overlay
 - 5 scene-based patterns (Ocean Beach, Campfire, Aquarium, Night Sky, Snowfall Park)
 - Enhanced Metaball Playground with physics modes
 - 7 animated GIF demonstrations in README
@@ -167,7 +173,7 @@ Phases 1 + 2 are committed on `feature/v0.4.0-phase1-photo-pattern`. Not yet rel
 
 **Test Statistics:**
 
-- **Total Tests:** 2197 tests across 53 suites (v0.3.0 baseline 2097 + v0.4.0 Phases 1 + 2 = +100)
+- **Total Tests:** 2216 tests across 54 suites (v0.3.0 baseline 2097 + v0.4.0 Phases 1 + 2 + 3 = +119)
 - **Coverage:** 92%+ statements (significantly exceeded 80% target!)
 - **Status:** All tests passing ✅ (100%)
 - **Execution Time:** ~30-40 seconds
@@ -264,7 +270,8 @@ Highlights:
 - ✅ **`BrailleRenderer`** — Phase 2 — RGBA → U+2800–U+28FF, 2×4 dots per cell, 8× resolution.
 - ✅ **Floyd-Steinberg + Bayer dither, Sobel + DoG edge detection** — Phase 2 utilities (`src/utils/dither.ts`, `src/utils/edges.ts`).
 - ✅ **12 photo presets** (6 Phase-1 halfblock variants + 6 Phase-2 halfblock-DoG / braille / dithered / edges / Bayer combos). `edge-only` (preset 6) upgraded from a hard-threshold stub to real Sobel.
-- ✅ **+100 tests** vs. v0.3.0 baseline → **2197 tests passing**, 92%+ coverage maintained.
+- ✅ **`LayeredPattern`** — Phase 3 — Pattern-shaped composite that wraps a photo + an overlay; CLI `splash --photo bg.jpg --pattern starfield`. `transparentBg` opt-in for Plasma + Wave makes dense overlays composable.
+- ✅ **+119 tests** vs. v0.3.0 baseline → **2216 tests passing**, 92%+ coverage maintained.
 - ✅ **CHANGELOG, CLAUDE.md, ARCHITECTURE.md, PROJECT_STATUS.md, planning/v0.4.0-ROADMAP.md, core/CONTRIBUTING.md, guides/TESTING.md, guides/CONFIGURATION.md, README.md** all reflect Phase 1 + 2.
 
 **Phase 3 (next):** Scene composition — `PhotoPattern` becomes a `SceneLayer`, layered with sparse procedural overlays (Lightning, Fireworks, Rain, Snow, Starfield, etc.). Adds `transparentBg` to dense patterns (Plasma, Wave, Matrix). The v0.4 headline feature.

@@ -20,7 +20,7 @@
 - **138 total presets** (6 per pattern)
 - **5 color themes** (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **40+ commands** via multi-key command system
-- **2197 tests** with 92%+ coverage (2097 in v0.3.0; +100 from in-flight v0.4.0 Phases 1+2)
+- **2216 tests** with 92%+ coverage (2097 in v0.3.0; +119 from in-flight v0.4.0 Phases 1+2+3)
 - **Performance**: <5% CPU, ~40-50MB RAM
 - **Target**: Node.js 20+
 
@@ -28,7 +28,8 @@
 
 - **Phase 1 done on branch**: `PhotoPattern` (24th, optional via `--photo <path>`), `HalfBlockRenderer`, `Cell.bg` field for two-tone cells, 6 photo presets, `sharp` runtime dep.
 - **Phase 2 done on branch**: `BrailleRenderer` (8× resolution via U+2800–U+28FF), Floyd-Steinberg + Bayer dithering, Sobel + DoG edge detection, 6 additional presets (ids 7–12), `edge-only` upgraded from stub to real Sobel.
-- Phases 3–9 planned: scene composition (photo bg + procedural overlay), chafa-style symbol matcher, Kitty/iTerm2/Sixel pass-through, color-mask sprites, seeded PRNG + share codes, asciinema export.
+- **Phase 3 done on branch**: `LayeredPattern` composes a `PhotoPattern` background with a procedural overlay (`splash --photo bg.jpg --pattern starfield`). Plasma + Wave gained an opt-in `transparentBg` flag for dense-pattern compositing; sparse patterns (Matrix, Starfield, Lightning, …) compose naturally. Adds a `'layered'` slot displayed as `Photo + <Overlay>`. Bonus: latent Phase 1 theme-cycle crash fixed via a `buildPatterns()` helper that re-attaches the photo on every theme rebuild.
+- Phases 4–9 planned: chafa-style symbol matcher, Kitty/iTerm2/Sixel pass-through, color-mask sprites, seeded PRNG + share codes, asciinema export.
 - Full plan: [docs/planning/v0.4.0-ROADMAP.md](docs/planning/v0.4.0-ROADMAP.md).
 
 **Tech Stack**:
@@ -129,7 +130,7 @@ splash/
 │       ├── SnowfallParkPattern.ts # Scene-based (v0.3.0)
 │       └── MetaballPattern.ts     # Enhanced (v0.3.0)
 │
-├── tests/                        # Jest test suites (2197 tests)
+├── tests/                        # Jest test suites (2216 tests)
 │   ├── unit/patterns/           # Pattern tests (23 + optional Photo)
 │   ├── unit/engine/             # SceneGraph, SpriteManager, ParticleSystem
 │   ├── unit/ui/                 # StatusBar, ToastManager, HelpOverlay
@@ -394,7 +395,7 @@ npm run test:coverage # Coverage report
 - `tests/unit/renderer/`: Renderer, Buffer & TransitionManager tests
 - `tests/unit/ui/`: UI component tests (StatusBar, ToastManager, HelpOverlay)
 
-**Coverage**: 92%+ (2197 tests)
+**Coverage**: 92%+ (2216 tests)
 
 ---
 
@@ -480,6 +481,6 @@ npm run test:coverage # Coverage report
 
 ---
 
-**Last Updated**: May 9, 2026 (v0.4.0 Phases 1 + 2 on `feature/v0.4.0-phase1-photo-pattern`; 2197 tests; pattern-types convention added)
+**Last Updated**: May 9, 2026 (v0.4.0 Phases 1 + 2 + 3 on `feature/v0.4.0-phase1-photo-pattern`; 2216 tests; LayeredPattern + transparentBg conventions added)
 **For**: AI Assistant navigation and project context
 **Human Readers**: Please see [README.md](README.md) instead

@@ -300,6 +300,56 @@ Switching preset (e.g., from preset 6 halfblock-Sobel to preset 11 braille-Sobel
 
 ---
 
+## Scene Composition (v0.4.0 Phase 3)
+
+`LayeredPattern` (`src/patterns/LayeredPattern.ts`) is a `Pattern`-shaped composite that wraps a `PhotoPattern` background plus an arbitrary procedural overlay. CLI entry point: `splash --photo bg.jpg --pattern starfield`.
+
+### Render order
+
+```ts
+render(buffer, time, size, mousePos) {
+  this.photo.render(buffer, time, size);            // photo first
+  this.overlay.render(buffer, time, size, mousePos); // overlay on top
+}
+```
+
+That's the entire compositor. Two sequential `render()` calls into the same `Cell[][]` — the buffer is cleared each frame by `AnimationEngine.update()`, so both layers paint from a clean slate.
+
+### Why no SceneGraph?
+
+`SceneGraph` exists in `src/engine/SceneGraph.ts` (built in v0.3.0) but has zero production callers — even the v0.3.0 scene-based patterns (OceanBeach, Campfire, Aquarium, etc.) render manually. Phase 3 deliberately skipped adopting it:
+
+- `SceneLayer.render(buffer, size)` lacks `time` and `mousePos`, so adapting `Pattern` to it would require a stateful adapter that ferries those inputs per frame — ~120 LOC of glue for the same observable behavior as the 30-LOC sequential render.
+- 2-layer composition by sequential render IS what z-ordering would do.
+- The engine, the 23 procedural patterns, and SceneGraph itself stay completely untouched.
+- A future 3+ layer scenario (e.g., photo background + overlay + foreground particles) can adopt SceneGraph then with a real driver.
+
+### Transparency convention
+
+Inherited from `SpriteManager.render()` (`src/engine/SpriteManager.ts:138`): the space character is treated as transparent. The overlay leaves the photo visible at every cell where it doesn't write or where it would write `' '`.
+
+- **Sparse overlays** (Matrix, Starfield, Lightning, Fireworks, Rain, Snow, DNA, Particles, Smoke, Snowfall, Quicksilver) only paint a small subset of cells — the photo shows through naturally, no flag needed.
+- **Dense overlays** (Plasma, Wave) paint every cell. They opt-in via `transparentBg: true` to skip writes at their background-color cells:
+  - **Plasma** skips its top 2 brightness bins (chars `·` and `' '`). The natural skip-on-`' '` predicate alone is unreachable in practice — char `' '` only emits at intensity exactly 1.0 (all 4 sines at peak simultaneously), which is essentially never. The broader threshold gives plasma real transparency at its dimmest cells.
+  - **Wave** skips when `char === ' '`, the fall-through default for cells far from the wave height.
+  - Both preserve `transparentBg` across `applyPreset` cycling so the photo stays visible when the user changes preset in layered mode.
+  - Other dense patterns (Tunnel, Spiral, Maze, Life, LavaLamp, Metaball, scene-based) deferred until requested.
+
+### Pattern-list wiring (`src/main.ts`)
+
+When `--photo` alone: a 24th `'photo'` slot is appended.
+When `--photo + --pattern X`: also a 25th `'layered'` slot (display name `Photo + <Overlay>`). Both slots stay cyclable via `n` / `b`.
+
+A `buildPatterns(cfg, theme)` helper wraps `createPatternsFromConfig` and re-attaches the photo + layered slot on every theme rebuild. Without this, the Phase-1 path would silently drop `PhotoPattern` on every theme cycle (a latent crash that Phase 3 fixed as a bonus).
+
+### Per-frame work
+
+The `Buffer.getChanges()` cell-level diff (already including the `Cell.bg` field added in Phase 1) handles dirty-rect under overlay automatically: with a static photo + sparse overlay, only the overlay's footprint produces buffer changes between frames. Verified by the `LayeredPattern.test.ts` dirty-rect test.
+
+The heavy photo work (sharp decode + resize) runs only on resize via `PhotoPattern.prepareForSize()` — unchanged from Phase 1+2. Per-frame per-cell ANSI emission is the same cost as the standalone photo case.
+
+---
+
 ## Data Flow
 
 ```

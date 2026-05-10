@@ -25,6 +25,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Six new presets** (ids 7–12): `edge-dog`, `braille`, `braille-inverted`, `braille-dithered`, `braille-edges`, `halfblock-bayer`. PhotoPattern now exposes 12 total presets.
   - **`edge-only` preset (id 6) upgraded** from a hard-threshold stub to real Sobel-based edge detection.
 - 89 new unit tests across `tests/unit/utils/dither.test.ts`, `tests/unit/utils/edges.test.ts`, `tests/unit/renderer/HalfBlockRenderer.test.ts`, `tests/unit/renderer/BrailleRenderer.test.ts`, and `tests/unit/patterns/photo.test.ts`. Total: 2197 tests (up from 2097 in v0.3.0).
+- **Scene composition (v0.4.0 Phase 3)**: layer a procedural pattern over a photo background. The v0.4 headline feature.
+  - New CLI usage: `splash --photo bg.jpg --pattern starfield` builds a `LayeredPattern` slot that renders the photo first, then the procedural overlay on top each frame.
+  - **`LayeredPattern`** (`src/patterns/LayeredPattern.ts`): Pattern-shaped composite that owns a `PhotoPattern` + an arbitrary overlay `Pattern` and delegates lifecycle (preset / reset / mouse / theme / fps) to the overlay. Photo's `onResize` is forwarded so its cached resize tracks the terminal. Sequential render — no `SceneGraph` adapter glue needed for the 2-layer case.
+  - **`transparentBg` config option** for dense overlays (Plasma, Wave): when true, cells the pattern would render as background (Plasma's sparsest brightness bins; Wave's far-from-crest fall-through to `' '`) are left untouched, leaving the photo visible. Sparse overlays (Matrix, Starfield, Lightning, Fireworks, Rain, Snow, DNA, Particles, Smoke, Snowfall, Quicksilver) compose naturally without a flag — their cleared cells already let the photo through.
+  - Status bar reads `Photo + <Overlay>` when on the layered slot. The standalone photo (cyclable via `n`) and standalone procedural patterns remain available.
+  - Bonus fix: cycling themes while on the photo slot no longer crashes — the new `buildPatterns()` helper re-attaches `PhotoPattern` (and the layered slot) on every theme rebuild instead of silently dropping it.
+  - 19 new unit tests in `tests/unit/patterns/LayeredPattern.test.ts` (composition, sparse vs. dense overlay behavior, dirty-rect under overlay, lifecycle delegation), plus `transparentBg` cases in `plasma.test.ts` + `wave.test.ts` and a Matrix-already-sparse pin-down in `additional-patterns.test.ts`. Total: 2216 tests (up from 2197).
 
 ### Changed
 
@@ -32,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `TerminalRenderer.render()` now emits `\x1b[48;2;r;g;bm` background-color escapes when `cell.bg` is set.
 - `PhotoPatternConfig` extended with optional `mode` (`halfblock` | `braille`), `dither` (`none` | `floyd-steinberg` | `bayer-8` | `bayer-16`), `edge` (`off` | `sobel` | `dog`), and `edgeThreshold` knobs (Phase 2). Defaults preserve Phase 1 behavior.
 - Switching to a braille preset triggers a re-resize at the larger 2W × 4H source canvas (vs. W × 2H for half-block).
+- `PlasmaPatternConfig` + `WavePatternConfig` gained an optional `transparentBg` flag (Phase 3, default `false`). Preserved across `applyPreset` cycling so the photo stays visible when the user changes preset in layered mode.
 
 ## [0.3.1] - 2026-01-22
 
