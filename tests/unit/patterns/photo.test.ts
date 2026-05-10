@@ -51,9 +51,9 @@ describe('PhotoPattern', () => {
       expect(pattern.getCurrentPreset().preset).toBe('inverted');
     });
 
-    test('exposes 12 presets after Phase 2 (Phase 1 ids 1–6 plus Phase 2 ids 7–12)', () => {
+    test('exposes 18 presets after Phase 4 (Phase 1 ids 1–6, Phase 2 ids 7–12, Phase 4 ids 13–18)', () => {
       const presets = PhotoPattern.getPresets();
-      expect(presets).toHaveLength(12);
+      expect(presets).toHaveLength(18);
       expect(presets.map(p => p.preset)).toEqual([
         'default',
         'high-contrast',
@@ -67,6 +67,12 @@ describe('PhotoPattern', () => {
         'braille-dithered',
         'braille-edges',
         'halfblock-bayer',
+        'symbol',
+        'symbol-ascii',
+        'symbol-block',
+        'symbol-high-contrast',
+        'symbol-mono',
+        'symbol-ascii-mono',
       ]);
     });
 
@@ -149,7 +155,7 @@ describe('PhotoPattern', () => {
     test('returns false for invalid preset ids', () => {
       const pattern = new PhotoPattern(theme, { source: Buffer.alloc(1) });
       expect(pattern.applyPreset(0)).toBe(false);
-      expect(pattern.applyPreset(13)).toBe(false);
+      expect(pattern.applyPreset(19)).toBe(false);
       expect(pattern.applyPreset(-1)).toBe(false);
     });
 
@@ -416,6 +422,113 @@ describe('PhotoPattern', () => {
       expect(p.preset).toBe('halfblock-bayer');
       expect(p.dither).toBe('bayer-8');
       expect(p.ditherLevels).toBe(8);
+    });
+  });
+
+  describe('Phase 4: symbol mode', () => {
+    test('switching to a symbol preset reports mode=2 in metrics', async () => {
+      const png = await makeGradientPng(4, 8);
+      const pattern = new PhotoPattern(theme, { source: png });
+      await pattern.load();
+      expect(pattern.applyPreset(13)).toBe(true); // symbol
+      expect(pattern.getMetrics().mode).toBe(2);
+      expect(pattern.applyPreset(8)).toBe(true); // back to braille
+      expect(pattern.getMetrics().mode).toBe(1);
+      expect(pattern.applyPreset(1)).toBe(true); // back to halfblock default
+      expect(pattern.getMetrics().mode).toBe(0);
+    });
+
+    test('all 6 Phase 4 presets are mode=symbol and have a symbol options block', () => {
+      for (const id of [13, 14, 15, 16, 17, 18]) {
+        const p = PhotoPattern.getPreset(id);
+        expect(p).toBeDefined();
+        expect(p!.mode).toBe('symbol');
+        expect(p!.symbol).toBeDefined();
+        expect(typeof p!.symbol!.tagMask).toBe('number');
+      }
+    });
+
+    test('symbol preset uses 8× wider × 8× taller source canvas than halfblock', async () => {
+      // 64×64 source → halfblock for terminal 4×4 wants 4×8 (canvas 4×8) → fit 4×4;
+      // symbol on the same terminal wants 32×32 (canvas 32×32) → fit 32×32.
+      const png = await makeGradientPng(64, 64);
+      const pattern = new PhotoPattern(theme, { source: png });
+      await pattern.load();
+
+      const size = createMockSize(4, 4);
+
+      pattern.applyPreset(1); // halfblock default
+      await pattern.prepareForSize(size);
+      const halfMetrics = pattern.getMetrics();
+
+      pattern.applyPreset(13); // symbol
+      await pattern.prepareForSize(size);
+      const symbolMetrics = pattern.getMetrics();
+
+      expect(symbolMetrics.cachedWidth).toBeGreaterThan(halfMetrics.cachedWidth);
+      expect(symbolMetrics.cachedHeight).toBeGreaterThan(halfMetrics.cachedHeight);
+      // Symbol mode resolves to 32×32 cached pixels for a 4×4 terminal on a 1:1 source.
+      expect(symbolMetrics.cachedWidth).toBe(32);
+      expect(symbolMetrics.cachedHeight).toBe(32);
+    });
+
+    test('mode change halfblock → symbol invalidates the resize cache', async () => {
+      const png = await makeGradientPng(16, 16);
+      const pattern = new PhotoPattern(theme, { source: png });
+      await pattern.load();
+
+      const size = createMockSize(4, 4);
+      pattern.applyPreset(1); // halfblock
+      await pattern.prepareForSize(size);
+      expect(pattern.getMetrics().cachedWidth).toBeGreaterThan(0);
+
+      pattern.applyPreset(13); // symbol — different canvas size; cache must invalidate
+      expect(pattern.getMetrics().cachedWidth).toBe(0);
+    });
+
+    test('symbol-ascii preset only emits ASCII characters', async () => {
+      const png = await makeGradientPng(32, 32);
+      const pattern = new PhotoPattern(theme, { source: png });
+      await pattern.load();
+      pattern.applyPreset(14); // symbol-ascii
+
+      const size = createMockSize(4, 4);
+      await pattern.prepareForSize(size);
+      const buffer: Cell[][] = createMockBuffer(size.width, size.height);
+      pattern.render(buffer, 0, size);
+
+      // Every non-empty cell must be a 7-bit ASCII character.
+      for (const row of buffer) {
+        for (const cell of row) {
+          const code = cell.char.charCodeAt(0);
+          expect(code).toBeLessThan(128);
+        }
+      }
+    });
+
+    test('symbol preset writes block/quadrant/shade unicode codepoints into the buffer', async () => {
+      const png = await makeGradientPng(32, 32);
+      const pattern = new PhotoPattern(theme, { source: png });
+      await pattern.load();
+      pattern.applyPreset(13); // symbol (all tags)
+
+      const size = createMockSize(4, 4);
+      await pattern.prepareForSize(size);
+      const buffer: Cell[][] = createMockBuffer(size.width, size.height);
+      pattern.render(buffer, 0, size);
+
+      // Find at least one cell whose char is in the U+2580–U+259F block-element range.
+      let foundBlock = false;
+      for (const row of buffer) {
+        for (const cell of row) {
+          const code = cell.char.charCodeAt(0);
+          if (code >= 0x2580 && code <= 0x259f) {
+            foundBlock = true;
+            break;
+          }
+        }
+      }
+      expect(foundBlock).toBe(true);
     });
   });
 });

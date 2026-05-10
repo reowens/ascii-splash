@@ -29,8 +29,9 @@ Comprehensive roadmap for v0.4.0: turning ascii-splash into a canvas that render
 
 - ✅ Phase 1: Half-block PhotoPattern (`splash --photo PATH`, 6 presets, 2× vertical resolution)
 - ✅ Phase 2: Braille mode (8× resolution, U+2800–U+28FF), Floyd-Steinberg + Bayer dither, Sobel + DoG edge detection, 12 presets total, real Sobel replaces Phase-1 stub
-- 📋 Phase 3 (next): Scene composition (photo bg + procedural overlay; the v0.4 headline)
-- 📋 Phase 4–5: Symbol matcher + protocol pass-through (Kitty / iTerm2 / Sixel)
+- ✅ Phase 3: Scene composition (photo bg + procedural overlay; the v0.4 headline) — `LayeredPattern` + `transparentBg` opt-in for dense overlays
+- ✅ Phase 4: Chafa-style symbol matcher (`mode: 'symbol'`, 34 hand-authored 8×8 bitmaps, three-step tiebreaker, 6 new presets → 18 photo presets total)
+- 📋 Phase 5 (next): Native protocol pass-through (Kitty / iTerm2 / Sixel)
 - 📋 Phase 6: Color-mask sprites for hand-drawn scenes
 - 📋 Phase 7–8: Seeded PRNG, share codes, asciinema export
 

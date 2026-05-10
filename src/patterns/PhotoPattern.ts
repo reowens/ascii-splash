@@ -2,6 +2,8 @@ import sharp from 'sharp';
 import { Pattern, Cell, Size, Theme, Point } from '../types/index.js';
 import { renderHalfBlock, HalfBlockOptions } from '../renderer/HalfBlockRenderer.js';
 import { renderBraille, BrailleOptions } from '../renderer/BrailleRenderer.js';
+import { renderSymbol, SymbolOptions } from '../renderer/SymbolRenderer.js';
+import { TAG_ALL, TAG_ASCII, TAG_BLOCK, TAG_QUADRANT, TAG_SHADE } from '../renderer/symbols.js';
 import { floydSteinberg, bayerOrdered, BAYER_8, BAYER_16 } from '../utils/dither.js';
 import {
   rgbaToLuminance,
@@ -23,9 +25,16 @@ export type PhotoPreset =
   | 'braille-inverted'
   | 'braille-dithered'
   | 'braille-edges'
-  | 'halfblock-bayer';
+  | 'halfblock-bayer'
+  // Phase 4 additions
+  | 'symbol'
+  | 'symbol-ascii'
+  | 'symbol-block'
+  | 'symbol-high-contrast'
+  | 'symbol-mono'
+  | 'symbol-ascii-mono';
 
-export type PhotoRenderMode = 'halfblock' | 'braille';
+export type PhotoRenderMode = 'halfblock' | 'braille' | 'symbol';
 export type PhotoDither = 'none' | 'floyd-steinberg' | 'bayer-8' | 'bayer-16';
 export type PhotoEdge = 'off' | 'sobel' | 'dog';
 
@@ -41,9 +50,10 @@ export interface PhotoPresetEntry {
   description: string;
   preset: PhotoPreset;
   mode: PhotoRenderMode;
-  /** Renderer-specific options. Half-block uses HalfBlockOptions; braille uses BrailleOptions. */
+  /** Renderer-specific options. Half-block uses HalfBlockOptions; braille uses BrailleOptions; symbol uses SymbolOptions. */
   halfBlock?: HalfBlockOptions;
   braille?: BrailleOptions;
+  symbol?: SymbolOptions;
   dither?: PhotoDither;
   edge?: PhotoEdge;
   /** Edge magnitude threshold (0–255). Pixels at-or-above are emitted as white, below as black. */
@@ -159,6 +169,55 @@ const PRESETS: PhotoPresetEntry[] = [
     halfBlock: {},
     dither: 'bayer-8',
     ditherLevels: 8,
+  },
+  // ────────── Phase 4 additions ──────────
+  {
+    id: 13,
+    name: 'Symbol',
+    description: 'Chafa-style 8×8 symbol matcher — ASCII + blocks + quadrants + shades',
+    preset: 'symbol',
+    mode: 'symbol',
+    symbol: { tagMask: TAG_ALL },
+  },
+  {
+    id: 14,
+    name: 'Symbol ASCII',
+    description: 'Symbol matcher restricted to ASCII — text-art aesthetic',
+    preset: 'symbol-ascii',
+    mode: 'symbol',
+    symbol: { tagMask: TAG_ASCII },
+  },
+  {
+    id: 15,
+    name: 'Symbol Block',
+    description: 'Symbol matcher restricted to blocks / quadrants / shades — no letters',
+    preset: 'symbol-block',
+    mode: 'symbol',
+    symbol: { tagMask: TAG_BLOCK | TAG_QUADRANT | TAG_SHADE },
+  },
+  {
+    id: 16,
+    name: 'Symbol High-Contrast',
+    description: 'Symbol matcher with contrast boost — punchier output',
+    preset: 'symbol-high-contrast',
+    mode: 'symbol',
+    symbol: { tagMask: TAG_ALL, contrast: 1.6 },
+  },
+  {
+    id: 17,
+    name: 'Symbol Mono',
+    description: 'Symbol matcher with grayscale luminance — single-tone aesthetic',
+    preset: 'symbol-mono',
+    mode: 'symbol',
+    symbol: { tagMask: TAG_ALL, grayscale: true },
+  },
+  {
+    id: 18,
+    name: 'Symbol ASCII Mono',
+    description: 'Symbol matcher, ASCII only, grayscale — pure text-art monochrome',
+    preset: 'symbol-ascii-mono',
+    mode: 'symbol',
+    symbol: { tagMask: TAG_ASCII, grayscale: true },
   },
 ];
 
@@ -315,6 +374,14 @@ export class PhotoPattern implements Pattern {
         this.resized.height,
         this.currentPresetEntry.braille ?? {}
       );
+    } else if (this.currentPresetEntry.mode === 'symbol') {
+      renderSymbol(
+        buffer,
+        work,
+        this.resized.width,
+        this.resized.height,
+        this.currentPresetEntry.symbol ?? {}
+      );
     } else {
       renderHalfBlock(
         buffer,
@@ -371,10 +438,16 @@ export class PhotoPattern implements Pattern {
       cachedWidth: this.resized?.width ?? 0,
       cachedHeight: this.resized?.height ?? 0,
       preset: this.currentPresetEntry.id,
-      mode: this.currentPresetEntry.mode === 'braille' ? 1 : 0,
+      mode: modeMetric(this.currentPresetEntry.mode),
       hasError: this.loadError ? 1 : 0,
     };
   }
+}
+
+function modeMetric(mode: PhotoRenderMode): number {
+  if (mode === 'braille') return 1;
+  if (mode === 'symbol') return 2;
+  return 0;
 }
 
 /**
@@ -422,6 +495,9 @@ function applyPipeline(
 }
 
 function canvasForMode(mode: PhotoRenderMode, size: Size): { canvasW: number; canvasH: number } {
+  if (mode === 'symbol') {
+    return { canvasW: size.width * 8, canvasH: size.height * 8 };
+  }
   if (mode === 'braille') {
     return { canvasW: size.width * 2, canvasH: size.height * 4 };
   }
@@ -433,6 +509,7 @@ function clonePreset(p: PhotoPresetEntry): PhotoPresetEntry {
     ...p,
     halfBlock: p.halfBlock ? { ...p.halfBlock } : undefined,
     braille: p.braille ? { ...p.braille } : undefined,
+    symbol: p.symbol ? { ...p.symbol } : undefined,
   };
 }
 
