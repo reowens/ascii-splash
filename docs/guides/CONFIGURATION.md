@@ -382,13 +382,13 @@ By design. Every other `*PatternConfig` in `~/.splashrc` is JSON-serializable, b
 
 ### Cycling through photo presets
 
-12 presets ship in v0.4.0 (see [README → Photo Mode](../../README.md) for the table). Cycle them at runtime exactly like procedural pattern presets:
+18 presets ship in v0.4.0 across halfblock / braille / symbol modes (see [README → Photo Mode](../../README.md) for the table). Cycle them at runtime exactly like procedural pattern presets:
 
 | Action                  | Keystroke     |
 | ----------------------- | ------------- |
 | Next preset             | `.`           |
 | Previous preset         | `,`           |
-| Jump to preset N (1–12) | `c01` … `c12` |
+| Jump to preset N (1–18) | `c01` … `c18` |
 | Random preset           | `c*`          |
 | Random pattern + preset | `c**`         |
 

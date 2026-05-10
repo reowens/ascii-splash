@@ -52,8 +52,7 @@ Manages all terminal I/O and rendering:
   of an odd-height image, or for cells with only one opaque pixel).
 - 2× vertical resolution vs. plain ASCII; 24-bit truecolor fg+bg per cell.
 - Optional preprocessing flags: `invert`, `grayscale`, `contrast`, `threshold`, `bgTint`.
-- Reused by `PhotoPattern` and planned for the chafa-style symbol matcher and
-  protocol-fallback paths in Phases 4–5.
+- Reused by `PhotoPattern` and by `LayeredPattern`'s photo background.
 
 **BrailleRenderer** (v0.4.0 Phase 2, `src/renderer/BrailleRenderer.ts`)
 
@@ -80,6 +79,17 @@ Manages all terminal I/O and rendering:
   │ 0x40│ 0x80│   row 3
   └─────┴─────┘
   ```
+
+**SymbolRenderer** (v0.4.0 Phase 4, `src/renderer/SymbolRenderer.ts`)
+
+- Pure function: `renderSymbol(buffer, pixels, w, h, options) → void`.
+- Algorithm re-implemented from chafa's `symbol-renderer.c:98-268` description (chafa is LGPL; the code + bitmaps are MIT, authored from scratch).
+- Each terminal cell pulls an 8×8 source patch. For each candidate symbol in the active tag set, the matcher computes `fg = mean(patch[i] for bitmap[i]==1)`, `bg = mean(patch[i] for bitmap[i]==0)`, and `err = Σ squared-color-distance(patch[i], expected)`. Lowest error wins. **8× resolution** (`w·8 × h·8` source canvas).
+- Tiebreaker (every bitmap has a bit-complement that scores identical err with fg/bg swapped — e.g. `▘`↔`▟`, `▚`↔`▞`, `▀`↔`▄`): lower err → higher fg luminance → higher litCount. The fg-luminance step picks the "lit = brighter pixels" interpretation; the litCount step settles uniform-color patches toward `█` (avoids leaking the terminal background through what should be a solid-color cell).
+- Cell emission: bestSym = ` ` → `{ char: ' ', bg }`; bestSym = `█` → `{ char: '█', color: fg }`; otherwise `{ char: codepoint, color: fg, bg }`. Skip fg/bg when unused to keep the ANSI surface minimal.
+- Symbol library (`src/renderer/symbols.ts`): 34 hand-authored 8×8 bitmaps across `TAG_ASCII | TAG_BLOCK | TAG_QUADRANT | TAG_SHADE` (plain numeric bitmask — the repo's strictTypeChecked eslint config rejects TS `const enum`). 16 ASCII shapes + 16 quadrant/block combinations + 3 shades, with space + `█` shared across multiple tags so they're always candidates. Tag-filtered candidate arrays are memoized per mask.
+- Options: `tagMask` (default = all), `contrast`, `grayscale`, `invert` — same preprocessing semantics as `HalfBlockOptions`.
+- Perf: ~20 ms for an 80×24 frame with all 34 candidates on Node 25 / Apple Silicon. Within the brief's microbenchmark envelope (49 fps / 20 ms for 50 candidates). Larger terminals (120×40+) may need a fast-path; deferred until requested.
 
 ### 2. Engine Layer (`src/engine/`)
 
@@ -220,7 +230,7 @@ interface Pattern {
 - **Classic Patterns** (17): Wave, Starfield, Matrix, Rain, Quicksilver, Particle, Spiral, Plasma, Tunnel, Lightning, Fireworks, Life, Maze, DNA, LavaLamp, Smoke, Snow
 - **Scene-Based Patterns** (5, v0.3.0): Ocean Beach, Campfire, Aquarium, Night Sky, Snowfall Park
 - **Enhanced Patterns** (1, v0.3.0): Metaball Playground with physics simulation modes
-- **Image-Driven** (v0.4.0 Phases 1 + 2): `PhotoPattern` — instantiated on demand when `splash --photo <path>` is supplied. Decodes via `sharp`; runs an `edge → dither → renderer` pipeline per frame. Async lifecycle (`load()` + `prepareForSize()`) sits off the render path; `render()` itself stays sync. Two render modes: half-block (2× vertical resolution via `HalfBlockRenderer`) and braille (8× resolution via `BrailleRenderer`). Twelve presets cover combinations of mode / dither (Floyd-Steinberg, Bayer 8/16) / edge detection (Sobel, DoG). Switching to a braille preset triggers a re-resize at the larger 2W × 4H source canvas. Aspect-preserving fit matches viuer's `fit_dimensions`.
+- **Image-Driven** (v0.4.0 Phases 1 + 2 + 4): `PhotoPattern` — instantiated on demand when `splash --photo <path>` is supplied. Decodes via `sharp`; runs an `edge → dither → renderer` pipeline per frame. Async lifecycle (`load()` + `prepareForSize()`) sits off the render path; `render()` itself stays sync. Three render modes: half-block (2× vertical resolution via `HalfBlockRenderer`), braille (8× resolution via `BrailleRenderer`), and symbol (8× resolution via `SymbolRenderer`, chafa-style 8×8 bitmap matching). Eighteen presets cover combinations of mode / dither (Floyd-Steinberg, Bayer 8/16) / edge detection (Sobel, DoG) / symbol-set tag mask. Switching mode triggers an async re-resize at the new mode's canvas size. Aspect-preserving fit matches viuer's `fit_dimensions`.
 
 **Pattern Implementation Constraints**:
 
@@ -232,7 +242,7 @@ interface Pattern {
 
 ---
 
-## Photo Rendering Pipeline (v0.4.0 Phases 1 + 2)
+## Photo Rendering Pipeline (v0.4.0 Phases 1 + 2 + 4)
 
 `PhotoPattern` is the only pattern that consumes external input (an image file via `--photo PATH`). To keep `render()` synchronous, it splits image work across three lifecycle phases:
 
@@ -263,40 +273,43 @@ working RGBA buffer
  floydSteinberg  or  bayerOrdered (in place, 1-bit or 8-level quantization)
         │
         ▼
- renderHalfBlock  or  renderBraille  (writes into Cell[][])
+ renderHalfBlock  or  renderBraille  or  renderSymbol  (writes into Cell[][])
 ```
 
-The pipeline is fully gated by preset config — a preset that sets `edge: 'off'` and `dither: 'none'` skips both stages and feeds the cached pixels straight into the renderer (Phase 1 default behavior).
+The pipeline is fully gated by preset config — a preset that sets `edge: 'off'` and `dither: 'none'` skips both stages and feeds the cached pixels straight into the renderer (Phase 1 default behavior). The symbol-mode renderer applies its own per-pixel preprocessing (`grayscale`, `invert`, `contrast`) inline during patch extraction, so edge/dither stages typically aren't paired with symbol presets in v0.4.0.
 
 ### Mode-aware resize
 
 The cached resize size depends on the preset's `mode`:
 
-| Mode      | Source canvas (pixels) | Resolution multiplier  |
-| --------- | ---------------------- | ---------------------- |
-| halfblock | `width × height·2`     | 2× vertical            |
-| braille   | `width·2 × height·4`   | 8× total (2× h × 4× v) |
+| Mode      | Source canvas (pixels) | Resolution multiplier                                         |
+| --------- | ---------------------- | ------------------------------------------------------------- |
+| halfblock | `width × height·2`     | 2× vertical                                                   |
+| braille   | `width·2 × height·4`   | 8× total (2× h × 4× v)                                        |
+| symbol    | `width·8 × height·8`   | 8× horizontal × 8× vertical (one 8×8 patch per terminal cell) |
 
-Switching preset (e.g., from preset 6 halfblock-Sobel to preset 11 braille-Sobel) invalidates the resize cache, kicking off an async `prepareForSize()` on the next frame. The first frame after a switch may render against the previous cache; sharp typically completes the new resize in under 16 ms.
+Switching preset (e.g., from preset 6 halfblock-Sobel to preset 11 braille-Sobel, or to preset 13 symbol) invalidates the resize cache, kicking off an async `prepareForSize()` on the next frame. The first frame after a switch may render against the previous cache; sharp typically completes the new resize in under 16 ms.
 
 ### Source-of-truth references
 
-| Algorithm               | Implementation                                       | Tests                                           |
-| ----------------------- | ---------------------------------------------------- | ----------------------------------------------- |
-| Half-block emit         | `src/renderer/HalfBlockRenderer.ts`                  | `tests/unit/renderer/HalfBlockRenderer.test.ts` |
-| Braille bit-pack        | `src/renderer/BrailleRenderer.ts`                    | `tests/unit/renderer/BrailleRenderer.test.ts`   |
-| Floyd-Steinberg dither  | `src/utils/dither.ts` → `floydSteinberg`             | `tests/unit/utils/dither.test.ts`               |
-| Bayer ordered dither    | `src/utils/dither.ts` → `bayerOrdered`, `BAYER_8/16` | `tests/unit/utils/dither.test.ts`               |
-| BT.601 luminance        | `src/utils/edges.ts` → `rgbaToLuminance`             | `tests/unit/utils/edges.test.ts`                |
-| Sobel magnitude         | `src/utils/edges.ts` → `sobelMagnitude`              | `tests/unit/utils/edges.test.ts`                |
-| Difference of Gaussians | `src/utils/edges.ts` → `differenceOfGaussians`       | `tests/unit/utils/edges.test.ts`                |
-| Mask → RGBA bridge      | `src/utils/edges.ts` → `maskToRgba`                  | `tests/unit/utils/edges.test.ts`                |
+| Algorithm               | Implementation                                              | Tests                                           |
+| ----------------------- | ----------------------------------------------------------- | ----------------------------------------------- |
+| Half-block emit         | `src/renderer/HalfBlockRenderer.ts`                         | `tests/unit/renderer/HalfBlockRenderer.test.ts` |
+| Braille bit-pack        | `src/renderer/BrailleRenderer.ts`                           | `tests/unit/renderer/BrailleRenderer.test.ts`   |
+| Symbol bitmap matcher   | `src/renderer/SymbolRenderer.ts`, `src/renderer/symbols.ts` | `tests/unit/renderer/SymbolRenderer.test.ts`    |
+| Floyd-Steinberg dither  | `src/utils/dither.ts` → `floydSteinberg`                    | `tests/unit/utils/dither.test.ts`               |
+| Bayer ordered dither    | `src/utils/dither.ts` → `bayerOrdered`, `BAYER_8/16`        | `tests/unit/utils/dither.test.ts`               |
+| BT.601 luminance        | `src/utils/edges.ts` → `rgbaToLuminance`                    | `tests/unit/utils/edges.test.ts`                |
+| Sobel magnitude         | `src/utils/edges.ts` → `sobelMagnitude`                     | `tests/unit/utils/edges.test.ts`                |
+| Difference of Gaussians | `src/utils/edges.ts` → `differenceOfGaussians`              | `tests/unit/utils/edges.test.ts`                |
+| Mask → RGBA bridge      | `src/utils/edges.ts` → `maskToRgba`                         | `tests/unit/utils/edges.test.ts`                |
 
 ### Tuning notes
 
 - **DoG defaults**: σ1=1, σ2=2 (changed from canonical Marr–Hildreth σ2=1.6 in May 2026 after empirical comparison on a 71×48 photo showed σ2=1.6 underflows: max magnitude 33/255 vs. 47/255 at σ2=2). Override per-call for higher-resolution sources.
 - **Phase 1 `edge-only` preset (id 6)**: shipped as a hard-threshold stub in Phase 1; upgraded to real Sobel in Phase 2. Existing preset id is preserved.
-- **Future modes**: Phase 4 will add a `mode: 'symbol'` (chafa-style 8×8 bitmap matcher), Phase 5 will add `mode: 'kitty' | 'iterm2' | 'sixel'` (protocol pass-through). Both plug into the same dispatch in `PhotoPattern.render()`.
+- **Phase 4 `mode: 'symbol'`** (added May 2026): chafa-style 8×8 bitmap matcher. Plugs into the same dispatch in `PhotoPattern.render()` and uses the same `prepareForSize()` flow as halfblock / braille — just with a larger source canvas (8W × 8H).
+- **Future modes**: Phase 5 will add `mode: 'kitty' | 'iterm2' | 'sixel'` (protocol pass-through), plugging into the same dispatch.
 
 ---
 

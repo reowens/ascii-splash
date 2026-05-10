@@ -162,7 +162,7 @@ splash --pattern quicksilver --quality high --theme starlight --no-mouse
 # Render an image (v0.4.0+, requires sharp)
 splash --photo path/to/photo.jpg
 splash --photo ~/Pictures/cat.png --theme matrix
-# After it loads, press `.` / `,` to cycle through 12 photo presets
+# After it loads, press `.` / `,` to cycle through 18 photo presets
 # (halfblock, braille, dither, edge — see "Photo Mode" below).
 
 # Layered scene: photo background + procedural overlay (v0.4.0 Phase 3+)
@@ -189,7 +189,7 @@ splash -h
 | `--quality`  | `-q`  | Performance mode          | low, medium (default), high                                                                                                                                                                                    |
 | `--fps`      | `-f`  | Custom FPS (10-60)        | Number (overrides performance mode FPS)                                                                                                                                                                        |
 | `--theme`    | `-t`  | Color theme               | ocean (default), matrix, starlight, fire, monochrome                                                                                                                                                           |
-| `--photo`    |       | Render an image (v0.4.0+) | Path to a JPEG / PNG / WebP / etc. that `sharp` can decode. Adds a 24th `photo` pattern with 12 presets.                                                                                                       |
+| `--photo`    |       | Render an image (v0.4.0+) | Path to a JPEG / PNG / WebP / etc. that `sharp` can decode. Adds a 24th `photo` pattern with 18 presets across halfblock / braille / symbol modes.                                                             |
 | `--no-mouse` |       | Disable mouse             | Flag (no value)                                                                                                                                                                                                |
 | `--version`  | `-V`  | Show version              |                                                                                                                                                                                                                |
 | `--help`     | `-h`  | Show help                 |                                                                                                                                                                                                                |
@@ -198,22 +198,28 @@ splash -h
 
 `splash --photo PATH` adds a `PhotoPattern` alongside the 23 procedural patterns. The image is decoded via `sharp`, resized to fit the terminal preserving aspect ratio, and drawn into the same `Cell[][]` buffer the procedural patterns use — so themes, the command system, favorites, etc. all keep working.
 
-| Preset | Name              | Mode       | Pipeline                                    |
-| ------ | ----------------- | ---------- | ------------------------------------------- |
-| 1      | Default           | half-block | truecolor, no preprocessing                 |
-| 2      | High Contrast     | half-block | contrast 1.6× around mid-gray               |
-| 3      | Inverted          | half-block | channel inversion                           |
-| 4      | Grayscale         | half-block | BT.601 luminance only                       |
-| 5      | Background Tinted | half-block | space + bg color (single-color cells)       |
-| 6      | Edge-Only (Sobel) | half-block | Sobel magnitude → threshold 64              |
-| 7      | Edge-Only (DoG)   | half-block | Difference-of-Gaussians σ=(1,2) → thresh 16 |
-| 8      | Braille           | braille    | luminance threshold 128, 8× resolution      |
-| 9      | Braille Inverted  | braille    | inverted threshold                          |
-| 10     | Braille Dithered  | braille    | Floyd-Steinberg → braille                   |
-| 11     | Braille Edges     | braille    | Sobel → braille line art                    |
-| 12     | Halfblock Bayer   | half-block | Bayer 8×8 ordered dither, 8 levels          |
+| Preset | Name                 | Mode       | Pipeline                                                                      |
+| ------ | -------------------- | ---------- | ----------------------------------------------------------------------------- |
+| 1      | Default              | half-block | truecolor, no preprocessing                                                   |
+| 2      | High Contrast        | half-block | contrast 1.6× around mid-gray                                                 |
+| 3      | Inverted             | half-block | channel inversion                                                             |
+| 4      | Grayscale            | half-block | BT.601 luminance only                                                         |
+| 5      | Background Tinted    | half-block | space + bg color (single-color cells)                                         |
+| 6      | Edge-Only (Sobel)    | half-block | Sobel magnitude → threshold 64                                                |
+| 7      | Edge-Only (DoG)      | half-block | Difference-of-Gaussians σ=(1,2) → thresh 16                                   |
+| 8      | Braille              | braille    | luminance threshold 128, 8× resolution                                        |
+| 9      | Braille Inverted     | braille    | inverted threshold                                                            |
+| 10     | Braille Dithered     | braille    | Floyd-Steinberg → braille                                                     |
+| 11     | Braille Edges        | braille    | Sobel → braille line art                                                      |
+| 12     | Halfblock Bayer      | half-block | Bayer 8×8 ordered dither, 8 levels                                            |
+| 13     | Symbol               | symbol     | chafa-style 8×8 matcher, all 34 candidates (ASCII + block + quadrant + shade) |
+| 14     | Symbol ASCII         | symbol     | matcher restricted to ASCII shapes — text-art aesthetic                       |
+| 15     | Symbol Block         | symbol     | matcher restricted to blocks / quadrants / shades — no letters                |
+| 16     | Symbol High-Contrast | symbol     | all candidates, contrast 1.6× — punchier output                               |
+| 17     | Symbol Mono          | symbol     | all candidates, grayscale luminance                                           |
+| 18     | Symbol ASCII Mono    | symbol     | ASCII only + grayscale — pure text-art monochrome                             |
 
-Cycle presets at runtime with `.` / `,`, or jump directly with `c08` (preset 8). Half-block presets give 2× vertical resolution via `▀` / `▄` with 24-bit fg+bg ANSI per cell; braille presets pack 8 dots per cell using U+2800–U+28FF for 8× resolution at the cost of being monochrome per cell.
+Cycle presets at runtime with `.` / `,`, or jump directly with `c13` (preset 13). Half-block presets give 2× vertical resolution via `▀` / `▄` with 24-bit fg+bg ANSI per cell; braille presets pack 8 dots per cell using U+2800–U+28FF for 8× resolution at the cost of being monochrome per cell; symbol presets render at 8× resolution by matching each 8×8 source patch against 34 hand-authored bitmap candidates and emitting the codepoint whose lit/unlit partition best separates the patch into two color clusters (chafa-style — the "wow mode").
 
 ### 🎬 Layered scenes (v0.4.0 Phase 3+, on `feature/v0.4.0-phase1-photo-pattern`)
 
@@ -241,7 +247,7 @@ Cycle presets at runtime with `.` / `,`, or jump directly with `c08` (preset 8).
 - `splash --photo ~/Pictures/night-sky.jpg --pattern starfield` — additional moving starfield over a star photo
 - `splash --photo ~/Pictures/code-screenshot.png --pattern matrix` — green matrix rain falling through the source code
 
-> **Status:** v0.4.0 Phases 1 + 2 + 3 are done on the feature branch but not yet released to npm. Phase 4 (chafa-style symbol matcher — the wow-mode rendering) is the next milestone.
+> **Status:** v0.4.0 Phases 1 + 2 + 3 + 4 are done on the feature branch but not yet released to npm. Phase 5 (Kitty / iTerm2 / Sixel native protocol pass-through) is the next milestone.
 
 ## 📝 Configuration File
 
@@ -778,9 +784,9 @@ For the complete command reference, see the section above.
 The next major release is **v0.4.0 — "From Engine to Canvas"**, which makes images and video first-class inputs alongside the existing procedural patterns. The full plan is in [docs/planning/v0.4.0-ROADMAP.md](docs/planning/v0.4.0-ROADMAP.md). Highlights:
 
 - ✅ **`splash --photo path/to/img.jpg`** — render any image at 2× vertical resolution using upper/lower half-block characters (Phase 1, done on the feature branch).
-- ✅ **Braille mode + Floyd-Steinberg / Bayer dithering + Sobel / DoG edge detection** — line art and high-contrast portraits, 12 photo presets total (Phase 2, done on the feature branch).
+- ✅ **Braille mode + Floyd-Steinberg / Bayer dithering + Sobel / DoG edge detection** — line art and high-contrast portraits (Phase 2, done on the feature branch).
 - ✅ **Scene composition** — layer procedural patterns over photo backgrounds via `splash --photo bg.jpg --pattern starfield` (Phase 3, done on the feature branch; the v0.4 headline).
-- 📋 **Chafa-style symbol matcher** — wow-mode rendering with implicit edge detection via 8×8 bitmap matching (Phase 4).
+- ✅ **Chafa-style symbol matcher** — wow-mode rendering with implicit edge detection via 8×8 bitmap matching. 34 hand-authored symbols across ASCII / block / quadrant / shade tag groups; per 8×8 patch the matcher picks the bitmap whose lit/unlit partition best separates the patch into two color clusters. 18 photo presets total (Phase 4, done on the feature branch).
 - 📋 **Native protocol pass-through** for Kitty / iTerm2 / Sixel terminals — the photo goes straight to the GPU when supported, halfblock fallback otherwise (Phase 5).
 - 📋 **Color-mask sprites** — multi-color hand-drawn scenes (Phase 6).
 - 📋 **Seeded PRNG + share codes + asciinema export** — `splash share` produces a code that reproduces an exact scene; `splash record` writes a `.cast` you can drop into a PR (Phases 7-8).
@@ -806,7 +812,7 @@ Built with:
 Photo-mode rendering is informed by reading (not copying):
 
 - [viuer](https://github.com/atanunq/viuer) (MIT) — the half-block algorithm in `block.rs` is the basis for `HalfBlockRenderer`.
-- [chafa](https://hpjansson.org/chafa/) (LGPL-3.0) — algorithm reference for Bayer dithering and the upcoming symbol matcher.
+- [chafa](https://hpjansson.org/chafa/) (LGPL-3.0) — algorithm reference for Bayer dithering and the Phase 4 symbol matcher. The matcher core was re-implemented from the algorithm description in `symbol-renderer.c:98-268`; bitmaps were hand-authored from scratch.
 - [drawille](https://github.com/asciimoo/drawille) (AGPL-3.0) — Unicode Braille bit-pack reference (re-derived independently from the U+2800 spec).
 - [ascii-image-converter](https://github.com/TheZoraiz/ascii-image-converter) (Apache-2.0) — brightness ramp and braille reference.
 

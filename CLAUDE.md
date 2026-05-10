@@ -20,7 +20,7 @@
 - **138 total presets** (6 per pattern)
 - **5 color themes** (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **40+ commands** via multi-key command system
-- **2216 tests** with 92%+ coverage (2097 in v0.3.0; +119 from in-flight v0.4.0 Phases 1+2+3)
+- **2244 tests** with 92%+ coverage (2097 in v0.3.0; +147 from in-flight v0.4.0 Phases 1+2+3+4)
 - **Performance**: <5% CPU, ~40-50MB RAM
 - **Target**: Node.js 20+
 
@@ -29,7 +29,8 @@
 - **Phase 1 done on branch**: `PhotoPattern` (24th, optional via `--photo <path>`), `HalfBlockRenderer`, `Cell.bg` field for two-tone cells, 6 photo presets, `sharp` runtime dep.
 - **Phase 2 done on branch**: `BrailleRenderer` (8× resolution via U+2800–U+28FF), Floyd-Steinberg + Bayer dithering, Sobel + DoG edge detection, 6 additional presets (ids 7–12), `edge-only` upgraded from stub to real Sobel.
 - **Phase 3 done on branch**: `LayeredPattern` composes a `PhotoPattern` background with a procedural overlay (`splash --photo bg.jpg --pattern starfield`). Plasma + Wave gained an opt-in `transparentBg` flag for dense-pattern compositing; sparse patterns (Matrix, Starfield, Lightning, …) compose naturally. Adds a `'layered'` slot displayed as `Photo + <Overlay>`. Bonus: latent Phase 1 theme-cycle crash fixed via a `buildPatterns()` helper that re-attaches the photo on every theme rebuild.
-- Phases 4–9 planned: chafa-style symbol matcher, Kitty/iTerm2/Sixel pass-through, color-mask sprites, seeded PRNG + share codes, asciinema export.
+- **Phase 4 done on branch**: chafa-style symbol matcher. `SymbolRenderer` picks, per 8×8 source patch, the bitmap whose lit/unlit partition best separates the patch into two color clusters (squared-color error). 34 hand-authored bitmaps across `TAG_ASCII | TAG_BLOCK | TAG_QUADRANT | TAG_SHADE`. Three-step tiebreaker (err → fg luminance → litCount) makes the choice between visually-equivalent bit-complement symbols deterministic. Adds `mode: 'symbol'` to `PhotoPattern` with an 8× source canvas and 6 new presets (ids 13–18) covering all-tags / ASCII-only / block-only / high-contrast / grayscale combos. 18 photo presets total.
+- Phases 5–9 planned: Kitty/iTerm2/Sixel pass-through, color-mask sprites, seeded PRNG + share codes, asciinema export.
 - Full plan: [docs/planning/v0.4.0-ROADMAP.md](docs/planning/v0.4.0-ROADMAP.md).
 
 **Tech Stack**:
@@ -130,7 +131,7 @@ splash/
 │       ├── SnowfallParkPattern.ts # Scene-based (v0.3.0)
 │       └── MetaballPattern.ts     # Enhanced (v0.3.0)
 │
-├── tests/                        # Jest test suites (2216 tests)
+├── tests/                        # Jest test suites (2244 tests)
 │   ├── unit/patterns/           # Pattern tests (23 + optional Photo)
 │   ├── unit/engine/             # SceneGraph, SpriteManager, ParticleSystem
 │   ├── unit/ui/                 # StatusBar, ToastManager, HelpOverlay
@@ -352,8 +353,20 @@ interface Theme {
   - 6 new presets (ids 7–12); `edge-only` (id 6) upgraded from stub to real Sobel; 12 total
   - +57 tests; total 2197
   - All Phase 2 features reachable via runtime preset cycling — no new CLI flags (deferred to Phase 7's seeded-share-code mechanism)
-- 📋 **Phase 3** — scene composition (photo bg + procedural overlay; the v0.4 headline)
-- 📋 **Phase 4–5** — chafa-style symbol matcher (~200 LOC port); Kitty / iTerm2 / Sixel pass-through
+- ✅ **Phase 3 — Scene composition (photo bg + procedural overlay)** (done on branch, awaiting review)
+  - `splash --photo bg.jpg --pattern starfield` builds a `LayeredPattern` slot displayed as `Photo + <Overlay>`
+  - `transparentBg` opt-in on Plasma + Wave for dense-overlay compositing; sparse overlays compose naturally via the existing space-character convention
+  - Bonus fix: `buildPatterns()` helper in `main.ts` re-attaches `PhotoPattern` + layered slot on every theme rebuild (fixes a latent Phase 1 theme-cycle crash)
+  - +19 tests; total 2216
+- ✅ **Phase 4 — Chafa-style symbol matcher** (done on branch, awaiting review)
+  - `SymbolRenderer` (`src/renderer/SymbolRenderer.ts`): per 8×8 patch picks the bitmap whose lit/unlit partition best separates the patch into two color clusters (squared color error)
+  - 34 hand-authored bitmaps in `src/renderer/symbols.ts` across `TAG_ASCII | TAG_BLOCK | TAG_QUADRANT | TAG_SHADE` (16 ASCII shapes + 16 quadrant/block + 3 shades; space + `█` shared across tags). Numeric tag bitmask, not a TS const enum (repo eslint config rejects const enums)
+  - Three-step tiebreaker (lowest err → higher fg luminance → higher litCount) — bit-complement symbols tie on err with fg/bg swapped; the tiebreaker picks the "lit = brighter" interpretation deterministically and settles uniform patches toward `█` (avoids leaking terminal bg through solid-color regions)
+  - `PhotoRenderMode` extended with `'symbol'`; `canvasForMode` returns `width·8 × height·8` for symbol mode; mode change invalidates the resize cache. `getMetrics().mode` enum extended to `0|1|2`
+  - 6 new presets (ids 13–18): `symbol`, `symbol-ascii`, `symbol-block`, `symbol-high-contrast`, `symbol-mono`, `symbol-ascii-mono`. PhotoPattern total: 18 presets
+  - +28 tests (22 in `SymbolRenderer.test.ts`, +6 in `photo.test.ts`); total 2244
+  - All Phase 4 features reachable via runtime preset cycling — no new CLI flags
+- 📋 **Phase 5** — Kitty / iTerm2 / Sixel pass-through
 - 📋 **Phase 6** — color-mask sprites (richer hand-drawn scenes)
 - 📋 **Phase 7–8** — seeded PRNG + share codes; asciinema `.cast` export
 - 📋 **Phase 9 (stretch)** — GIF export
@@ -395,7 +408,7 @@ npm run test:coverage # Coverage report
 - `tests/unit/renderer/`: Renderer, Buffer & TransitionManager tests
 - `tests/unit/ui/`: UI component tests (StatusBar, ToastManager, HelpOverlay)
 
-**Coverage**: 92%+ (2216 tests)
+**Coverage**: 92%+ (2244 tests)
 
 ---
 
@@ -481,6 +494,6 @@ npm run test:coverage # Coverage report
 
 ---
 
-**Last Updated**: May 9, 2026 (v0.4.0 Phases 1 + 2 + 3 on `feature/v0.4.0-phase1-photo-pattern`; 2216 tests; LayeredPattern + transparentBg conventions added)
+**Last Updated**: May 10, 2026 (v0.4.0 Phases 1 + 2 + 3 + 4 on `feature/v0.4.0-phase1-photo-pattern`; 2244 tests; chafa-style symbol matcher added — 18 photo presets across halfblock / braille / symbol modes)
 **For**: AI Assistant navigation and project context
 **Human Readers**: Please see [README.md](README.md) instead

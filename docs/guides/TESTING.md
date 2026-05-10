@@ -2,25 +2,27 @@
 
 ## Overview
 
-This document outlines the comprehensive testing strategy for ascii-splash, a terminal ASCII animation application with 23 procedural patterns + optional `PhotoPattern` (24th, opt-in via `--photo PATH`), 138 procedural presets + 12 photo presets, 5 themes, and an advanced command system.
+This document outlines the comprehensive testing strategy for ascii-splash, a terminal ASCII animation application with 23 procedural patterns + optional `PhotoPattern` (24th, opt-in via `--photo PATH`), 138 procedural presets + 18 photo presets across halfblock / braille / symbol modes, 5 themes, and an advanced command system.
 
-**Current Status**: ✅ **2197 tests passing** across 53 test suites (100%)
+**Current Status**: ✅ **2244 tests passing** across 55 test suites (100%)
 **Current Coverage**: 92%+ overall (core components at 96-100%)
 **Target Coverage**: 80%+ for core logic ✅ **EXCEEDED**
 **Testing Framework**: Jest 30.x (✅ Installed and configured, ESM-compatible)
-**Document Version**: 4.0 (v0.4.0 Phases 1 + 2 done on branch — added halfblock / braille / dither / edges suites)
+**Document Version**: 4.4 (v0.4.0 Phases 1 + 2 + 3 + 4 done on branch — added halfblock / braille / dither / edges / LayeredPattern / SymbolRenderer / symbols suites)
 
-### v0.4.0 additions (Phases 1 + 2, on `feature/v0.4.0-phase1-photo-pattern`)
+### v0.4.0 additions (Phases 1 + 2 + 3 + 4, on `feature/v0.4.0-phase1-photo-pattern`)
 
-| Test suite                                      | Tests | What it covers                                                                                                                |
-| ----------------------------------------------- | ----- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `tests/unit/renderer/HalfBlockRenderer.test.ts` | 19    | Per-pixel ▀ / ▄ emission, transparency, odd-height (unpaired) row, `bgTint`, contrast, threshold, invert                      |
-| `tests/unit/renderer/BrailleRenderer.test.ts`   | 19    | Per-dot bit-mapping (8 cases), all-on / all-off, mean-of-lit-dots color, threshold sweep, alpha, bounds                       |
-| `tests/unit/utils/dither.test.ts`               | 14    | Floyd-Steinberg quantization at levels=2/8, brightness preservation, alpha pass-through, Bayer hue-preserve, matrix structure |
-| `tests/unit/utils/edges.test.ts`                | 14    | BT.601 luminance, Sobel vertical / horizontal step edges, DoG band-pass, σ2 ≤ σ1 error, output clamp                          |
-| `tests/unit/patterns/photo.test.ts` (extended)  | 24    | Lifecycle (load / prepareForSize / render), 12 presets, mode dispatch, edge presets, dither presets                           |
+| Test suite                                      | Tests | What it covers                                                                                                                                                                                                                                 |
+| ----------------------------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tests/unit/renderer/HalfBlockRenderer.test.ts` | 19    | Per-pixel ▀ / ▄ emission, transparency, odd-height (unpaired) row, `bgTint`, contrast, threshold, invert                                                                                                                                       |
+| `tests/unit/renderer/BrailleRenderer.test.ts`   | 19    | Per-dot bit-mapping (8 cases), all-on / all-off, mean-of-lit-dots color, threshold sweep, alpha, bounds                                                                                                                                        |
+| `tests/unit/renderer/SymbolRenderer.test.ts`    | 22    | Exact-match codepoint selection (`                                                                                                                                                                                                             | `, `+`, `▀`, `▘`, `▚`, `▒`), uniform-color tiebreak, tag filtering, preprocessing (grayscale/invert), edge cases, perf sanity (80×24 < 200 ms) |
+| `tests/unit/utils/dither.test.ts`               | 14    | Floyd-Steinberg quantization at levels=2/8, brightness preservation, alpha pass-through, Bayer hue-preserve, matrix structure                                                                                                                  |
+| `tests/unit/utils/edges.test.ts`                | 14    | BT.601 luminance, Sobel vertical / horizontal step edges, DoG band-pass, σ2 ≤ σ1 error, output clamp                                                                                                                                           |
+| `tests/unit/patterns/photo.test.ts` (extended)  | 36    | Lifecycle (load / prepareForSize / render), 18 presets, mode dispatch (halfblock / braille / symbol), edge presets, dither presets, symbol presets (mode metric, 8× canvas, cache invalidation, ASCII-only emission, block-codepoint emission) |
+| `tests/unit/patterns/LayeredPattern.test.ts`    | 19    | Photo + overlay composition, sparse vs. dense overlay behavior, dirty-rect under overlay, lifecycle delegation (preset / reset / mouse / theme), `transparentBg` per-pattern                                                                   |
 
-**Total v0.4.0 delta**: +100 tests vs. v0.3.0's 2097 baseline (43 in Phase 1, 57 in Phase 2). New file count: 6.
+**Total v0.4.0 delta**: +147 tests vs. v0.3.0's 2097 baseline (43 in Phase 1, 57 in Phase 2, 19 in Phase 3, 28 in Phase 4). New file count: 8.
 
 **Quick Links**:
 
@@ -949,7 +951,7 @@ With **2197 tests** and **92%+ coverage** (v0.3.0 baseline + v0.4.0 Phases 1 + 2
 3. **Snapshot Tests** (Optional) - Pattern output regression testing
 4. **Cross-Terminal Testing** (Manual) - Verify behavior across different terminal emulators
 5. **Performance Profiling** (Manual) - Long-running stability tests (5+ hours)
-6. **Visual review of v0.4.0 photo presets** (Manual) - Confirm each of the 12 photo presets looks intended on a real terminal across the 5 themes
+6. **Visual review of v0.4.0 photo presets** (Manual) - Confirm each of the 18 photo presets (halfblock / braille / symbol) looks intended on a real terminal across the 5 themes
 
 **For current project status**, see [PROJECT_STATUS.md](PROJECT_STATUS.md).
 
