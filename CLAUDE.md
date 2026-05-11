@@ -14,22 +14,25 @@
 
 **ascii-splash** is a lightweight terminal ASCII animation application that displays interactive animated patterns in a terminal window. Designed for IDE workspaces as an ambient visual effect.
 
-**Key Stats** (released v0.3.0):
+**Key Stats** (released v0.4.0, May 10, 2026):
 
-- **23 interactive patterns** with full theme support (including 5 scene-based patterns)
-- **138 total presets** (6 per pattern)
+- **23 interactive procedural patterns** with full theme support (including 5 scene-based patterns)
+- **+ optional `PhotoPattern`** (24th slot, loaded only when `--photo <path>` is supplied) with **18 photo presets** across half-block / braille / symbol render modes
+- **+ optional `LayeredPattern`** slot (Photo + procedural overlay, e.g. `splash --photo bg.jpg --pattern starfield`)
+- **138 procedural presets** (6 per pattern) + 18 photo presets
 - **5 color themes** (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **40+ commands** via multi-key command system
-- **2244 tests** with 92%+ coverage (2097 in v0.3.0; +147 from in-flight v0.4.0 Phases 1+2+3+4)
+- **2244 tests** with 92%+ coverage (2097 in v0.3.0; +147 from v0.4.0 Phases 1–4)
 - **Performance**: <5% CPU, ~40-50MB RAM
 - **Target**: Node.js 20+
 
-**v0.4.0 in flight** (branch `feature/v0.4.0-phase1-photo-pattern`):
+**v0.4.0 released** (2026-05-10, npm: `ascii-splash@0.4.0`):
 
-- **Phase 1 done on branch**: `PhotoPattern` (24th, optional via `--photo <path>`), `HalfBlockRenderer`, `Cell.bg` field for two-tone cells, 6 photo presets, `sharp` runtime dep.
-- **Phase 2 done on branch**: `BrailleRenderer` (8× resolution via U+2800–U+28FF), Floyd-Steinberg + Bayer dithering, Sobel + DoG edge detection, 6 additional presets (ids 7–12), `edge-only` upgraded from stub to real Sobel.
-- **Phase 3 done on branch**: `LayeredPattern` composes a `PhotoPattern` background with a procedural overlay (`splash --photo bg.jpg --pattern starfield`). Plasma + Wave gained an opt-in `transparentBg` flag for dense-pattern compositing; sparse patterns (Matrix, Starfield, Lightning, …) compose naturally. Adds a `'layered'` slot displayed as `Photo + <Overlay>`. Bonus: latent Phase 1 theme-cycle crash fixed via a `buildPatterns()` helper that re-attaches the photo on every theme rebuild.
-- **Phase 4 done on branch**: chafa-style symbol matcher. `SymbolRenderer` picks, per 8×8 source patch, the bitmap whose lit/unlit partition best separates the patch into two color clusters (squared-color error). 34 hand-authored bitmaps across `TAG_ASCII | TAG_BLOCK | TAG_QUADRANT | TAG_SHADE`. Three-step tiebreaker (err → fg luminance → litCount) makes the choice between visually-equivalent bit-complement symbols deterministic. Adds `mode: 'symbol'` to `PhotoPattern` with an 8× source canvas and 6 new presets (ids 13–18) covering all-tags / ASCII-only / block-only / high-contrast / grayscale combos. 18 photo presets total.
+- **Phase 1 shipped**: `PhotoPattern` (24th slot, optional via `--photo <path>`), `HalfBlockRenderer`, `Cell.bg` field for two-tone cells, 6 photo presets, `sharp` runtime dep.
+- **Phase 2 shipped**: `BrailleRenderer` (8× resolution via U+2800–U+28FF), Floyd-Steinberg + Bayer dithering, Sobel + DoG edge detection, 6 additional presets (ids 7–12), `edge-only` upgraded from stub to real Sobel.
+- **Phase 3 shipped**: `LayeredPattern` composes a `PhotoPattern` background with a procedural overlay (`splash --photo bg.jpg --pattern starfield`). Plasma + Wave gained an opt-in `transparentBg` flag for dense-pattern compositing; sparse patterns (Matrix, Starfield, Lightning, …) compose naturally. Adds a `'layered'` slot displayed as `Photo + <Overlay>`. Bonus: latent Phase 1 theme-cycle crash fixed via a `buildPatterns()` helper that re-attaches the photo on every theme rebuild.
+- **Phase 4 shipped**: chafa-style symbol matcher. `SymbolRenderer` picks, per 8×8 source patch, the bitmap whose lit/unlit partition best separates the patch into two color clusters (squared-color error). 34 hand-authored bitmaps across `TAG_ASCII | TAG_BLOCK | TAG_QUADRANT | TAG_SHADE`. Three-step tiebreaker (err → fg luminance → litCount) makes the choice between visually-equivalent bit-complement symbols deterministic. Adds `mode: 'symbol'` to `PhotoPattern` with an 8× source canvas and 6 new presets (ids 13–18) covering all-tags / ASCII-only / block-only / high-contrast / grayscale combos. 18 photo presets total.
+- Release infra: `release.yml` does CI-side `npm publish --provenance` gated on tarball audit + tag-on-main + tag-matches-package.json. `npm version <bump>` fires `preversion` (test + typecheck) and `postversion` (push main + tag, watch CI, reinstall global) — one-command releases.
 - Phases 5–9 planned: Kitty/iTerm2/Sixel pass-through, color-mask sprites, seeded PRNG + share codes, asciinema export.
 - Full plan: [docs/planning/v0.4.0-ROADMAP.md](docs/planning/v0.4.0-ROADMAP.md).
 
@@ -316,8 +319,9 @@ interface Theme {
 
 ## Current Status (AI Awareness)
 
-**Released**: v0.3.0 - Next-Generation Terminal Graphics ✅ **STABLE RELEASE**
-**In flight**: v0.4.0 Phases 1 + 2 on branch `feature/v0.4.0-phase1-photo-pattern`
+**Released**: v0.4.0 — "Photos in the Terminal" ✅ **STABLE RELEASE** (2026-05-10)
+**Previous**: v0.3.0 — Next-Generation Terminal Graphics (2025-12-23)
+**Next**: Phases 5–9 of the v0.4 roadmap (Kitty/iTerm2/Sixel, color-mask sprites, share codes, asciinema export, GIF export) — branch TBD
 
 **v0.3.0 (released)**:
 
@@ -340,12 +344,12 @@ interface Theme {
 
 **v0.4.0 progress** (see [docs/planning/v0.4.0-ROADMAP.md](docs/planning/v0.4.0-ROADMAP.md)):
 
-- ✅ **Phase 1 — Half-block PhotoPattern** (done on branch, awaiting review)
+- ✅ **Phase 1 — Half-block PhotoPattern** (shipped in v0.4.0)
   - `splash --photo <path>` renders any image at 2× vertical resolution
   - 6 presets, aspect-preserving fit, truecolor fg+bg ANSI per cell
   - New `Cell.bg?: Color` field; backward-compatible
   - +43 tests
-- ✅ **Phase 2 — Braille mode + dithering + edge detection** (done on branch, awaiting review)
+- ✅ **Phase 2 — Braille mode + dithering + edge detection** (shipped in v0.4.0)
   - `BrailleRenderer` (8× resolution): U+2800–U+28FF codepoints, mean-of-lit-dots color
   - Floyd-Steinberg error-diffusion dither with configurable quantization levels
   - Bayer ordered dither (8×8 + 16×16, hue-preserving offsets)
@@ -353,12 +357,12 @@ interface Theme {
   - 6 new presets (ids 7–12); `edge-only` (id 6) upgraded from stub to real Sobel; 12 total
   - +57 tests; total 2197
   - All Phase 2 features reachable via runtime preset cycling — no new CLI flags (deferred to Phase 7's seeded-share-code mechanism)
-- ✅ **Phase 3 — Scene composition (photo bg + procedural overlay)** (done on branch, awaiting review)
+- ✅ **Phase 3 — Scene composition (photo bg + procedural overlay)** (shipped in v0.4.0)
   - `splash --photo bg.jpg --pattern starfield` builds a `LayeredPattern` slot displayed as `Photo + <Overlay>`
   - `transparentBg` opt-in on Plasma + Wave for dense-overlay compositing; sparse overlays compose naturally via the existing space-character convention
   - Bonus fix: `buildPatterns()` helper in `main.ts` re-attaches `PhotoPattern` + layered slot on every theme rebuild (fixes a latent Phase 1 theme-cycle crash)
   - +19 tests; total 2216
-- ✅ **Phase 4 — Chafa-style symbol matcher** (done on branch, awaiting review)
+- ✅ **Phase 4 — Chafa-style symbol matcher** (shipped in v0.4.0)
   - `SymbolRenderer` (`src/renderer/SymbolRenderer.ts`): per 8×8 patch picks the bitmap whose lit/unlit partition best separates the patch into two color clusters (squared color error)
   - 34 hand-authored bitmaps in `src/renderer/symbols.ts` across `TAG_ASCII | TAG_BLOCK | TAG_QUADRANT | TAG_SHADE` (16 ASCII shapes + 16 quadrant/block + 3 shades; space + `█` shared across tags). Numeric tag bitmask, not a TS const enum (repo eslint config rejects const enums)
   - Three-step tiebreaker (lowest err → higher fg luminance → higher litCount) — bit-complement symbols tie on err with fg/bg swapped; the tiebreaker picks the "lit = brighter" interpretation deterministically and settles uniform patches toward `█` (avoids leaking terminal bg through solid-color regions)
@@ -494,6 +498,6 @@ npm run test:coverage # Coverage report
 
 ---
 
-**Last Updated**: May 10, 2026 (v0.4.0 Phases 1 + 2 + 3 + 4 on `feature/v0.4.0-phase1-photo-pattern`; 2244 tests; chafa-style symbol matcher added — 18 photo presets across halfblock / braille / symbol modes)
+**Last Updated**: May 10, 2026 (v0.4.0 shipped — Phases 1–4 merged, tagged, and published to npm as `ascii-splash@0.4.0`; 2244 tests; release pipeline now fully automated via `npm version <bump>`)
 **For**: AI Assistant navigation and project context
 **Human Readers**: Please see [README.md](README.md) instead
