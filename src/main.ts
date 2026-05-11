@@ -259,7 +259,7 @@ async function main() {
         rotationSpeed: cfg.patterns?.tunnel?.rotationSpeed,
         radius: cfg.patterns?.tunnel?.radius,
       }),
-      new LightningPattern(theme, {
+      new LightningPattern(theme, new Mulberry32(randomSeed()), {
         branchProbability: cfg.patterns?.lightning?.branchProbability,
         fadeTime: cfg.patterns?.lightning?.fadeTime,
         strikeInterval: cfg.patterns?.lightning?.strikeInterval,
@@ -321,7 +321,7 @@ async function main() {
         windStrength: cfg.patterns?.smoke?.windStrength,
         mouseBlowForce: cfg.patterns?.smoke?.mouseBlowForce,
       }),
-      new SnowPattern(theme, {
+      new SnowPattern(theme, new Mulberry32(randomSeed()), {
         particleCount: cfg.patterns?.snow?.particleCount,
         fallSpeed: cfg.patterns?.snow?.fallSpeed,
         windStrength: cfg.patterns?.snow?.windStrength,
@@ -331,11 +331,11 @@ async function main() {
         accumulation: cfg.patterns?.snow?.accumulation,
         mouseWindForce: cfg.patterns?.snow?.mouseWindForce,
       }),
-      new OceanBeachPattern(theme, {}),
+      new OceanBeachPattern(theme, new Mulberry32(randomSeed()), {}),
       new CampfirePattern(theme, {}),
-      new NightSkyPattern(theme, {}),
+      new NightSkyPattern(theme, new Mulberry32(randomSeed()), {}),
       new AquariumPattern(theme, new Mulberry32(randomSeed()), {}),
-      new SnowfallParkPattern(theme, {}),
+      new SnowfallParkPattern(theme, new Mulberry32(randomSeed()), {}),
       new MetaballPattern(theme, new Mulberry32(randomSeed()), {}),
     ];
   }

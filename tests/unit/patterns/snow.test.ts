@@ -1,5 +1,6 @@
 import { SnowPattern } from '../../../src/patterns/SnowPattern.js';
 import { Cell, Theme } from '../../../src/types/index.js';
+import { Mulberry32 } from '../../../src/utils/random.js';
 import { createMockTheme, createMockBuffer } from '../../utils/mocks.js';
 
 describe('SnowPattern', () => {
@@ -10,7 +11,7 @@ describe('SnowPattern', () => {
 
   beforeEach(() => {
     theme = createMockTheme();
-    pattern = new SnowPattern(theme);
+    pattern = new SnowPattern(theme, new Mulberry32(42));
     buffer = createMockBuffer(size.width, size.height);
   });
 
@@ -21,7 +22,7 @@ describe('SnowPattern', () => {
     });
 
     it('should accept custom config', () => {
-      const customPattern = new SnowPattern(theme, {
+      const customPattern = new SnowPattern(theme, new Mulberry32(42), {
         particleCount: 100,
         fallSpeed: 1.0,
         windStrength: 1.5,
@@ -390,7 +391,7 @@ describe('SnowPattern', () => {
 
   describe('particle types', () => {
     it('should render snow type particles', () => {
-      const snowPattern = new SnowPattern(theme, { particleType: 'snow' });
+      const snowPattern = new SnowPattern(theme, new Mulberry32(42), { particleType: 'snow' });
       snowPattern.render(buffer, 1000, size);
 
       const validChars = ['*', '❄', '·', '○', '•', '⋆', ' '];
@@ -402,7 +403,7 @@ describe('SnowPattern', () => {
     });
 
     it('should render cherry blossom particles', () => {
-      const cherryPattern = new SnowPattern(theme, { particleType: 'cherry' });
+      const cherryPattern = new SnowPattern(theme, new Mulberry32(42), { particleType: 'cherry' });
       cherryPattern.render(buffer, 1000, size);
 
       let foundCherryChar = false;
@@ -421,7 +422,7 @@ describe('SnowPattern', () => {
     });
 
     it('should render autumn leaf particles', () => {
-      const autumnPattern = new SnowPattern(theme, { particleType: 'autumn' });
+      const autumnPattern = new SnowPattern(theme, new Mulberry32(42), { particleType: 'autumn' });
       autumnPattern.render(buffer, 1000, size);
 
       let foundLeafChar = false;
@@ -440,7 +441,9 @@ describe('SnowPattern', () => {
     });
 
     it('should render confetti particles', () => {
-      const confettiPattern = new SnowPattern(theme, { particleType: 'confetti' });
+      const confettiPattern = new SnowPattern(theme, new Mulberry32(42), {
+        particleType: 'confetti',
+      });
       confettiPattern.render(buffer, 1000, size);
 
       const validChars = ['▪', '▫', '◾', '◽', '■', '□', '●', '○', '♦', '♢', ' '];
@@ -452,7 +455,7 @@ describe('SnowPattern', () => {
     });
 
     it('should render ash particles', () => {
-      const ashPattern = new SnowPattern(theme, { particleType: 'ash' });
+      const ashPattern = new SnowPattern(theme, new Mulberry32(42), { particleType: 'ash' });
       ashPattern.render(buffer, 1000, size);
 
       const validChars = ['·', '•', '∙', '⋅', '⋆', '˙', ' '];
@@ -545,7 +548,10 @@ describe('SnowPattern', () => {
 
   describe('accumulation', () => {
     it('should accumulate particles at bottom when enabled', () => {
-      const accPattern = new SnowPattern(theme, { accumulation: true, fallSpeed: 2.0 });
+      const accPattern = new SnowPattern(theme, new Mulberry32(42), {
+        accumulation: true,
+        fallSpeed: 2.0,
+      });
 
       // Simulate many frames to let particles fall
       for (let t = 1000; t < 20000; t += 100) {
@@ -559,7 +565,10 @@ describe('SnowPattern', () => {
     });
 
     it('should not accumulate particles when disabled', () => {
-      const noAccPattern = new SnowPattern(theme, { accumulation: false, fallSpeed: 2.0 });
+      const noAccPattern = new SnowPattern(theme, new Mulberry32(42), {
+        accumulation: false,
+        fallSpeed: 2.0,
+      });
 
       // Simulate many frames to let particles fall
       for (let t = 1000; t < 20000; t += 100) {

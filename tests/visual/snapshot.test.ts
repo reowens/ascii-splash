@@ -172,7 +172,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('SnowfallParkPattern should have snow and trees', () => {
-      const pattern = new SnowfallParkPattern(mockTheme);
+      const pattern = new SnowfallParkPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       for (let i = 0; i < 20; i++) {
@@ -199,7 +199,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('NightSkyPattern should have stars and possibly aurora', () => {
-      const pattern = new NightSkyPattern(mockTheme);
+      const pattern = new NightSkyPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       pattern.render(buffer, 1000, size);
@@ -211,7 +211,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('OceanBeachPattern should have waves and sand', () => {
-      const pattern = new OceanBeachPattern(mockTheme);
+      const pattern = new OceanBeachPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       pattern.render(buffer, 1000, size);

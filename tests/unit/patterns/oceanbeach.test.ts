@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeEach } from '@jest/globals';
 import { OceanBeachPattern } from '../../../src/patterns/OceanBeachPattern.js';
 import { Cell, Size, Theme } from '../../../src/types/index.js';
+import { Mulberry32 } from '../../../src/utils/random.js';
 import { createMockTheme, createMockBuffer, createMockPoint } from '../../utils/mocks.js';
 
 describe('OceanBeachPattern', () => {
@@ -11,7 +12,7 @@ describe('OceanBeachPattern', () => {
 
   beforeEach(() => {
     theme = createMockTheme('ocean');
-    pattern = new OceanBeachPattern(theme, {});
+    pattern = new OceanBeachPattern(theme, new Mulberry32(42), {});
     size = { width: 80, height: 40 };
     buffer = createMockBuffer(size.width, size.height);
   });
@@ -23,7 +24,7 @@ describe('OceanBeachPattern', () => {
     });
 
     test('should accept custom config', () => {
-      const customPattern = new OceanBeachPattern(theme, {
+      const customPattern = new OceanBeachPattern(theme, new Mulberry32(42), {
         waveSpeed: 2.0,
         waveAmplitude: 5,
         cloudSpeed: 0.5,
@@ -35,7 +36,7 @@ describe('OceanBeachPattern', () => {
     });
 
     test('should merge partial config with defaults', () => {
-      const partialPattern = new OceanBeachPattern(theme, { waveSpeed: 1.5 });
+      const partialPattern = new OceanBeachPattern(theme, new Mulberry32(42), { waveSpeed: 1.5 });
       expect(partialPattern).toBeDefined();
     });
   });
@@ -398,7 +399,7 @@ describe('OceanBeachPattern', () => {
       expect(() => {
         for (const themeName of themes) {
           const testTheme = createMockTheme(themeName);
-          const testPattern = new OceanBeachPattern(testTheme, {});
+          const testPattern = new OceanBeachPattern(testTheme, new Mulberry32(42), {});
           testPattern.render(buffer, 0, size);
         }
       }).not.toThrow();
@@ -440,35 +441,37 @@ describe('OceanBeachPattern', () => {
   describe('Configuration Options', () => {
     test('should accept custom waveSpeed', () => {
       expect(() => {
-        const customPattern = new OceanBeachPattern(theme, { waveSpeed: 2.0 });
+        const customPattern = new OceanBeachPattern(theme, new Mulberry32(42), { waveSpeed: 2.0 });
         customPattern.render(buffer, 0, size);
       }).not.toThrow();
     });
 
     test('should accept custom waveAmplitude', () => {
       expect(() => {
-        const customPattern = new OceanBeachPattern(theme, { waveAmplitude: 5 });
+        const customPattern = new OceanBeachPattern(theme, new Mulberry32(42), {
+          waveAmplitude: 5,
+        });
         customPattern.render(buffer, 0, size);
       }).not.toThrow();
     });
 
     test('should accept custom cloudSpeed', () => {
       expect(() => {
-        const customPattern = new OceanBeachPattern(theme, { cloudSpeed: 0.5 });
+        const customPattern = new OceanBeachPattern(theme, new Mulberry32(42), { cloudSpeed: 0.5 });
         customPattern.render(buffer, 0, size);
       }).not.toThrow();
     });
 
     test('should accept custom seagullCount', () => {
       expect(() => {
-        const customPattern = new OceanBeachPattern(theme, { seagullCount: 6 });
+        const customPattern = new OceanBeachPattern(theme, new Mulberry32(42), { seagullCount: 6 });
         customPattern.render(buffer, 0, size);
       }).not.toThrow();
     });
 
     test('should accept multiple custom config options', () => {
       expect(() => {
-        const customPattern = new OceanBeachPattern(theme, {
+        const customPattern = new OceanBeachPattern(theme, new Mulberry32(42), {
           waveSpeed: 1.5,
           waveAmplitude: 4,
           cloudSpeed: 0.3,

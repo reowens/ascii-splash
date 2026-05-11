@@ -1,6 +1,7 @@
 import { Pattern, Cell, Size, Point, Theme, Color } from '../types/index.js';
 import { createNoise2D, NoiseFunction2D } from 'simplex-noise';
 import { lerp } from '../utils/math.js';
+import { Random } from '../utils/random.js';
 
 interface OceanBeachConfig {
   waveSpeed: number;
@@ -75,6 +76,7 @@ interface WaveLayer {
 export class OceanBeachPattern implements Pattern {
   name = 'oceanbeach';
   private config: OceanBeachConfig;
+  private random: Random;
 
   // Noise generation
   private noise2D: NoiseFunction2D;
@@ -223,7 +225,8 @@ export class OceanBeachPattern implements Pattern {
     },
   ];
 
-  constructor(_theme: Theme, config?: Partial<OceanBeachConfig>) {
+  constructor(_theme: Theme, random: Random, config?: Partial<OceanBeachConfig>) {
+    this.random = random;
     this.noise2D = createNoise2D();
 
     this.config = {
@@ -285,10 +288,10 @@ export class OceanBeachPattern implements Pattern {
     this.clouds = [];
     for (let i = 0; i < this.config.cloudCount; i++) {
       this.clouds.push({
-        x: Math.random() * size.width,
-        y: Math.random() * (this.waterLine * 0.6),
-        width: 8 + Math.floor(Math.random() * 8),
-        height: 3 + Math.floor(Math.random() * 3),
+        x: this.random.next() * size.width,
+        y: this.random.next() * (this.waterLine * 0.6),
+        width: this.random.int(8, 15),
+        height: this.random.int(3, 5),
       });
     }
 
@@ -296,10 +299,10 @@ export class OceanBeachPattern implements Pattern {
     this.seagulls = [];
     for (let i = 0; i < this.config.seagullCount; i++) {
       this.seagulls.push({
-        x: Math.random() * size.width,
-        y: Math.random() * this.waterLine,
-        vx: (Math.random() - 0.5) * 2,
-        vy: (Math.random() - 0.5) * 0.5,
+        x: this.random.next() * size.width,
+        y: this.random.next() * this.waterLine,
+        vx: (this.random.next() - 0.5) * 2,
+        vy: (this.random.next() - 0.5) * 0.5,
       });
     }
 
@@ -373,10 +376,9 @@ export class OceanBeachPattern implements Pattern {
             const edgeDist = Math.min(dx, cloud.width - dx, dy, cloud.height - dy);
             const opacity = Math.min(1, edgeDist / 2);
 
-            if (Math.random() < opacity) {
-              const charIdx = Math.floor(Math.random() * this.cloudChars.length);
+            if (this.random.bool(opacity)) {
               buffer[y][x] = {
-                char: this.cloudChars[charIdx],
+                char: this.random.choice(this.cloudChars),
                 color: { r: 255, g: 255, b: 255 },
               };
             }
@@ -493,8 +495,8 @@ export class OceanBeachPattern implements Pattern {
           let char: string;
           let color: Color;
 
-          if (shouldFoam && y === waveHeight && Math.random() < 0.4) {
-            char = this.foam[Math.floor(Math.random() * this.foam.length)];
+          if (shouldFoam && y === waveHeight && this.random.bool(0.4)) {
+            char = this.random.choice(this.foam);
             color = { r: 255, g: 255, b: 255 };
           } else {
             char = charSet[charIndex];
@@ -562,14 +564,14 @@ export class OceanBeachPattern implements Pattern {
     if (sparkleIntensity > 0) {
       const sparkleCount = Math.floor(size.width * sparkleIntensity * 0.1);
       for (let i = 0; i < sparkleCount; i++) {
-        const x = Math.floor(Math.random() * size.width);
+        const x = this.random.int(0, size.width - 1);
         const y = Math.floor(
-          this.waterLine + Math.random() * (this.beachStart - this.waterLine) * 0.5
+          this.waterLine + this.random.next() * (this.beachStart - this.waterLine) * 0.5
         );
 
-        if (y >= 0 && y < size.height && Math.random() < 0.3) {
-          const char = this.sparkle[Math.floor(Math.random() * this.sparkle.length)];
-          const brightness = 200 + Math.floor(Math.random() * 55);
+        if (y >= 0 && y < size.height && this.random.bool(0.3)) {
+          const char = this.random.choice(this.sparkle);
+          const brightness = this.random.int(200, 254);
           buffer[y][x] = {
             char,
             color: { r: brightness, g: brightness, b: 255 },
@@ -607,9 +609,9 @@ export class OceanBeachPattern implements Pattern {
       if (gull.x < -10) gull.x = size.width + 10;
       if (gull.x > size.width + 10) gull.x = -10;
 
-      if (Math.random() < 0.01) {
-        gull.vx += (Math.random() - 0.5) * 2;
-        gull.vy += (Math.random() - 0.5) * 0.5;
+      if (this.random.bool(0.01)) {
+        gull.vx += (this.random.next() - 0.5) * 2;
+        gull.vy += (this.random.next() - 0.5) * 0.5;
       }
 
       // Render

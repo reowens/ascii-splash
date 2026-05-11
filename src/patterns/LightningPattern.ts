@@ -1,6 +1,7 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
 import { validateProbability, validateInterval, clamp } from '../utils/validation.js';
 import { bresenhamLine } from '../utils/drawing.js';
+import { Random } from '../utils/random.js';
 
 interface LightningConfig {
   branchProbability: number;
@@ -38,6 +39,7 @@ export class LightningPattern implements Pattern {
   name = 'lightning';
   private config: LightningConfig;
   private theme: Theme;
+  private random: Random;
   private bolts: LightningBolt[] = [];
   private lastStrike = 0;
   private chargeParticles: Point[] = [];
@@ -130,8 +132,9 @@ export class LightningPattern implements Pattern {
     },
   ];
 
-  constructor(theme: Theme, config?: Partial<LightningConfig>) {
+  constructor(theme: Theme, random: Random, config?: Partial<LightningConfig>) {
     this.theme = theme;
+    this.random = random;
     const merged = {
       branchProbability: 0.25,
       fadeTime: 25,
@@ -191,16 +194,16 @@ export class LightningPattern implements Pattern {
     const spreadForDepth = this.config.branchSpread * Math.pow(0.7, depth);
 
     // Create branch path (shorter at deeper levels)
-    const branchLength = Math.floor((3 + Math.random() * 4) * lengthScale);
+    const branchLength = Math.floor((3 + this.random.next() * 4) * lengthScale);
     if (branchLength < 2) return; // Too short to be meaningful
 
     const branchWaypoints: Point[] = [start];
-    const side = Math.random() < 0.5 ? 1 : -1;
+    const side = this.random.bool(0.5) ? 1 : -1;
 
     for (let j = 1; j <= branchLength; j++) {
       const branchT = j / branchLength;
       const spread = spreadForDepth * branchT;
-      const jag = (Math.random() - 0.5) * 5 * lengthScale;
+      const jag = (this.random.next() - 0.5) * 5 * lengthScale;
 
       branchWaypoints.push({
         x: start.x + perpX * side * spread + (dx / length) * jag,
@@ -236,7 +239,7 @@ export class LightningPattern implements Pattern {
       }
 
       // Recursively spawn sub-branches at waypoints (skip first and last)
-      if (j > 0 && j < branchWaypoints.length - 2 && Math.random() < branchProbForDepth) {
+      if (j > 0 && j < branchWaypoints.length - 2 && this.random.bool(branchProbForDepth)) {
         // Calculate sub-branch direction (roughly perpendicular to current branch)
         const subDx = bEnd.x - bStart.x;
         const subDy = bEnd.y - bStart.y;
@@ -284,7 +287,7 @@ export class LightningPattern implements Pattern {
     const perpY = dx / length;
 
     // Generate jagged waypoints for the main path (8-12 segments)
-    const numSegments = 8 + Math.floor(Math.random() * 5);
+    const numSegments = this.random.int(8, 12);
     const waypoints: Point[] = [start];
 
     for (let i = 1; i < numSegments; i++) {
@@ -293,7 +296,7 @@ export class LightningPattern implements Pattern {
       const baseY = start.y + dy * t;
 
       // Add perpendicular jaggedness
-      const offset = (Math.random() - 0.5) * this.config.mainPathJaggedness;
+      const offset = (this.random.next() - 0.5) * this.config.mainPathJaggedness;
 
       waypoints.push({
         x: baseX + perpX * offset,
@@ -327,7 +330,7 @@ export class LightningPattern implements Pattern {
       }
 
       // Spawn branches recursively at some waypoints
-      if (i > 0 && i < waypoints.length - 2 && Math.random() < this.config.branchProbability) {
+      if (i > 0 && i < waypoints.length - 2 && this.random.bool(this.config.branchProbability)) {
         this.createBranchRecursive(
           waypoints[i],
           { dx, dy, length },
@@ -355,9 +358,9 @@ export class LightningPattern implements Pattern {
     // Auto-strike at intervals
     this.currentTime = time;
     if (time - this.lastStrike > this.config.strikeInterval) {
-      const startX = Math.random() * width;
-      const endX = startX + (Math.random() - 0.5) * width * 0.5;
-      const endY = height - Math.random() * height * 0.3;
+      const startX = this.random.next() * width;
+      const endX = startX + (this.random.next() - 0.5) * width * 0.5;
+      const endY = height - this.random.next() * height * 0.3;
 
       this.bolts.push(this.createBolt({ x: startX, y: 0 }, { x: endX, y: endY }));
 
@@ -402,9 +405,9 @@ export class LightningPattern implements Pattern {
           if (point.isBranch) {
             // Branches use angled characters
             if (finalIntensity > 0.6) {
-              char = Math.random() < 0.5 ? '╱' : '╲';
+              char = this.random.bool(0.5) ? '╱' : '╲';
             } else {
-              char = Math.random() < 0.5 ? '/' : '\\';
+              char = this.random.bool(0.5) ? '/' : '\\';
             }
           } else {
             // Main bolt uses vertical characters
@@ -446,10 +449,10 @@ export class LightningPattern implements Pattern {
     // Update charge particles around mouse
     if (mousePos) {
       // Add new charge particles
-      if (Math.random() < 0.3) {
+      if (this.random.bool(0.3)) {
         this.chargeParticles.push({
-          x: mousePos.x + (Math.random() - 0.5) * 6,
-          y: mousePos.y + (Math.random() - 0.5) * 6,
+          x: mousePos.x + (this.random.next() - 0.5) * 6,
+          y: mousePos.y + (this.random.next() - 0.5) * 6,
         });
       }
 
@@ -472,8 +475,8 @@ export class LightningPattern implements Pattern {
 
       // Age out charge particles
       this.chargeParticles = this.chargeParticles.map(p => ({
-        x: p.x + (Math.random() - 0.5) * 0.5,
-        y: p.y + (Math.random() - 0.5) * 0.5,
+        x: p.x + (this.random.next() - 0.5) * 0.5,
+        y: p.y + (this.random.next() - 0.5) * 0.5,
       }));
     } else {
       this.chargeParticles = [];
@@ -486,10 +489,10 @@ export class LightningPattern implements Pattern {
 
   onMouseClick(pos: Point): void {
     // Spawn single bolt at click position
-    const startX = pos.x + (Math.random() - 0.5) * 10;
-    const startY = Math.random() * 5;
-    const endX = pos.x + (Math.random() - 0.5) * 15;
-    const endY = pos.y + (Math.random() - 0.5) * 10;
+    const startX = pos.x + (this.random.next() - 0.5) * 10;
+    const startY = this.random.next() * 5;
+    const endX = pos.x + (this.random.next() - 0.5) * 15;
+    const endY = pos.y + (this.random.next() - 0.5) * 10;
 
     this.bolts.push(this.createBolt({ x: startX, y: startY }, { x: endX, y: endY }));
 

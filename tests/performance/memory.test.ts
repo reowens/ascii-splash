@@ -46,7 +46,10 @@ describe('Memory Leak Detection', () => {
       ['LifePattern', () => new LifePattern(createMockTheme('test'), new Mulberry32(42))],
       ['MetaballPattern', () => new MetaballPattern(createMockTheme('test'), new Mulberry32(42))],
       ['AquariumPattern', () => new AquariumPattern(createMockTheme('test'), new Mulberry32(42))],
-      ['SnowfallParkPattern', () => new SnowfallParkPattern(createMockTheme('test'))],
+      [
+        'SnowfallParkPattern',
+        () => new SnowfallParkPattern(createMockTheme('test'), new Mulberry32(42)),
+      ],
       ['CampfirePattern', () => new CampfirePattern(createMockTheme('test'))],
     ])('%s should handle 1000 frames without error', (_name, createPattern) => {
       const pattern = createPattern();

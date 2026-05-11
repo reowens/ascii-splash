@@ -1265,7 +1265,7 @@ describe('Additional Pattern Tests', () => {
     const mockTheme = createMockTheme();
 
     beforeEach(() => {
-      pattern = new LightningPattern(mockTheme);
+      pattern = new LightningPattern(mockTheme, new Mulberry32(42));
     });
 
     describe('getPresets()', () => {
