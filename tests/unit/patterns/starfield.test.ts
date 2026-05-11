@@ -1,6 +1,7 @@
 import { jest, describe, test, expect, beforeEach, afterEach } from '@jest/globals';
 import { StarfieldPattern } from '../../../src/patterns/StarfieldPattern.js';
 import { Cell, Point, Size, Theme } from '../../../src/types/index.js';
+import { Mulberry32 } from '../../../src/utils/random.js';
 import { createMockTheme, createMockBuffer } from '../../utils/mocks.js';
 
 describe('StarfieldPattern', () => {
@@ -11,7 +12,7 @@ describe('StarfieldPattern', () => {
 
   beforeEach(() => {
     theme = createMockTheme();
-    pattern = new StarfieldPattern(theme);
+    pattern = new StarfieldPattern(theme, new Mulberry32(42));
     size = { width: 80, height: 24 };
     buffer = createMockBuffer(size.width, size.height);
 
@@ -34,7 +35,7 @@ describe('StarfieldPattern', () => {
     });
 
     test('should accept custom config', () => {
-      const customPattern = new StarfieldPattern(theme, {
+      const customPattern = new StarfieldPattern(theme, new Mulberry32(42), {
         starCount: 50,
         speed: 2.0,
         mouseRepelRadius: 10,
@@ -44,7 +45,7 @@ describe('StarfieldPattern', () => {
     });
 
     test('should merge partial config with defaults', () => {
-      const partialPattern = new StarfieldPattern(theme, { starCount: 150 });
+      const partialPattern = new StarfieldPattern(theme, new Mulberry32(42), { starCount: 150 });
       expect(partialPattern).toBeDefined();
     });
   });
@@ -110,7 +111,7 @@ describe('StarfieldPattern', () => {
 
     test('should animate stars moving toward viewer', () => {
       // Use higher speed to ensure visible movement
-      const fastPattern = new StarfieldPattern(theme, { speed: 5.0 });
+      const fastPattern = new StarfieldPattern(theme, new Mulberry32(42), { speed: 5.0 });
 
       fastPattern.render(buffer, 0, size);
       const buffer1 = JSON.stringify(buffer);
@@ -125,7 +126,7 @@ describe('StarfieldPattern', () => {
     });
 
     test('should reset stars that reach viewer', () => {
-      const fastPattern = new StarfieldPattern(theme, { speed: 10.0 });
+      const fastPattern = new StarfieldPattern(theme, new Mulberry32(42), { speed: 10.0 });
 
       // Render many times to ensure stars reset
       for (let i = 0; i < 100; i++) {
@@ -473,7 +474,7 @@ describe('StarfieldPattern', () => {
 
   describe('Edge Cases', () => {
     test('should handle zero star count', () => {
-      const emptyPattern = new StarfieldPattern(theme, { starCount: 0 });
+      const emptyPattern = new StarfieldPattern(theme, new Mulberry32(42), { starCount: 0 });
 
       expect(() => emptyPattern.render(buffer, 1000, size)).not.toThrow();
 
@@ -482,13 +483,13 @@ describe('StarfieldPattern', () => {
     });
 
     test('should handle very high star count', () => {
-      const densePattern = new StarfieldPattern(theme, { starCount: 1000 });
+      const densePattern = new StarfieldPattern(theme, new Mulberry32(42), { starCount: 1000 });
 
       expect(() => densePattern.render(buffer, 1000, size)).not.toThrow();
     });
 
     test('should handle zero speed', () => {
-      const staticPattern = new StarfieldPattern(theme, { speed: 0 });
+      const staticPattern = new StarfieldPattern(theme, new Mulberry32(42), { speed: 0 });
 
       staticPattern.render(buffer, 1000, size);
       const buffer1 = JSON.stringify(buffer);
@@ -501,19 +502,21 @@ describe('StarfieldPattern', () => {
     });
 
     test('should handle negative speed', () => {
-      const reversePattern = new StarfieldPattern(theme, { speed: -1.0 });
+      const reversePattern = new StarfieldPattern(theme, new Mulberry32(42), { speed: -1.0 });
 
       expect(() => reversePattern.render(buffer, 1000, size)).not.toThrow();
     });
 
     test('should handle very high speed', () => {
-      const fastPattern = new StarfieldPattern(theme, { speed: 10.0 });
+      const fastPattern = new StarfieldPattern(theme, new Mulberry32(42), { speed: 10.0 });
 
       expect(() => fastPattern.render(buffer, 1000, size)).not.toThrow();
     });
 
     test('should handle zero mouse repel radius', () => {
-      const noRepelPattern = new StarfieldPattern(theme, { mouseRepelRadius: 0 });
+      const noRepelPattern = new StarfieldPattern(theme, new Mulberry32(42), {
+        mouseRepelRadius: 0,
+      });
 
       noRepelPattern.render(buffer, 1000, size, { x: 40, y: 12 });
 
@@ -521,7 +524,9 @@ describe('StarfieldPattern', () => {
     });
 
     test('should handle very large mouse repel radius', () => {
-      const largeRepelPattern = new StarfieldPattern(theme, { mouseRepelRadius: 100 });
+      const largeRepelPattern = new StarfieldPattern(theme, new Mulberry32(42), {
+        mouseRepelRadius: 100,
+      });
 
       expect(() => largeRepelPattern.render(buffer, 1000, size, { x: 40, y: 12 })).not.toThrow();
     });

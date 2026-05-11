@@ -13,6 +13,7 @@
 import { Pattern, Cell, Size, Point, Theme, Color } from '../types/index.js';
 import { PerlinNoise } from '../utils/noise.js';
 import { clamp, lerp } from '../utils/math.js';
+import { Random } from '../utils/random.js';
 
 interface CampfireConfig {
   flameHeight: number; // Height of flames (0.2-0.6 of screen)
@@ -58,6 +59,7 @@ export class CampfirePattern implements Pattern {
   name = 'campfire';
   private config: CampfireConfig;
   private theme: Theme;
+  private random: Random;
   private sparks: Spark[] = [];
   private smokeParticles: SmokeParticle[] = [];
   private mousePos?: Point;
@@ -183,8 +185,9 @@ export class CampfirePattern implements Pattern {
     },
   ];
 
-  constructor(theme: Theme, config?: Partial<CampfireConfig>) {
+  constructor(theme: Theme, random: Random, config?: Partial<CampfireConfig>) {
     this.theme = theme;
+    this.random = random;
     this.config = {
       flameHeight: 0.35,
       flameWidth: 0.2,
@@ -198,7 +201,7 @@ export class CampfirePattern implements Pattern {
       windStrength: 0.1,
       ...config,
     };
-    this.noise = new PerlinNoise(Math.random() * 10000);
+    this.noise = new PerlinNoise(this.random.next() * 10000);
   }
 
   private getFireColor(intensity: number): Color {
@@ -221,26 +224,26 @@ export class CampfirePattern implements Pattern {
   private spawnSpark(): void {
     const spread = this.config.flameWidth * 0.3;
     this.sparks.push({
-      x: this.fireCenterX + (Math.random() - 0.5) * spread * 20,
-      y: this.fireBaseY - Math.random() * 3,
-      vx: (Math.random() - 0.5) * 2 + this.config.windStrength * 3,
-      vy: -1 - Math.random() * 2,
-      life: 1.5 + Math.random() * 1.5,
-      maxLife: 1.5 + Math.random() * 1.5,
-      brightness: 0.7 + Math.random() * 0.3,
+      x: this.fireCenterX + (this.random.next() - 0.5) * spread * 20,
+      y: this.fireBaseY - this.random.next() * 3,
+      vx: (this.random.next() - 0.5) * 2 + this.config.windStrength * 3,
+      vy: -1 - this.random.next() * 2,
+      life: 1.5 + this.random.next() * 1.5,
+      maxLife: 1.5 + this.random.next() * 1.5,
+      brightness: 0.7 + this.random.next() * 0.3,
     });
   }
 
   private spawnSmoke(): void {
     const spread = this.config.flameWidth * 0.2;
     this.smokeParticles.push({
-      x: this.fireCenterX + (Math.random() - 0.5) * spread * 15,
-      y: this.fireBaseY - this.config.flameHeight * 20 - Math.random() * 2,
-      vx: (Math.random() - 0.5) * 0.5 + this.config.windStrength * 2,
-      vy: -0.3 - Math.random() * 0.3,
-      life: 3 + Math.random() * 2,
-      maxLife: 3 + Math.random() * 2,
-      size: 1 + Math.random() * 2,
+      x: this.fireCenterX + (this.random.next() - 0.5) * spread * 15,
+      y: this.fireBaseY - this.config.flameHeight * 20 - this.random.next() * 2,
+      vx: (this.random.next() - 0.5) * 0.5 + this.config.windStrength * 2,
+      vy: -0.3 - this.random.next() * 0.3,
+      life: 3 + this.random.next() * 2,
+      maxLife: 3 + this.random.next() * 2,
+      size: 1 + this.random.next() * 2,
     });
   }
 
@@ -270,7 +273,7 @@ export class CampfirePattern implements Pattern {
       spark.y += spark.vy * dt * 10;
 
       // Dim as life decreases
-      spark.brightness = (spark.life / spark.maxLife) * (0.7 + Math.random() * 0.3);
+      spark.brightness = (spark.life / spark.maxLife) * (0.7 + this.random.next() * 0.3);
     }
 
     // Update smoke
@@ -307,7 +310,7 @@ export class CampfirePattern implements Pattern {
     }
 
     if (this.config.smokeEnabled && this.smokeParticles.length < 30) {
-      if (Math.random() < dt * 2) {
+      if (this.random.bool(dt * 2)) {
         this.spawnSmoke();
       }
     }
@@ -520,13 +523,13 @@ export class CampfirePattern implements Pattern {
     // Add burst of sparks at click position
     for (let i = 0; i < 5; i++) {
       this.sparks.push({
-        x: pos.x + (Math.random() - 0.5) * 4,
-        y: pos.y + (Math.random() - 0.5) * 4,
-        vx: (Math.random() - 0.5) * 4,
-        vy: -2 - Math.random() * 3,
-        life: 1 + Math.random() * 1,
-        maxLife: 1 + Math.random() * 1,
-        brightness: 0.8 + Math.random() * 0.2,
+        x: pos.x + (this.random.next() - 0.5) * 4,
+        y: pos.y + (this.random.next() - 0.5) * 4,
+        vx: (this.random.next() - 0.5) * 4,
+        vy: -2 - this.random.next() * 3,
+        life: 1 + this.random.next() * 1,
+        maxLife: 1 + this.random.next() * 1,
+        brightness: 0.8 + this.random.next() * 0.2,
       });
     }
   }
@@ -538,7 +541,7 @@ export class CampfirePattern implements Pattern {
     this.lastTime = 0;
     this.noiseOffset = 0;
     this.sparkAccumulator = 0;
-    this.noise = new PerlinNoise(Math.random() * 10000);
+    this.noise = new PerlinNoise(this.random.next() * 10000);
   }
 
   applyPreset(presetId: number): boolean {

@@ -7,6 +7,7 @@
 import { describe, test, expect, beforeEach } from '@jest/globals';
 import { NightSkyPattern } from '../../../src/patterns/NightSkyPattern.js';
 import { Theme, Cell, Color } from '../../../src/types/index.js';
+import { Mulberry32 } from '../../../src/utils/random.js';
 
 // Mock theme for testing
 const mockTheme: Theme = {
@@ -39,7 +40,7 @@ describe('NightSkyPattern', () => {
   let pattern: NightSkyPattern;
 
   beforeEach(() => {
-    pattern = new NightSkyPattern(mockTheme);
+    pattern = new NightSkyPattern(mockTheme, new Mulberry32(42));
   });
 
   describe('Initialization', () => {
@@ -49,7 +50,7 @@ describe('NightSkyPattern', () => {
     });
 
     test('should accept custom config', () => {
-      const customPattern = new NightSkyPattern(mockTheme, {
+      const customPattern = new NightSkyPattern(mockTheme, new Mulberry32(42), {
         starDensity: 3.0,
         auroraEnabled: false,
         moonEnabled: true,
@@ -100,7 +101,7 @@ describe('NightSkyPattern', () => {
     });
 
     test('should render moon when enabled', () => {
-      const patternWithMoon = new NightSkyPattern(mockTheme, {
+      const patternWithMoon = new NightSkyPattern(mockTheme, new Mulberry32(42), {
         moonEnabled: true,
         moonPhase: 0.5,
       });
@@ -151,7 +152,7 @@ describe('NightSkyPattern', () => {
 
   describe('Aurora', () => {
     test('should render aurora when enabled', () => {
-      const auroraPattern = new NightSkyPattern(mockTheme, {
+      const auroraPattern = new NightSkyPattern(mockTheme, new Mulberry32(42), {
         auroraEnabled: true,
         auroraIntensity: 1.0,
       });
@@ -175,7 +176,7 @@ describe('NightSkyPattern', () => {
     });
 
     test('should not render aurora when disabled', () => {
-      const noAuroraPattern = new NightSkyPattern(mockTheme, {
+      const noAuroraPattern = new NightSkyPattern(mockTheme, new Mulberry32(42), {
         auroraEnabled: false,
       });
       const buffer = createBuffer(80, 24);
@@ -201,7 +202,7 @@ describe('NightSkyPattern', () => {
 
   describe('Shooting Stars', () => {
     test('should spawn shooting stars over time', () => {
-      const meteorPattern = new NightSkyPattern(mockTheme, {
+      const meteorPattern = new NightSkyPattern(mockTheme, new Mulberry32(42), {
         shootingStarFrequency: 60, // High frequency for testing
       });
       const buffer = createBuffer(80, 24);
@@ -362,7 +363,7 @@ describe('NightSkyPattern', () => {
     });
 
     test('should track aurora ribbons when enabled', () => {
-      const auroraPattern = new NightSkyPattern(mockTheme, {
+      const auroraPattern = new NightSkyPattern(mockTheme, new Mulberry32(42), {
         auroraEnabled: true,
       });
       const buffer = createBuffer(80, 24);
@@ -377,7 +378,7 @@ describe('NightSkyPattern', () => {
 
   describe('Star Layers', () => {
     test('should create stars across multiple layers', () => {
-      const layeredPattern = new NightSkyPattern(mockTheme, {
+      const layeredPattern = new NightSkyPattern(mockTheme, new Mulberry32(42), {
         starDensity: 3.0,
         starLayers: 4,
       });
@@ -436,7 +437,7 @@ describe('NightSkyPattern', () => {
       const phases = [0, 0.25, 0.5, 0.75, 1.0];
 
       for (const phase of phases) {
-        const moonPattern = new NightSkyPattern(mockTheme, {
+        const moonPattern = new NightSkyPattern(mockTheme, new Mulberry32(42), {
           moonEnabled: true,
           moonPhase: phase,
         });

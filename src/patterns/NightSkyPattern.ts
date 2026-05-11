@@ -12,6 +12,7 @@
 import { Pattern, Cell, Size, Point, Theme, Color } from '../types/index.js';
 import { PerlinNoise } from '../utils/noise.js';
 import { clamp } from '../utils/math.js';
+import { Random } from '../utils/random.js';
 
 interface NightSkyConfig {
   starDensity: number; // Stars per 100 cells (0.5-5.0)
@@ -67,6 +68,7 @@ export class NightSkyPattern implements Pattern {
   name = 'nightsky';
   private config: NightSkyConfig;
   private theme: Theme;
+  private random: Random;
   private stars: Star[] = [];
   private shootingStars: ShootingStar[] = [];
   private auroraRibbons: AuroraRibbon[] = [];
@@ -194,8 +196,9 @@ export class NightSkyPattern implements Pattern {
     },
   ];
 
-  constructor(theme: Theme, config?: Partial<NightSkyConfig>) {
+  constructor(theme: Theme, random: Random, config?: Partial<NightSkyConfig>) {
     this.theme = theme;
+    this.random = random;
     this.config = {
       starDensity: 2.0,
       twinkleSpeed: 1.0,
@@ -209,7 +212,7 @@ export class NightSkyPattern implements Pattern {
       starLayers: 3,
       ...config,
     };
-    this.noise = new PerlinNoise(Math.random() * 10000);
+    this.noise = new PerlinNoise(this.random.next() * 10000);
   }
 
   private initializeStars(size: Size): void {
@@ -218,17 +221,17 @@ export class NightSkyPattern implements Pattern {
     const starCount = Math.floor((totalCells * this.config.starDensity) / 100);
 
     for (let i = 0; i < starCount; i++) {
-      const layer = Math.floor(Math.random() * this.config.starLayers);
+      const layer = this.random.int(0, this.config.starLayers - 1);
       const baseBrightness = 0.3 + (1 - layer / this.config.starLayers) * 0.7;
 
       this.stars.push({
-        x: Math.random() * size.width,
-        y: Math.random() * size.height,
+        x: this.random.next() * size.width,
+        y: this.random.next() * size.height,
         brightness: baseBrightness,
-        twinklePhase: Math.random() * Math.PI * 2,
-        twinkleSpeed: 0.5 + Math.random() * 1.5,
+        twinklePhase: this.random.next() * Math.PI * 2,
+        twinkleSpeed: 0.5 + this.random.next() * 1.5,
         layer,
-        char: this.starChars[Math.floor(Math.random() * this.starChars.length)],
+        char: this.random.choice(this.starChars),
       });
     }
   }
@@ -238,37 +241,37 @@ export class NightSkyPattern implements Pattern {
     if (!this.config.auroraEnabled) return;
 
     // Create 3-5 aurora ribbons
-    const ribbonCount = 3 + Math.floor(Math.random() * 3);
+    const ribbonCount = this.random.int(3, 5);
     for (let i = 0; i < ribbonCount; i++) {
       const colorIndex = i % this.auroraColors.length;
       this.auroraRibbons.push({
         baseY: 0.1 + (i / ribbonCount) * this.config.auroraHeight,
-        amplitude: 0.02 + Math.random() * 0.05,
-        frequency: 0.5 + Math.random() * 1.5,
-        phase: Math.random() * Math.PI * 2,
+        amplitude: 0.02 + this.random.next() * 0.05,
+        frequency: 0.5 + this.random.next() * 1.5,
+        phase: this.random.next() * Math.PI * 2,
         color: this.auroraColors[colorIndex],
-        width: 2 + Math.random() * 3,
+        width: 2 + this.random.next() * 3,
       });
     }
   }
 
   private spawnShootingStar(size: Size, fromClick?: Point): void {
     // Start from top-left quadrant, travel toward bottom-right
-    const startX = fromClick?.x ?? Math.random() * size.width * 0.7;
-    const startY = fromClick?.y ?? Math.random() * size.height * 0.4;
+    const startX = fromClick?.x ?? this.random.next() * size.width * 0.7;
+    const startY = fromClick?.y ?? this.random.next() * size.height * 0.4;
 
-    const angle = Math.PI / 6 + (Math.random() * Math.PI) / 6; // 30-60 degrees
-    const speed = 15 + Math.random() * 20;
+    const angle = Math.PI / 6 + (this.random.next() * Math.PI) / 6; // 30-60 degrees
+    const speed = 15 + this.random.next() * 20;
 
     this.shootingStars.push({
       x: startX,
       y: startY,
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
-      life: 0.8 + Math.random() * 0.6,
-      maxLife: 0.8 + Math.random() * 0.6,
-      trailLength: 5 + Math.floor(Math.random() * 8),
-      brightness: 0.8 + Math.random() * 0.2,
+      life: 0.8 + this.random.next() * 0.6,
+      maxLife: 0.8 + this.random.next() * 0.6,
+      trailLength: this.random.int(5, 12),
+      brightness: 0.8 + this.random.next() * 0.2,
     });
   }
 
@@ -545,7 +548,7 @@ export class NightSkyPattern implements Pattern {
     this.noiseOffset = 0;
     this.shootingStarAccumulator = 0;
     this.initialized = false;
-    this.noise = new PerlinNoise(Math.random() * 10000);
+    this.noise = new PerlinNoise(this.random.next() * 10000);
   }
 
   applyPreset(presetId: number): boolean {

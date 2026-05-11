@@ -18,6 +18,7 @@ import { FireworksPattern } from '../../src/patterns/FireworksPattern.js';
 import { LifePattern } from '../../src/patterns/LifePattern.js';
 import { MazePattern } from '../../src/patterns/MazePattern.js';
 import { DNAPattern } from '../../src/patterns/DNAPattern.js';
+import { Mulberry32 } from '../../src/utils/random.js';
 import { MetaballPattern } from '../../src/patterns/MetaballPattern.js';
 import { AquariumPattern } from '../../src/patterns/AquariumPattern.js';
 import { Pattern, Theme, Size } from '../../src/types/index.js';
@@ -83,84 +84,84 @@ describe('Performance Benchmarks', () => {
     });
 
     test('StarfieldPattern should maintain 30+ FPS', () => {
-      const pattern = new StarfieldPattern(mockTheme);
+      const pattern = new StarfieldPattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, standardSize);
 
       expect(avgFrameTime).toBeLessThan(MAX_FRAME_TIME_MS);
     });
 
     test('MatrixPattern should maintain 30+ FPS', () => {
-      const pattern = new MatrixPattern(mockTheme);
+      const pattern = new MatrixPattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, standardSize);
 
       expect(avgFrameTime).toBeLessThan(MAX_FRAME_TIME_MS);
     });
 
     test('ParticlePattern should maintain 30+ FPS', () => {
-      const pattern = new ParticlePattern(mockTheme);
+      const pattern = new ParticlePattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, standardSize);
 
       expect(avgFrameTime).toBeLessThan(MAX_FRAME_TIME_MS);
     });
 
     test('PlasmaPattern should maintain 30+ FPS', () => {
-      const pattern = new PlasmaPattern(mockTheme);
+      const pattern = new PlasmaPattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, standardSize);
 
       expect(avgFrameTime).toBeLessThan(MAX_FRAME_TIME_MS);
     });
 
     test('SpiralPattern should maintain 30+ FPS', () => {
-      const pattern = new SpiralPattern(mockTheme);
+      const pattern = new SpiralPattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, standardSize);
 
       expect(avgFrameTime).toBeLessThan(MAX_FRAME_TIME_MS);
     });
 
     test('TunnelPattern should maintain 30+ FPS', () => {
-      const pattern = new TunnelPattern(mockTheme);
+      const pattern = new TunnelPattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, standardSize);
 
       expect(avgFrameTime).toBeLessThan(MAX_FRAME_TIME_MS);
     });
 
     test('FireworksPattern should maintain 30+ FPS', () => {
-      const pattern = new FireworksPattern(mockTheme);
+      const pattern = new FireworksPattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, standardSize);
 
       expect(avgFrameTime).toBeLessThan(MAX_FRAME_TIME_MS);
     });
 
     test('LifePattern should maintain 30+ FPS', () => {
-      const pattern = new LifePattern(mockTheme);
+      const pattern = new LifePattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, standardSize);
 
       expect(avgFrameTime).toBeLessThan(MAX_FRAME_TIME_MS);
     });
 
     test('MazePattern should maintain 30+ FPS', () => {
-      const pattern = new MazePattern(mockTheme);
+      const pattern = new MazePattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, standardSize);
 
       expect(avgFrameTime).toBeLessThan(MAX_FRAME_TIME_MS);
     });
 
     test('DNAPattern should maintain 30+ FPS', () => {
-      const pattern = new DNAPattern(mockTheme);
+      const pattern = new DNAPattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, standardSize);
 
       expect(avgFrameTime).toBeLessThan(MAX_FRAME_TIME_MS);
     });
 
     test('MetaballPattern should maintain 30+ FPS', () => {
-      const pattern = new MetaballPattern(mockTheme);
+      const pattern = new MetaballPattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, standardSize);
 
       expect(avgFrameTime).toBeLessThan(MAX_FRAME_TIME_MS);
     });
 
     test('AquariumPattern should maintain 30+ FPS', () => {
-      const pattern = new AquariumPattern(mockTheme);
+      const pattern = new AquariumPattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, standardSize);
 
       expect(avgFrameTime).toBeLessThan(MAX_FRAME_TIME_MS);
@@ -181,14 +182,14 @@ describe('Performance Benchmarks', () => {
     });
 
     test('PlasmaPattern should maintain acceptable FPS at large size', () => {
-      const pattern = new PlasmaPattern(mockTheme);
+      const pattern = new PlasmaPattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, largeSize, 50);
 
       expect(avgFrameTime).toBeLessThan(MAX_FRAME_TIME_MS * 2);
     });
 
     test('MetaballPattern should maintain acceptable FPS at large size', () => {
-      const pattern = new MetaballPattern(mockTheme);
+      const pattern = new MetaballPattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, largeSize, 50);
 
       // Metaballs are O(n*m*blobs) so allow more headroom
@@ -210,7 +211,7 @@ describe('Performance Benchmarks', () => {
     });
 
     test('all ParticlePattern presets should maintain 30+ FPS', () => {
-      const pattern = new ParticlePattern(mockTheme);
+      const pattern = new ParticlePattern(mockTheme, new Mulberry32(42));
       const presets = ParticlePattern.getPresets();
 
       for (const preset of presets) {
@@ -246,7 +247,7 @@ describe('Performance Benchmarks', () => {
     });
 
     test('particle-heavy pattern should not leak over time', () => {
-      const pattern = new ParticlePattern(mockTheme);
+      const pattern = new ParticlePattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
       const frameTimes: number[] = [];
 
@@ -266,7 +267,7 @@ describe('Performance Benchmarks', () => {
   describe('Comparative Performance', () => {
     test('complex patterns should not be 10x slower than simple ones', () => {
       const simplePattern = new WavePattern(mockTheme);
-      const complexPattern = new MetaballPattern(mockTheme);
+      const complexPattern = new MetaballPattern(mockTheme, new Mulberry32(42));
 
       const simpleResult = benchmarkPattern(simplePattern, standardSize);
       const complexResult = benchmarkPattern(complexPattern, standardSize);
@@ -278,7 +279,7 @@ describe('Performance Benchmarks', () => {
 
   describe('Render Efficiency', () => {
     test('should fill buffer efficiently', () => {
-      const pattern = new PlasmaPattern(mockTheme);
+      const pattern = new PlasmaPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       pattern.render(buffer, 1000, standardSize);
@@ -291,7 +292,7 @@ describe('Performance Benchmarks', () => {
     });
 
     test('sparse patterns should still be performant', () => {
-      const pattern = new StarfieldPattern(mockTheme);
+      const pattern = new StarfieldPattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, standardSize);
 
       // Should be very fast since it's sparse
@@ -301,7 +302,7 @@ describe('Performance Benchmarks', () => {
 
   describe('Reset Performance', () => {
     test('pattern reset should be fast', () => {
-      const pattern = new ParticlePattern(mockTheme);
+      const pattern = new ParticlePattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       // Render many frames to build up state

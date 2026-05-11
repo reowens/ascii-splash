@@ -12,6 +12,7 @@
 import { Pattern, Cell, Size, Point, Theme, Color } from '../types/index.js';
 import { PerlinNoise } from '../utils/noise.js';
 import { clamp } from '../utils/math.js';
+import { Random } from '../utils/random.js';
 
 interface SnowfallParkConfig {
   snowDensity: number; // Snowflakes per 100 cells (0.5-3.0)
@@ -59,6 +60,7 @@ export class SnowfallParkPattern implements Pattern {
 
   private config: SnowfallParkConfig;
   private theme: Theme;
+  private random: Random;
   private snowflakes: Snowflake[] = [];
   private trees: Tree[] = [];
   private lamps: Lamp[] = [];
@@ -185,8 +187,9 @@ export class SnowfallParkPattern implements Pattern {
     },
   ];
 
-  constructor(theme: Theme, config: Partial<SnowfallParkConfig> = {}) {
+  constructor(theme: Theme, random: Random, config: Partial<SnowfallParkConfig> = {}) {
     this.theme = theme;
+    this.random = random;
     this.config = {
       snowDensity: 1.5,
       fallSpeed: 1.0,
@@ -200,7 +203,7 @@ export class SnowfallParkPattern implements Pattern {
       ...config,
     };
 
-    this.noise = new PerlinNoise(Math.random() * 10000);
+    this.noise = new PerlinNoise(this.random.next() * 10000);
   }
 
   private initialize(size: Size): void {
@@ -210,13 +213,13 @@ export class SnowfallParkPattern implements Pattern {
     this.trees = [];
     const treeSpacing = size.width / (this.config.treeCount + 1);
     for (let i = 0; i < this.config.treeCount; i++) {
-      const x = treeSpacing * (i + 1) + (Math.random() - 0.5) * treeSpacing * 0.5;
+      const x = treeSpacing * (i + 1) + (this.random.next() - 0.5) * treeSpacing * 0.5;
       this.trees.push({
         x: Math.floor(x),
-        height: 4 + Math.floor(Math.random() * 3),
-        width: 8 + Math.floor(Math.random() * 4),
-        type: Math.random() < 0.6 ? 'pine' : 'oak',
-        swayPhase: Math.random() * Math.PI * 2,
+        height: this.random.int(4, 6),
+        width: this.random.int(8, 11),
+        type: this.random.bool(0.6) ? 'pine' : 'oak',
+        swayPhase: this.random.next() * Math.PI * 2,
       });
     }
 
@@ -224,10 +227,10 @@ export class SnowfallParkPattern implements Pattern {
     this.lamps = [];
     const lampSpacing = size.width / (this.config.lampCount + 1);
     for (let i = 0; i < this.config.lampCount; i++) {
-      const x = lampSpacing * (i + 1) + (Math.random() - 0.5) * lampSpacing * 0.3;
+      const x = lampSpacing * (i + 1) + (this.random.next() - 0.5) * lampSpacing * 0.3;
       this.lamps.push({
         x: Math.floor(x),
-        glowPhase: Math.random() * Math.PI * 2,
+        glowPhase: this.random.next() * Math.PI * 2,
       });
     }
 
@@ -245,16 +248,16 @@ export class SnowfallParkPattern implements Pattern {
   }
 
   private spawnSnowflake(size: Size, randomY = false): void {
-    const size_val = Math.floor(Math.random() * 3);
+    const size_val = this.random.int(0, 2);
     const baseSpeed = [0.5, 0.8, 1.2][size_val]; // Larger flakes fall faster
 
     this.snowflakes.push({
-      x: Math.random() * size.width,
-      y: randomY ? Math.random() * size.height : -1,
-      vx: (Math.random() - 0.5) * 0.5,
+      x: this.random.next() * size.width,
+      y: randomY ? this.random.next() * size.height : -1,
+      vx: (this.random.next() - 0.5) * 0.5,
       vy: baseSpeed * this.config.fallSpeed,
       size: size_val,
-      drift: Math.random() * Math.PI * 2,
+      drift: this.random.next() * Math.PI * 2,
     });
   }
 
@@ -385,7 +388,7 @@ export class SnowfallParkPattern implements Pattern {
 
       if (y >= 0 && y < size.height && x >= 0 && x < size.width) {
         // Snowflake brightness varies slightly
-        const brightness = 0.8 + Math.random() * 0.2;
+        const brightness = 0.8 + this.random.next() * 0.2;
         const snowColor: Color = {
           r: Math.round(240 * brightness),
           g: Math.round(245 * brightness),
@@ -429,9 +432,9 @@ export class SnowfallParkPattern implements Pattern {
         if (y >= 0 && y < size.height && x >= 0 && x < size.width && layer[j] !== ' ') {
           // Green color for pine
           const treeColor: Color = {
-            r: 20 + Math.floor(Math.random() * 20),
-            g: 60 + Math.floor(Math.random() * 30),
-            b: 30 + Math.floor(Math.random() * 20),
+            r: this.random.int(20, 39),
+            g: this.random.int(60, 89),
+            b: this.random.int(30, 49),
           };
 
           const cell = buffer[y]?.[x];
@@ -462,7 +465,7 @@ export class SnowfallParkPattern implements Pattern {
           const treeColor: Color =
             layer[j] === '|'
               ? { r: 80, g: 50, b: 30 }
-              : { r: 40 + Math.floor(Math.random() * 20), g: 30, b: 20 };
+              : { r: this.random.int(40, 59), g: 30, b: 20 };
 
           const cell = buffer[y]?.[x];
           if (cell?.char === ' ') {
@@ -602,7 +605,7 @@ export class SnowfallParkPattern implements Pattern {
     this.noiseOffset = 0;
     this.initialized = false;
     this.mousePos = null;
-    this.noise = new PerlinNoise(Math.random() * 10000);
+    this.noise = new PerlinNoise(this.random.next() * 10000);
   }
 
   applyPreset(presetId: number): boolean {

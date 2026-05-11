@@ -7,6 +7,7 @@
 import { describe, test, expect, beforeEach } from '@jest/globals';
 import { CampfirePattern } from '../../../src/patterns/CampfirePattern.js';
 import { Theme, Cell, Color } from '../../../src/types/index.js';
+import { Mulberry32 } from '../../../src/utils/random.js';
 
 // Mock theme for testing
 const mockTheme: Theme = {
@@ -39,7 +40,7 @@ describe('CampfirePattern', () => {
   let pattern: CampfirePattern;
 
   beforeEach(() => {
-    pattern = new CampfirePattern(mockTheme);
+    pattern = new CampfirePattern(mockTheme, new Mulberry32(42));
   });
 
   describe('Initialization', () => {
@@ -49,7 +50,7 @@ describe('CampfirePattern', () => {
     });
 
     test('should accept custom config', () => {
-      const customPattern = new CampfirePattern(mockTheme, {
+      const customPattern = new CampfirePattern(mockTheme, new Mulberry32(42), {
         flameHeight: 0.5,
         sparkCount: 30,
         smokeEnabled: false,

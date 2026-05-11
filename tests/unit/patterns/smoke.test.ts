@@ -1,5 +1,6 @@
 import { SmokePattern } from '../../../src/patterns/SmokePattern.js';
 import { Cell, Theme } from '../../../src/types/index.js';
+import { Mulberry32 } from '../../../src/utils/random.js';
 import { createMockTheme, createMockBuffer } from '../../utils/mocks.js';
 
 describe('SmokePattern', () => {
@@ -10,7 +11,7 @@ describe('SmokePattern', () => {
 
   beforeEach(() => {
     theme = createMockTheme();
-    pattern = new SmokePattern(theme);
+    pattern = new SmokePattern(theme, new Mulberry32(42));
     buffer = createMockBuffer(size.width, size.height);
   });
 
@@ -21,7 +22,7 @@ describe('SmokePattern', () => {
     });
 
     it('should accept custom config', () => {
-      const customPattern = new SmokePattern(theme, {
+      const customPattern = new SmokePattern(theme, new Mulberry32(42), {
         plumeCount: 4,
         particleCount: 50,
         riseSpeed: 1.5,
@@ -463,7 +464,7 @@ describe('SmokePattern', () => {
     });
 
     it('should handle extreme config values', () => {
-      const extremePattern = new SmokePattern(theme, {
+      const extremePattern = new SmokePattern(theme, new Mulberry32(42), {
         plumeCount: 1,
         particleCount: 10,
         riseSpeed: 0.1,

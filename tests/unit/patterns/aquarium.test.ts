@@ -7,6 +7,7 @@
 import { describe, test, expect, beforeEach } from '@jest/globals';
 import { AquariumPattern } from '../../../src/patterns/AquariumPattern.js';
 import { Theme, Cell, Color } from '../../../src/types/index.js';
+import { Mulberry32 } from '../../../src/utils/random.js';
 
 // Mock theme for testing
 const mockTheme: Theme = {
@@ -39,7 +40,7 @@ describe('AquariumPattern', () => {
   let pattern: AquariumPattern;
 
   beforeEach(() => {
-    pattern = new AquariumPattern(mockTheme);
+    pattern = new AquariumPattern(mockTheme, new Mulberry32(42));
   });
 
   describe('Initialization', () => {
@@ -49,7 +50,7 @@ describe('AquariumPattern', () => {
     });
 
     test('should accept custom config', () => {
-      const customPattern = new AquariumPattern(mockTheme, {
+      const customPattern = new AquariumPattern(mockTheme, new Mulberry32(42), {
         fishCount: 20,
         bubbleEnabled: false,
         plantCount: 10,
@@ -145,7 +146,7 @@ describe('AquariumPattern', () => {
 
   describe('Bubbles', () => {
     test('should render bubbles when enabled', () => {
-      const bubblePattern = new AquariumPattern(mockTheme, {
+      const bubblePattern = new AquariumPattern(mockTheme, new Mulberry32(42), {
         bubbleEnabled: true,
         bubbleRate: 5.0, // High rate for testing
       });
@@ -215,7 +216,7 @@ describe('AquariumPattern', () => {
     });
 
     test('fish should avoid mouse when enabled', () => {
-      const avoidPattern = new AquariumPattern(mockTheme, {
+      const avoidPattern = new AquariumPattern(mockTheme, new Mulberry32(42), {
         mouseAvoidance: true,
         fishCount: 15,
       });
@@ -405,7 +406,7 @@ describe('AquariumPattern', () => {
       const counts = [1, 5, 10, 20, 30];
 
       for (const count of counts) {
-        const testPattern = new AquariumPattern(mockTheme, {
+        const testPattern = new AquariumPattern(mockTheme, new Mulberry32(42), {
           fishCount: count,
         });
         const buffer = createBuffer(80, 24);

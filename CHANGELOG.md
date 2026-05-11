@@ -5,6 +5,41 @@ All notable changes to ascii-splash will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — v0.5.0 "Shareable Scenes"
+
+Branch: `feature/v0.5.0-phase7-share-codes` — all phases complete, awaiting review before tagging. Tracking doc: [docs/planning/v0.5.0-ROADMAP.md](docs/planning/v0.5.0-ROADMAP.md).
+
+Every pattern is now seeded by a constructor-injected PRNG so scenes can be reproduced byte-for-byte from a 12-character share code (`splash share` / `splash play <code>`). Includes the deterministic foundation (7a–7c), the encoder/decoder (7d), the CLI surface (7e), and an end-to-end determinism test suite (7f).
+
+### Added
+
+- **`Random` interface + `Mulberry32`** (`src/utils/random.ts`): deterministic, u32-seeded PRNG with `next` / `range` / `int` / `choice` / `bool` / `reseed`. `randomSeed()` helper picks a fresh u32 from `Math.random()` for non-deterministic sessions. 21 unit tests, including pinned reference vectors for `seed=1` so future PRNG swaps require an explicit migration.
+- **Pattern constructors threaded with `Random`**: `(theme, random, config?)` signature; required, not optional. All 22 patterns migrated across 7a–7c; zero `Math.random()` calls remain in `src/patterns/`. Landed in batches:
+  - Phase 7a (`7f9b4c1`): foundation + `DNAPattern` proof of concept.
+  - Phase 7b (`f18eb65`): `boids.createFlock` and `ParticleSystem` accept `Random`; `AquariumPattern` constructor wired up.
+  - Phase 7c batch 1 (`433dbc9`): `PlasmaPattern`, `QuicksilverPattern`, `LifePattern`, `MetaballPattern`, `MatrixPattern`, `StarfieldPattern`, `ParticlePattern`, `SpiralPattern`.
+  - Phase 7c batch 2 (`df6bebe`): `RainPattern`, `TunnelPattern`, `MazePattern`, `SmokePattern`, `LavaLampPattern`. Adds `RainPattern.pickChar()` helper so an empty `characters` config keeps degrading gracefully instead of throwing from `Random.choice`.
+  - Phase 7c batch 3 (`abdac12`): finish `AquariumPattern` (~20 internal sites left from 7b).
+  - Phase 7c batch 4 (`123aefa`): `SnowPattern`, `SnowfallParkPattern`, `OceanBeachPattern`, `LightningPattern`, `NightSkyPattern`.
+  - Phase 7c batch 5 (`9a32fa2`): `CampfirePattern`, `FireworksPattern`.
+- **Share-code encoder/decoder** (Phase 7d, `c4e4ae7`): `src/utils/shareCode.ts` — 12-character Crockford base32 (no I/L/O/U). 60-bit payload: `[v4][pat5][pre3][thm3][seed32][hash13]`. `ShareCodeError` with typed `kind: 'version' | 'length' | 'alphabet' | 'configHash'` for friendly diagnostics. `hashConfig()` is a 13-bit FNV-1a fingerprint of non-default config values, order-independent. `PROCEDURAL_PATTERN_IDS` frozen registry locks the on-the-wire `patternId` byte — appending a pattern is safe, reordering or renaming is a breaking change. Locked reference vector `2TTVTPVXVYNW` pins the format. +32 unit tests.
+- **`splash share`** (Phase 7e, `6d57515`): prints a code for the would-be-initial-state (config defaults + a fresh random seed) and exits. No engine, no TTY required — usable in scripts and CI.
+- **`splash play <code>`** (Phase 7e): decodes + boots directly into the encoded scene; validates configHash against local config and refuses on mismatch (so cross-machine config drift fails loudly instead of silently playing a different scene). Malformed / version-skewed codes report cleanly even when stdout is piped.
+- **In-app `Shift+S`** (Phase 7e): encodes current state, copies to clipboard, toast shows the code. Refuses on Photo/Layered slots ("share codes are procedural-only"). Falls back to printing the code in the toast if no clipboard tool is available. Documented in the help overlay.
+- **Built-in clipboard helper** (`src/utils/clipboard.ts`): cross-platform spawn (pbcopy / clip / wl-copy → xclip → xsel). No new runtime dependency. Injectable spawn for tests. +10 unit tests.
+- **Determinism test suite** (Phase 7f, `b8fb026`): `tests/unit/determinism.test.ts` — round-trip across every patternId in the registry, byte-for-byte replay across two runs for DNA + Starfield + Fireworks (canaries), version-skew rejection, and a static guard that `CommandExecutor.ts` still uses `Math.random()` (UX-random carve-out intact). +10 tests.
+
+### Changed
+
+- `src/main.ts`: `createPatternsFromConfig` and `buildPatterns` now return `{patterns, seeds}` so per-slot u32 seeds are addressable; supports `seedOverride` so `splash play` seeds the chosen pattern deterministically while every other slot still gets a fresh random seed. `patternNames` sourced from `PROCEDURAL_PATTERN_IDS` so the on-the-wire `patternId` byte tracks the runtime index.
+
+### Notes
+
+- `src/engine/CommandExecutor.ts` intentionally stays on `Math.random()` — the `c*`, `c**`, and `r` "surprise me" commands are UX random, not scene random. The 7f static guard catches future accidental migration.
+- `Random.int(min, max)` is **inclusive on both ends**, unlike `Math.floor(Math.random() * N)` which is `[0, N-1]`. The migration recipe in the v0.5.0 roadmap documents the careful translation table.
+- PhotoPattern and LayeredPattern slots are intentionally not encodable in share codes — they depend on a local image file that can't be reproduced from a code alone. The `Shift+S` key shows a friendly message on those slots.
+- Total: 2317 tests passing on the branch (2265 baseline + 32 shareCode + 10 clipboard + 10 determinism).
+
 ## [0.4.0] - 2026-05-10
 
 ### 🎯 Theme: "Photos in the Terminal"

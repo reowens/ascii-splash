@@ -1,6 +1,7 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import { PlasmaPattern } from '../../../src/patterns/PlasmaPattern.js';
 import { Cell, Theme } from '../../../src/types/index.js';
+import { Mulberry32 } from '../../../src/utils/random.js';
 import { createMockTheme, createMockBuffer } from '../../utils/mocks.js';
 
 describe('PlasmaPattern', () => {
@@ -11,7 +12,7 @@ describe('PlasmaPattern', () => {
 
   beforeEach(() => {
     theme = createMockTheme();
-    pattern = new PlasmaPattern(theme);
+    pattern = new PlasmaPattern(theme, new Mulberry32(42));
     buffer = createMockBuffer(size.width, size.height);
   });
 
@@ -22,7 +23,7 @@ describe('PlasmaPattern', () => {
     });
 
     it('should accept custom config', () => {
-      const customPattern = new PlasmaPattern(theme, {
+      const customPattern = new PlasmaPattern(theme, new Mulberry32(42), {
         frequency: 0.2,
         speed: 2.0,
         complexity: 5,
@@ -31,7 +32,7 @@ describe('PlasmaPattern', () => {
     });
 
     it('should use partial config with defaults', () => {
-      const partialPattern = new PlasmaPattern(theme, { speed: 3.0 });
+      const partialPattern = new PlasmaPattern(theme, new Mulberry32(42), { speed: 3.0 });
       expect(partialPattern).toBeDefined();
     });
   });
@@ -451,7 +452,7 @@ describe('PlasmaPattern', () => {
     });
 
     it('should track complexity from config', () => {
-      const customPattern = new PlasmaPattern(theme, { complexity: 7 });
+      const customPattern = new PlasmaPattern(theme, new Mulberry32(42), { complexity: 7 });
       const metrics = customPattern.getMetrics();
 
       expect(metrics.complexity).toBe(7);
@@ -482,7 +483,7 @@ describe('PlasmaPattern', () => {
 
   describe('Edge Cases', () => {
     it('should handle very high frequency', () => {
-      const highFreqPattern = new PlasmaPattern(theme, { frequency: 1.0 });
+      const highFreqPattern = new PlasmaPattern(theme, new Mulberry32(42), { frequency: 1.0 });
 
       expect(() => {
         highFreqPattern.render(buffer, 1000, size);
@@ -490,7 +491,7 @@ describe('PlasmaPattern', () => {
     });
 
     it('should handle very low frequency', () => {
-      const lowFreqPattern = new PlasmaPattern(theme, { frequency: 0.01 });
+      const lowFreqPattern = new PlasmaPattern(theme, new Mulberry32(42), { frequency: 0.01 });
 
       expect(() => {
         lowFreqPattern.render(buffer, 1000, size);
@@ -498,7 +499,7 @@ describe('PlasmaPattern', () => {
     });
 
     it('should handle zero speed', () => {
-      const staticPattern = new PlasmaPattern(theme, { speed: 0 });
+      const staticPattern = new PlasmaPattern(theme, new Mulberry32(42), { speed: 0 });
 
       expect(() => {
         staticPattern.render(buffer, 1000, size);
@@ -507,7 +508,7 @@ describe('PlasmaPattern', () => {
     });
 
     it('should handle very high speed', () => {
-      const fastPattern = new PlasmaPattern(theme, { speed: 10.0 });
+      const fastPattern = new PlasmaPattern(theme, new Mulberry32(42), { speed: 10.0 });
 
       expect(() => {
         fastPattern.render(buffer, 1000, size);
@@ -515,7 +516,7 @@ describe('PlasmaPattern', () => {
     });
 
     it('should handle minimal complexity', () => {
-      const simplePattern = new PlasmaPattern(theme, { complexity: 1 });
+      const simplePattern = new PlasmaPattern(theme, new Mulberry32(42), { complexity: 1 });
 
       expect(() => {
         simplePattern.render(buffer, 1000, size);
@@ -523,7 +524,7 @@ describe('PlasmaPattern', () => {
     });
 
     it('should handle high complexity', () => {
-      const complexPattern = new PlasmaPattern(theme, { complexity: 10 });
+      const complexPattern = new PlasmaPattern(theme, new Mulberry32(42), { complexity: 10 });
 
       expect(() => {
         complexPattern.render(buffer, 1000, size);
@@ -572,7 +573,7 @@ describe('PlasmaPattern', () => {
   // v0.4.0 Phase 3: layered scene composition.
   describe('transparentBg (Phase 3 layered overlay)', () => {
     it('default: writes to every cell', () => {
-      const opaque = new PlasmaPattern(theme);
+      const opaque = new PlasmaPattern(theme, new Mulberry32(42));
       const buf = createMockBuffer(40, 12);
       // Pre-fill with a sentinel that plasma would never emit.
       for (let y = 0; y < 12; y++) {
@@ -586,7 +587,7 @@ describe('PlasmaPattern', () => {
     });
 
     it('transparentBg: true skips writes when char would be " "', () => {
-      const transparent = new PlasmaPattern(theme, { transparentBg: true });
+      const transparent = new PlasmaPattern(theme, new Mulberry32(42), { transparentBg: true });
       // Find a (time, size) combination where at least one cell falls in
       // the highest-intensity bin (char === ' '). The default plasma is
       // smooth enough that this is essentially guaranteed for a 40x12 grid.
@@ -609,7 +610,7 @@ describe('PlasmaPattern', () => {
     });
 
     it('preserves transparentBg across applyPreset cycling', () => {
-      const transparent = new PlasmaPattern(theme, { transparentBg: true });
+      const transparent = new PlasmaPattern(theme, new Mulberry32(42), { transparentBg: true });
       // Preset 2 ('Standard Plasma') matches default config and reliably
       // produces top-bin (sparse) cells that the skip predicate catches.
       // After cycling, transparentBg must still apply — proving applyPreset

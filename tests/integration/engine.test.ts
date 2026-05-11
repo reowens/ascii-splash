@@ -14,6 +14,7 @@ import { ParticlePattern } from '../../src/patterns/ParticlePattern.js';
 import { PerformanceMonitor } from '../../src/engine/PerformanceMonitor.js';
 import { EventBus, EngineEvent } from '../../src/engine/EventBus.js';
 import { Theme } from '../../src/types/index.js';
+import { Mulberry32 } from '../../src/utils/random.js';
 
 describe('Engine Integration Tests', () => {
   let mockRenderer: MockTerminalRenderer;
@@ -50,9 +51,9 @@ describe('Engine Integration Tests', () => {
     test('should render multiple patterns without errors', () => {
       const patterns = [
         new WavePattern(mockTheme),
-        new StarfieldPattern(mockTheme),
-        new MatrixPattern(mockTheme),
-        new ParticlePattern(mockTheme),
+        new StarfieldPattern(mockTheme, new Mulberry32(42)),
+        new MatrixPattern(mockTheme, new Mulberry32(42)),
+        new ParticlePattern(mockTheme, new Mulberry32(42)),
       ];
 
       const buffer = mockRenderer.getBuffer();
@@ -106,7 +107,7 @@ describe('Engine Integration Tests', () => {
 
     test('should handle pattern switching', () => {
       const wave = new WavePattern(mockTheme);
-      const starfield = new StarfieldPattern(mockTheme);
+      const starfield = new StarfieldPattern(mockTheme, new Mulberry32(42));
       let buffer = mockRenderer.getBuffer();
       const size = mockRenderer.getSize();
 

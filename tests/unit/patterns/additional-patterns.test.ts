@@ -7,6 +7,7 @@ import { PlasmaPattern } from '../../../src/patterns/PlasmaPattern.js';
 import { TunnelPattern } from '../../../src/patterns/TunnelPattern.js';
 import { LightningPattern } from '../../../src/patterns/LightningPattern.js';
 import { FireworksPattern } from '../../../src/patterns/FireworksPattern.js';
+import { Mulberry32 } from '../../../src/utils/random.js';
 import { createMockTheme, createMockSize, createMockBuffer } from '../../utils/mocks.js';
 
 describe('Additional Pattern Tests', () => {
@@ -15,7 +16,7 @@ describe('Additional Pattern Tests', () => {
     const mockTheme = createMockTheme();
 
     beforeEach(() => {
-      pattern = new MatrixPattern(mockTheme);
+      pattern = new MatrixPattern(mockTheme, new Mulberry32(42));
     });
 
     describe('getPresets()', () => {
@@ -225,7 +226,7 @@ describe('Additional Pattern Tests', () => {
     const mockTheme = createMockTheme();
 
     beforeEach(() => {
-      pattern = new RainPattern(mockTheme);
+      pattern = new RainPattern(mockTheme, new Mulberry32(42));
     });
 
     describe('getPresets()', () => {
@@ -362,7 +363,7 @@ describe('Additional Pattern Tests', () => {
     const mockTheme = createMockTheme();
 
     beforeEach(() => {
-      pattern = new QuicksilverPattern(mockTheme);
+      pattern = new QuicksilverPattern(mockTheme, new Mulberry32(42));
     });
 
     describe('getPresets()', () => {
@@ -494,7 +495,7 @@ describe('Additional Pattern Tests', () => {
     const mockTheme = createMockTheme();
 
     beforeEach(() => {
-      pattern = new ParticlePattern(mockTheme);
+      pattern = new ParticlePattern(mockTheme, new Mulberry32(42));
     });
 
     describe('getPresets()', () => {
@@ -633,7 +634,7 @@ describe('Additional Pattern Tests', () => {
     const mockTheme = createMockTheme();
 
     beforeEach(() => {
-      pattern = new SpiralPattern(mockTheme);
+      pattern = new SpiralPattern(mockTheme, new Mulberry32(42));
     });
 
     describe('getPresets()', () => {
@@ -747,7 +748,7 @@ describe('Additional Pattern Tests', () => {
     const mockTheme = createMockTheme();
 
     beforeEach(() => {
-      pattern = new PlasmaPattern(mockTheme);
+      pattern = new PlasmaPattern(mockTheme, new Mulberry32(42));
     });
 
     describe('getPresets()', () => {
@@ -1104,7 +1105,7 @@ describe('Additional Pattern Tests', () => {
     const mockTheme = createMockTheme();
 
     beforeEach(() => {
-      pattern = new TunnelPattern(mockTheme);
+      pattern = new TunnelPattern(mockTheme, new Mulberry32(42));
     });
 
     describe('getPresets()', () => {
@@ -1264,7 +1265,7 @@ describe('Additional Pattern Tests', () => {
     const mockTheme = createMockTheme();
 
     beforeEach(() => {
-      pattern = new LightningPattern(mockTheme);
+      pattern = new LightningPattern(mockTheme, new Mulberry32(42));
     });
 
     describe('getPresets()', () => {
@@ -1734,7 +1735,7 @@ describe('Additional Pattern Tests', () => {
     const mockTheme = createMockTheme();
 
     beforeEach(() => {
-      pattern = new FireworksPattern(mockTheme);
+      pattern = new FireworksPattern(mockTheme, new Mulberry32(42));
     });
 
     describe('getPresets()', () => {

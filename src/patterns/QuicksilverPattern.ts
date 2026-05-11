@@ -1,4 +1,5 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
+import { Random } from '../utils/random.js';
 
 interface QuicksilverConfig {
   speed: number;
@@ -27,6 +28,7 @@ export class QuicksilverPattern implements Pattern {
   name = 'quicksilver';
   private config: QuicksilverConfig;
   private theme: Theme;
+  private random: Random;
   private droplets: Droplet[] = [];
   private ripples: { x: number; y: number; time: number; radius: number }[] = [];
   private noiseOffset = 0;
@@ -74,8 +76,9 @@ export class QuicksilverPattern implements Pattern {
     },
   ];
 
-  constructor(theme: Theme, config?: Partial<QuicksilverConfig>) {
+  constructor(theme: Theme, random: Random, config?: Partial<QuicksilverConfig>) {
     this.theme = theme;
+    this.random = random;
     this.config = {
       speed: 1.0,
       flowIntensity: 0.5,
@@ -269,7 +272,7 @@ export class QuicksilverPattern implements Pattern {
 
     for (let i = 0; i < numDroplets; i++) {
       const angle = (Math.PI * 2 * i) / numDroplets;
-      const speed = 2 + Math.random() * 3;
+      const speed = 2 + this.random.next() * 3;
 
       this.droplets.push({
         x: pos.x,
@@ -277,8 +280,8 @@ export class QuicksilverPattern implements Pattern {
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed - 2,
         time: clickTime,
-        radius: 3 + Math.random() * 2,
-        tension: 0.3 + Math.random() * 0.4, // Random tension: 0.3-0.7
+        radius: 3 + this.random.next() * 2,
+        tension: 0.3 + this.random.next() * 0.4, // Random tension: 0.3-0.7
       });
     }
 

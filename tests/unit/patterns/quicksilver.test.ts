@@ -1,5 +1,6 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import { QuicksilverPattern } from '../../../src/patterns/QuicksilverPattern.js';
+import { Mulberry32 } from '../../../src/utils/random.js';
 import {
   createMockBuffer,
   createMockTheme,
@@ -16,7 +17,7 @@ describe('QuicksilverPattern', () => {
 
   beforeEach(() => {
     theme = createMockTheme('ocean');
-    pattern = new QuicksilverPattern(theme);
+    pattern = new QuicksilverPattern(theme, new Mulberry32(42));
     size = createMockSize(80, 24);
     buffer = createMockBuffer(size.width, size.height);
   });
@@ -31,7 +32,7 @@ describe('QuicksilverPattern', () => {
     });
 
     it('should accept custom config', () => {
-      const customPattern = new QuicksilverPattern(theme, {
+      const customPattern = new QuicksilverPattern(theme, new Mulberry32(42), {
         speed: 2.0,
         flowIntensity: 0.8,
         noiseScale: 0.1,
@@ -41,7 +42,7 @@ describe('QuicksilverPattern', () => {
     });
 
     it('should accept partial config', () => {
-      const customPattern = new QuicksilverPattern(theme, {
+      const customPattern = new QuicksilverPattern(theme, new Mulberry32(42), {
         speed: 1.5,
       });
       const metrics = customPattern.getMetrics();
@@ -145,7 +146,7 @@ describe('QuicksilverPattern', () => {
     });
 
     it('should update noise offset over time', () => {
-      const customPattern = new QuicksilverPattern(theme, { speed: 5.0 });
+      const customPattern = new QuicksilverPattern(theme, new Mulberry32(42), { speed: 5.0 });
       customPattern.render(buffer, 0, size);
 
       const buffer2 = createMockBuffer(size.width, size.height);
@@ -531,7 +532,9 @@ describe('QuicksilverPattern', () => {
     });
 
     it('should return current flow intensity', () => {
-      const customPattern = new QuicksilverPattern(theme, { flowIntensity: 0.75 });
+      const customPattern = new QuicksilverPattern(theme, new Mulberry32(42), {
+        flowIntensity: 0.75,
+      });
       const metrics = customPattern.getMetrics();
       expect(metrics.flowIntensity).toBe(0.75);
     });
@@ -539,7 +542,7 @@ describe('QuicksilverPattern', () => {
 
   describe('Edge Cases', () => {
     it('should handle zero flow intensity', () => {
-      const customPattern = new QuicksilverPattern(theme, { flowIntensity: 0 });
+      const customPattern = new QuicksilverPattern(theme, new Mulberry32(42), { flowIntensity: 0 });
       customPattern.render(buffer, 0, size);
 
       // Should still render something
@@ -555,7 +558,9 @@ describe('QuicksilverPattern', () => {
     });
 
     it('should handle very high flow intensity', () => {
-      const customPattern = new QuicksilverPattern(theme, { flowIntensity: 2.0 });
+      const customPattern = new QuicksilverPattern(theme, new Mulberry32(42), {
+        flowIntensity: 2.0,
+      });
       customPattern.render(buffer, 0, size);
 
       // Should still render without errors
@@ -571,7 +576,7 @@ describe('QuicksilverPattern', () => {
     });
 
     it('should handle zero speed', () => {
-      const customPattern = new QuicksilverPattern(theme, { speed: 0 });
+      const customPattern = new QuicksilverPattern(theme, new Mulberry32(42), { speed: 0 });
       customPattern.render(buffer, 0, size);
       const snapshot1 = buffer[10][40].char;
 
@@ -584,7 +589,7 @@ describe('QuicksilverPattern', () => {
     });
 
     it('should handle negative speed', () => {
-      const customPattern = new QuicksilverPattern(theme, { speed: -1.0 });
+      const customPattern = new QuicksilverPattern(theme, new Mulberry32(42), { speed: -1.0 });
       customPattern.render(buffer, 0, size);
 
       // Should render without errors
@@ -639,7 +644,7 @@ describe('QuicksilverPattern', () => {
     });
 
     it('should handle very high noise scale', () => {
-      const customPattern = new QuicksilverPattern(theme, { noiseScale: 1.0 });
+      const customPattern = new QuicksilverPattern(theme, new Mulberry32(42), { noiseScale: 1.0 });
       customPattern.render(buffer, 0, size);
 
       // Should render without errors
@@ -655,7 +660,9 @@ describe('QuicksilverPattern', () => {
     });
 
     it('should handle very low noise scale', () => {
-      const customPattern = new QuicksilverPattern(theme, { noiseScale: 0.001 });
+      const customPattern = new QuicksilverPattern(theme, new Mulberry32(42), {
+        noiseScale: 0.001,
+      });
       customPattern.render(buffer, 0, size);
 
       // Should render without errors

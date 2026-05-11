@@ -1,4 +1,5 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
+import { Random } from '../utils/random.js';
 
 interface PlasmaConfig {
   frequency: number;
@@ -20,6 +21,7 @@ export class PlasmaPattern implements Pattern {
   name = 'plasma';
   private config: PlasmaConfig;
   private theme: Theme;
+  private random: Random;
   private plasmaChars = ['█', '▓', '▒', '░', '▪', '▫', '·', ' '];
   private mouseInfluence: Point | null = null;
   private clickWaves: { x: number; y: number; time: number; strength: number }[] = [];
@@ -64,8 +66,9 @@ export class PlasmaPattern implements Pattern {
     },
   ];
 
-  constructor(theme: Theme, config?: Partial<PlasmaConfig>) {
+  constructor(theme: Theme, random: Random, config?: Partial<PlasmaConfig>) {
     this.theme = theme;
+    this.random = random;
     this.config = {
       frequency: 0.1,
       speed: 1.0,
@@ -202,7 +205,7 @@ export class PlasmaPattern implements Pattern {
       x: pos.x,
       y: pos.y,
       time: this.currentTime,
-      strength: 1.0 + Math.random() * 0.5,
+      strength: 1.0 + this.random.next() * 0.5,
     });
 
     // Limit number of waves for performance

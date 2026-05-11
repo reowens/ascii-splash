@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { ParticleSystem } from '../../../src/engine/ParticleSystem.js';
 import { ParticleEmitter, Cell, Size } from '../../../src/types/index.js';
+import { Mulberry32 } from '../../../src/utils/random.js';
 
 describe('ParticleSystem', () => {
   let particleSystem: ParticleSystem;
@@ -8,22 +9,26 @@ describe('ParticleSystem', () => {
   let mockBuffer: Cell[][];
 
   beforeEach(() => {
-    particleSystem = new ParticleSystem(1000);
+    particleSystem = new ParticleSystem(new Mulberry32(42), 1000);
     mockSize = { width: 80, height: 24 };
-    mockBuffer = Array(24).fill(null).map(() =>
-      Array(80).fill(null).map(() => ({ char: ' ', color: { r: 0, g: 0, b: 0 } }))
-    );
+    mockBuffer = Array(24)
+      .fill(null)
+      .map(() =>
+        Array(80)
+          .fill(null)
+          .map(() => ({ char: ' ', color: { r: 0, g: 0, b: 0 } }))
+      );
   });
 
   describe('constructor', () => {
     it('should create an empty particle system with default max particles', () => {
-      const ps = new ParticleSystem();
+      const ps = new ParticleSystem(new Mulberry32(42));
       expect(ps.getParticleCount()).toBe(0);
       expect(ps.getEmitterCount()).toBe(0);
     });
 
     it('should create particle system with custom max particles', () => {
-      const ps = new ParticleSystem(500);
+      const ps = new ParticleSystem(new Mulberry32(42), 500);
       const metrics = ps.getMetrics();
       expect(metrics.maxParticles).toBe(500);
     });
@@ -146,7 +151,7 @@ describe('ParticleSystem', () => {
     });
 
     it('should respect max particle limit', () => {
-      const smallSystem = new ParticleSystem(50); // Max 50 particles
+      const smallSystem = new ParticleSystem(new Mulberry32(42), 50); // Max 50 particles
       const emitter = ParticleSystem.createEmitter(10, 10, 100, 1.0); // 100 particles/sec
       smallSystem.addEmitter(emitter);
 
@@ -190,7 +195,7 @@ describe('ParticleSystem', () => {
     });
 
     it('should respect max particle limit in burst mode', () => {
-      const smallSystem = new ParticleSystem(20);
+      const smallSystem = new ParticleSystem(new Mulberry32(42), 20);
       const emitter = ParticleSystem.createBurstEmitter(10, 10, 50, 1.0); // Try to emit 50
       smallSystem.addEmitter(emitter);
 
@@ -209,16 +214,16 @@ describe('ParticleSystem', () => {
         particleLife: 10,
         initialVelocity: {
           min: { x: 10, y: 5 },
-          max: { x: 10, y: 5 }
+          max: { x: 10, y: 5 },
         },
         acceleration: { x: 0, y: 0 },
         colorRange: {
           start: { r: 255, g: 255, b: 255 },
-          end: { r: 255, g: 255, b: 255 }
+          end: { r: 255, g: 255, b: 255 },
         },
         characters: ['*'],
         burstMode: true,
-        burstCount: 1
+        burstCount: 1,
       };
 
       particleSystem.addEmitter(emitter);
@@ -245,16 +250,16 @@ describe('ParticleSystem', () => {
         particleLife: 10,
         initialVelocity: {
           min: { x: 0, y: 0 },
-          max: { x: 0, y: 0 }
+          max: { x: 0, y: 0 },
         },
         acceleration: { x: 0, y: 10 }, // Gravity
         colorRange: {
           start: { r: 255, g: 255, b: 255 },
-          end: { r: 255, g: 255, b: 255 }
+          end: { r: 255, g: 255, b: 255 },
         },
         characters: ['*'],
         burstMode: true,
-        burstCount: 1
+        burstCount: 1,
       };
 
       particleSystem.addEmitter(emitter);
@@ -321,16 +326,16 @@ describe('ParticleSystem', () => {
         particleLife: 10,
         initialVelocity: {
           min: { x: 0, y: 0 },
-          max: { x: 0, y: 0 }
+          max: { x: 0, y: 0 },
         },
         acceleration: { x: 0, y: 0 },
         colorRange: {
           start: { r: 255, g: 100, b: 50 },
-          end: { r: 255, g: 100, b: 50 }
+          end: { r: 255, g: 100, b: 50 },
         },
         characters: ['*'],
         burstMode: true,
-        burstCount: 1
+        burstCount: 1,
       };
 
       particleSystem.addEmitter(emitter);
@@ -353,11 +358,11 @@ describe('ParticleSystem', () => {
         acceleration: { x: 0, y: 0 },
         colorRange: {
           start: { r: 255, g: 0, b: 0 },
-          end: { r: 255, g: 0, b: 0 }
+          end: { r: 255, g: 0, b: 0 },
         },
         characters: ['A'],
         burstMode: true,
-        burstCount: 1
+        burstCount: 1,
       };
 
       const emitter2: ParticleEmitter = {
@@ -368,11 +373,11 @@ describe('ParticleSystem', () => {
         acceleration: { x: 0, y: 0 },
         colorRange: {
           start: { r: 0, g: 255, b: 0 },
-          end: { r: 0, g: 255, b: 0 }
+          end: { r: 0, g: 255, b: 0 },
         },
         characters: ['B'],
         burstMode: true,
-        burstCount: 1
+        burstCount: 1,
       };
 
       particleSystem.addEmitter(emitter1);
@@ -393,11 +398,11 @@ describe('ParticleSystem', () => {
         acceleration: { x: 0, y: 0 },
         colorRange: {
           start: { r: 255, g: 255, b: 255 },
-          end: { r: 255, g: 255, b: 255 }
+          end: { r: 255, g: 255, b: 255 },
         },
         characters: ['*'],
         burstMode: true,
-        burstCount: 1
+        burstCount: 1,
       };
 
       particleSystem.addEmitter(emitter);
@@ -435,9 +440,13 @@ describe('ParticleSystem', () => {
       particleSystem.update(0.2);
 
       // Reset buffer
-      mockBuffer = Array(24).fill(null).map(() =>
-        Array(80).fill(null).map(() => ({ char: ' ', color: { r: 0, g: 0, b: 0 } }))
-      );
+      mockBuffer = Array(24)
+        .fill(null)
+        .map(() =>
+          Array(80)
+            .fill(null)
+            .map(() => ({ char: ' ', color: { r: 0, g: 0, b: 0 } }))
+        );
 
       // Should not render
       particleSystem.render(mockBuffer, mockSize);
@@ -453,11 +462,11 @@ describe('ParticleSystem', () => {
         acceleration: { x: 0, y: 0 },
         colorRange: {
           start: { r: 255, g: 255, b: 255 },
-          end: { r: 255, g: 255, b: 255 }
+          end: { r: 255, g: 255, b: 255 },
         },
         characters: ['*'],
         burstMode: true,
-        burstCount: 1
+        burstCount: 1,
       };
 
       const emitter2: ParticleEmitter = {
@@ -468,11 +477,11 @@ describe('ParticleSystem', () => {
         acceleration: { x: 0, y: 0 },
         colorRange: {
           start: { r: 255, g: 255, b: 255 },
-          end: { r: 255, g: 255, b: 255 }
+          end: { r: 255, g: 255, b: 255 },
         },
         characters: ['*'],
         burstMode: true,
-        burstCount: 1
+        burstCount: 1,
       };
 
       particleSystem.addEmitter(emitter1);
@@ -492,11 +501,11 @@ describe('ParticleSystem', () => {
         acceleration: { x: 0, y: 0 },
         colorRange: {
           start: { r: 255, g: 255, b: 255 },
-          end: { r: 255, g: 255, b: 255 }
+          end: { r: 255, g: 255, b: 255 },
         },
         characters: ['*'],
         burstMode: true,
-        burstCount: 1
+        burstCount: 1,
       };
 
       particleSystem.addEmitter(emitter);
@@ -516,16 +525,16 @@ describe('ParticleSystem', () => {
         particleLife: 10,
         initialVelocity: {
           min: { x: -10, y: -10 },
-          max: { x: 10, y: 10 }
+          max: { x: 10, y: 10 },
         },
         acceleration: { x: 0, y: 0 },
         colorRange: {
           start: { r: 255, g: 255, b: 255 },
-          end: { r: 255, g: 255, b: 255 }
+          end: { r: 255, g: 255, b: 255 },
         },
         characters: ['*'],
         burstMode: true,
-        burstCount: 10
+        burstCount: 10,
       };
 
       particleSystem.addEmitter(emitter);
@@ -549,11 +558,11 @@ describe('ParticleSystem', () => {
         acceleration: { x: 0, y: 0 },
         colorRange: {
           start: { r: 255, g: 255, b: 255 },
-          end: { r: 255, g: 255, b: 255 }
+          end: { r: 255, g: 255, b: 255 },
         },
         characters: ['A', 'B', 'C'],
         burstMode: true,
-        burstCount: 20
+        burstCount: 20,
       };
 
       particleSystem.addEmitter(emitter);
@@ -561,7 +570,7 @@ describe('ParticleSystem', () => {
 
       const particles = particleSystem.getParticles();
       const chars = new Set(particles.map(p => p.char));
-      
+
       // Should have used characters from the set
       for (const char of chars) {
         expect(['A', 'B', 'C']).toContain(char);
@@ -577,11 +586,11 @@ describe('ParticleSystem', () => {
         acceleration: { x: 0, y: 0 },
         colorRange: {
           start: { r: 100, g: 100, b: 100 },
-          end: { r: 200, g: 200, b: 200 }
+          end: { r: 200, g: 200, b: 200 },
         },
         characters: ['*'],
         burstMode: true,
-        burstCount: 10
+        burstCount: 10,
       };
 
       particleSystem.addEmitter(emitter);
@@ -645,7 +654,7 @@ describe('ParticleSystem', () => {
     });
 
     it('should show 100% utilization when at max', () => {
-      const smallSystem = new ParticleSystem(50);
+      const smallSystem = new ParticleSystem(new Mulberry32(42), 50);
       const emitter = ParticleSystem.createEmitter(10, 10, 100, 1.0);
       smallSystem.addEmitter(emitter);
       smallSystem.update(1.0);
@@ -705,7 +714,7 @@ describe('ParticleSystem', () => {
 
       // Render
       particleSystem.render(mockBuffer, mockSize);
-      
+
       // Check that some particles rendered
       let renderedCount = 0;
       for (let y = 0; y < mockSize.height; y++) {
@@ -719,7 +728,7 @@ describe('ParticleSystem', () => {
 
       // Remove continuous emitter so it stops creating particles
       particleSystem.removeEmitter(continuous);
-      
+
       // Update past lifetime (all existing particles should die)
       particleSystem.update(3.0);
       expect(particleSystem.getParticleCount()).toBe(0);
@@ -739,11 +748,11 @@ describe('ParticleSystem', () => {
         acceleration: { x: 0, y: 50 }, // Strong gravity
         colorRange: {
           start: { r: 255, g: 255, b: 255 },
-          end: { r: 255, g: 255, b: 255 }
+          end: { r: 255, g: 255, b: 255 },
         },
         characters: ['*'],
         burstMode: true,
-        burstCount: 1
+        burstCount: 1,
       };
 
       particleSystem.addEmitter(emitter);

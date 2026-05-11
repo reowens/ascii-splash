@@ -1,4 +1,5 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
+import { Random } from '../utils/random.js';
 
 interface MazeConfig {
   algorithm: 'dfs' | 'prim' | 'recursive-division' | 'kruskal' | 'eller' | 'wilson';
@@ -29,6 +30,7 @@ export class MazePattern implements Pattern {
   name = 'maze';
   private config: MazeConfig;
   private theme: Theme;
+  private random: Random;
   private maze: MazeCell[][] = [];
   private generationProgress = 0;
   private generationComplete = false;
@@ -125,8 +127,9 @@ export class MazePattern implements Pattern {
     },
   ];
 
-  constructor(theme: Theme, config?: Partial<MazeConfig>) {
+  constructor(theme: Theme, random: Random, config?: Partial<MazeConfig>) {
     this.theme = theme;
+    this.random = random;
     this.config = {
       algorithm: 'dfs',
       cellSize: 3,
@@ -216,8 +219,8 @@ export class MazePattern implements Pattern {
 
   // DFS (Recursive Backtracking)
   private initializeDFS(): void {
-    const startX = Math.floor(Math.random() * this.gridWidth);
-    const startY = Math.floor(Math.random() * this.gridHeight);
+    const startX = this.random.int(0, this.gridWidth - 1);
+    const startY = this.random.int(0, this.gridHeight - 1);
     this.currentCell = { x: startX, y: startY };
     this.maze[startY][startX].visited = true;
     this.stack = [{ x: startX, y: startY }];
@@ -233,7 +236,7 @@ export class MazePattern implements Pattern {
 
     if (neighbors.length > 0) {
       // Choose random neighbor
-      const next = neighbors[Math.floor(Math.random() * neighbors.length)];
+      const next = this.random.choice(neighbors);
 
       // Remove wall between current and next
       this.removeWall(x, y, next.x, next.y);
@@ -256,8 +259,8 @@ export class MazePattern implements Pattern {
 
   // Prim's Algorithm
   private initializePrim(): void {
-    const startX = Math.floor(Math.random() * this.gridWidth);
-    const startY = Math.floor(Math.random() * this.gridHeight);
+    const startX = this.random.int(0, this.gridWidth - 1);
+    const startY = this.random.int(0, this.gridHeight - 1);
     this.maze[startY][startX].inMaze = true;
 
     // Add neighbors to frontier
@@ -270,7 +273,7 @@ export class MazePattern implements Pattern {
     }
 
     // Pick random frontier cell
-    const randomIndex = Math.floor(Math.random() * this.frontierCells.length);
+    const randomIndex = this.random.int(0, this.frontierCells.length - 1);
     const cell = this.frontierCells[randomIndex];
     this.frontierCells.splice(randomIndex, 1);
 
@@ -279,7 +282,7 @@ export class MazePattern implements Pattern {
 
     if (inMazeNeighbors.length > 0) {
       // Pick random neighbor to connect to
-      const neighbor = inMazeNeighbors[Math.floor(Math.random() * inMazeNeighbors.length)];
+      const neighbor = this.random.choice(inMazeNeighbors);
 
       // Remove wall
       this.removeWall(cell.x, cell.y, neighbor.x, neighbor.y);
@@ -331,15 +334,15 @@ export class MazePattern implements Pattern {
 
   private stepKruskal(): boolean {
     // Try to merge random adjacent cells
-    const x = Math.floor(Math.random() * this.gridWidth);
-    const y = Math.floor(Math.random() * this.gridHeight);
+    const x = this.random.int(0, this.gridWidth - 1);
+    const y = this.random.int(0, this.gridHeight - 1);
 
     const directions = [
       { dx: 1, dy: 0 },
       { dx: 0, dy: 1 },
     ];
 
-    const dir = directions[Math.floor(Math.random() * directions.length)];
+    const dir = this.random.choice(directions);
     const nx = x + dir.dx;
     const ny = y + dir.dy;
 
@@ -385,7 +388,7 @@ export class MazePattern implements Pattern {
     const x = this.generationProgress % this.gridWidth;
 
     // Randomly connect horizontal cells in same row
-    if (x < this.gridWidth - 1 && Math.random() > 0.5) {
+    if (x < this.gridWidth - 1 && this.random.bool(0.5)) {
       const set1 = this.sets.get(`${String(x)},${String(y)}`);
       const set2 = this.sets.get(`${String(x + 1)},${String(y)}`);
 
@@ -408,8 +411,8 @@ export class MazePattern implements Pattern {
   // Wilson's Algorithm
   private initializeWilson(): void {
     // Pick random starting cell
-    const startX = Math.floor(Math.random() * this.gridWidth);
-    const startY = Math.floor(Math.random() * this.gridHeight);
+    const startX = this.random.int(0, this.gridWidth - 1);
+    const startY = this.random.int(0, this.gridHeight - 1);
     this.maze[startY][startX].inMaze = true;
   }
 
@@ -421,7 +424,7 @@ export class MazePattern implements Pattern {
         return false; // All cells visited
       }
 
-      const start = unvisited[Math.floor(Math.random() * unvisited.length)];
+      const start = this.random.choice(unvisited);
       this.wilsonPath = [start];
     }
 
@@ -434,7 +437,7 @@ export class MazePattern implements Pattern {
       return true;
     }
 
-    const next = neighbors[Math.floor(Math.random() * neighbors.length)];
+    const next = this.random.choice(neighbors);
 
     // Check if we hit the maze
     if (this.maze[next.y][next.x].inMaze) {

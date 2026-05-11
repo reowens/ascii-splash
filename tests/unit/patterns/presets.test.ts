@@ -1,5 +1,6 @@
 import { WavePattern } from '../../../src/patterns/WavePattern.js';
 import { StarfieldPattern } from '../../../src/patterns/StarfieldPattern.js';
+import { Mulberry32 } from '../../../src/utils/random.js';
 import { createMockTheme, createMockSize, createMockBuffer } from '../../utils/mocks.js';
 
 describe('Pattern Presets', () => {
@@ -98,7 +99,7 @@ describe('Pattern Presets', () => {
         // Verify config was updated (indirectly by rendering)
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
-        
+
         // Should not throw
         expect(() => {
           pattern.render(buffer, 1000, size);
@@ -109,7 +110,7 @@ describe('Pattern Presets', () => {
         pattern.applyPreset(2);
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
-        
+
         expect(() => {
           pattern.render(buffer, 1000, size);
         }).not.toThrow();
@@ -119,14 +120,14 @@ describe('Pattern Presets', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
         const mousePos = { x: 10, y: 10 };
-        
+
         // Create some ripples
         pattern.onMouseClick(mousePos);
         pattern.render(buffer, 1000, size);
-        
+
         // Apply new preset (should clear ripples)
         pattern.applyPreset(3);
-        
+
         // Should render without errors
         expect(() => {
           pattern.render(buffer, 2000, size);
@@ -142,7 +143,7 @@ describe('Pattern Presets', () => {
       it('can switch between all presets', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
-        
+
         for (let id = 1; id <= 6; id++) {
           expect(pattern.applyPreset(id)).toBe(true);
           expect(() => {
@@ -175,9 +176,9 @@ describe('Pattern Presets', () => {
       it('should fill buffer with visible content', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
-        
+
         pattern.render(buffer, 1000, size);
-        
+
         let filledCells = 0;
         for (let y = 0; y < size.height; y++) {
           for (let x = 0; x < size.width; x++) {
@@ -186,14 +187,14 @@ describe('Pattern Presets', () => {
             }
           }
         }
-        
+
         expect(filledCells).toBeGreaterThan(0);
       });
 
       it('renders without errors', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
-        
+
         expect(() => {
           pattern.render(buffer, 1000, size);
         }).not.toThrow();
@@ -213,7 +214,7 @@ describe('Pattern Presets', () => {
     const mockTheme = createMockTheme();
 
     beforeEach(() => {
-      pattern = new StarfieldPattern(mockTheme);
+      pattern = new StarfieldPattern(mockTheme, new Mulberry32(42));
     });
 
     describe('getPresets()', () => {
@@ -275,7 +276,7 @@ describe('Pattern Presets', () => {
         pattern.applyPreset(1);
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
-        
+
         expect(() => {
           pattern.render(buffer, 1000, size);
         }).not.toThrow();
@@ -285,7 +286,7 @@ describe('Pattern Presets', () => {
         pattern.applyPreset(2);
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
-        
+
         expect(() => {
           pattern.render(buffer, 1000, size);
         }).not.toThrow();
@@ -294,7 +295,7 @@ describe('Pattern Presets', () => {
       it('can switch between all presets', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
-        
+
         for (let id = 1; id <= 6; id++) {
           expect(pattern.applyPreset(id)).toBe(true);
           expect(() => {
@@ -325,9 +326,9 @@ describe('Pattern Presets', () => {
       it('should fill buffer with visible content', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
-        
+
         pattern.render(buffer, 1000, size);
-        
+
         let filledCells = 0;
         for (let y = 0; y < size.height; y++) {
           for (let x = 0; x < size.width; x++) {
@@ -336,14 +337,14 @@ describe('Pattern Presets', () => {
             }
           }
         }
-        
+
         expect(filledCells).toBeGreaterThan(0);
       });
 
       it('renders without errors', () => {
         const buffer = createMockBuffer(80, 24);
         const size = createMockSize(80, 24);
-        
+
         expect(() => {
           pattern.render(buffer, 1000, size);
         }).not.toThrow();
@@ -362,7 +363,7 @@ describe('Pattern Presets', () => {
     it('WavePattern and StarfieldPattern have consistent preset IDs (1-6)', () => {
       const wavePresets = WavePattern.getPresets();
       const starfieldPresets = StarfieldPattern.getPresets();
-      
+
       expect(wavePresets.length).toBe(starfieldPresets.length);
       expect(wavePresets.map(p => p.id).sort()).toEqual([1, 2, 3, 4, 5, 6]);
       expect(starfieldPresets.map(p => p.id).sort()).toEqual([1, 2, 3, 4, 5, 6]);
@@ -372,13 +373,13 @@ describe('Pattern Presets', () => {
       const buffer = createMockBuffer(80, 24);
       const size = createMockSize(80, 24);
       const theme = createMockTheme();
-      
+
       const wavePattern = new WavePattern(theme);
-      const starfieldPattern = new StarfieldPattern(theme);
-      
+      const starfieldPattern = new StarfieldPattern(theme, new Mulberry32(42));
+
       wavePattern.applyPreset(1);
       starfieldPattern.applyPreset(1);
-      
+
       expect(() => {
         wavePattern.render(buffer, 1000, size);
         starfieldPattern.render(buffer, 1000, size);
@@ -388,12 +389,12 @@ describe('Pattern Presets', () => {
     it('invalid preset IDs are handled gracefully', () => {
       const theme = createMockTheme();
       const wavePattern = new WavePattern(theme);
-      const starfieldPattern = new StarfieldPattern(theme);
-      
+      const starfieldPattern = new StarfieldPattern(theme, new Mulberry32(42));
+
       expect(wavePattern.applyPreset(0)).toBe(false);
       expect(wavePattern.applyPreset(-1)).toBe(false);
       expect(wavePattern.applyPreset(999)).toBe(false);
-      
+
       expect(starfieldPattern.applyPreset(0)).toBe(false);
       expect(starfieldPattern.applyPreset(-1)).toBe(false);
       expect(starfieldPattern.applyPreset(999)).toBe(false);

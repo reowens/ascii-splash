@@ -26,6 +26,7 @@ import { SpiralPattern } from '../../src/patterns/SpiralPattern.js';
 import { ParticlePattern } from '../../src/patterns/ParticlePattern.js';
 import { RainPattern } from '../../src/patterns/RainPattern.js';
 import { DNAPattern } from '../../src/patterns/DNAPattern.js';
+import { Mulberry32 } from '../../src/utils/random.js';
 import { MetaballPattern } from '../../src/patterns/MetaballPattern.js';
 import { AquariumPattern } from '../../src/patterns/AquariumPattern.js';
 import { SnowfallParkPattern } from '../../src/patterns/SnowfallParkPattern.js';
@@ -59,7 +60,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('StarfieldPattern should be mostly empty with stars', () => {
-      const pattern = new StarfieldPattern(mockTheme);
+      const pattern = new StarfieldPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       pattern.render(buffer, 1000, size);
@@ -75,7 +76,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('MatrixPattern should have vertical rain effect', () => {
-      const pattern = new MatrixPattern(mockTheme);
+      const pattern = new MatrixPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       // Render several frames to establish the rain
@@ -91,7 +92,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('PlasmaPattern should fill most of the screen', () => {
-      const pattern = new PlasmaPattern(mockTheme);
+      const pattern = new PlasmaPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       pattern.render(buffer, 1000, size);
@@ -103,7 +104,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('SpiralPattern should have content in center', () => {
-      const pattern = new SpiralPattern(mockTheme);
+      const pattern = new SpiralPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       pattern.render(buffer, 1000, size);
@@ -118,7 +119,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('RainPattern should have rain characters', () => {
-      const pattern = new RainPattern(mockTheme);
+      const pattern = new RainPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       for (let i = 0; i < 50; i++) {
@@ -133,7 +134,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('DNAPattern should have helix structure', () => {
-      const pattern = new DNAPattern(mockTheme);
+      const pattern = new DNAPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       pattern.render(buffer, 1000, size);
@@ -145,7 +146,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('MetaballPattern should have density characters', () => {
-      const pattern = new MetaballPattern(mockTheme);
+      const pattern = new MetaballPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       pattern.render(buffer, 1000, size);
@@ -157,7 +158,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('AquariumPattern should have fish and plant characters', () => {
-      const pattern = new AquariumPattern(mockTheme);
+      const pattern = new AquariumPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       for (let i = 0; i < 20; i++) {
@@ -171,7 +172,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('SnowfallParkPattern should have snow and trees', () => {
-      const pattern = new SnowfallParkPattern(mockTheme);
+      const pattern = new SnowfallParkPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       for (let i = 0; i < 20; i++) {
@@ -186,7 +187,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('CampfirePattern should have flame characters', () => {
-      const pattern = new CampfirePattern(mockTheme);
+      const pattern = new CampfirePattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       pattern.render(buffer, 1000, size);
@@ -198,7 +199,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('NightSkyPattern should have stars and possibly aurora', () => {
-      const pattern = new NightSkyPattern(mockTheme);
+      const pattern = new NightSkyPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       pattern.render(buffer, 1000, size);
@@ -210,7 +211,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('OceanBeachPattern should have waves and sand', () => {
-      const pattern = new OceanBeachPattern(mockTheme);
+      const pattern = new OceanBeachPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       pattern.render(buffer, 1000, size);
@@ -239,7 +240,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('animation similarity should be reasonable', () => {
-      const pattern = new PlasmaPattern(mockTheme);
+      const pattern = new PlasmaPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       // Capture two frames close in time
@@ -301,7 +302,7 @@ describe('Visual Snapshot Tests', () => {
 
   describe('Reset Visual State', () => {
     test('reset should produce consistent initial state', () => {
-      const pattern = new ParticlePattern(mockTheme);
+      const pattern = new ParticlePattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       // Run for a while
@@ -351,7 +352,7 @@ describe('Visual Snapshot Tests', () => {
 
       for (const testSize of sizes) {
         mockRenderer.resize(testSize.width, testSize.height);
-        const pattern = new PlasmaPattern(mockTheme);
+        const pattern = new PlasmaPattern(mockTheme, new Mulberry32(42));
         const buffer = mockRenderer.getBuffer();
 
         pattern.render(buffer, 1000, testSize);
@@ -382,7 +383,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('identical snapshots should have no diff', () => {
-      const pattern = new PlasmaPattern(mockTheme);
+      const pattern = new PlasmaPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       pattern.render(buffer, 1000, size);
@@ -419,7 +420,7 @@ describe('Visual Snapshot Tests', () => {
 
   describe('Region Extraction', () => {
     test('should extract correct region', () => {
-      const pattern = new PlasmaPattern(mockTheme);
+      const pattern = new PlasmaPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       pattern.render(buffer, 1000, size);

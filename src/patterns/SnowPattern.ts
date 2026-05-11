@@ -1,5 +1,6 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
 import { PerlinNoise } from '../utils/noise.js';
+import { Random } from '../utils/random.js';
 
 interface SnowConfig {
   particleCount: number; // Total particles (20-200)
@@ -39,6 +40,7 @@ export class SnowPattern implements Pattern {
   name = 'snow';
   private config: SnowConfig;
   private theme: Theme;
+  private random: Random;
   private particles: Particle[] = [];
   private mousePos?: Point;
   private lastTime = 0;
@@ -140,8 +142,9 @@ export class SnowPattern implements Pattern {
     },
   ];
 
-  constructor(theme: Theme, config?: Partial<SnowConfig>) {
+  constructor(theme: Theme, random: Random, config?: Partial<SnowConfig>) {
     this.theme = theme;
+    this.random = random;
     this.config = {
       particleCount: 50,
       fallSpeed: 0.3,
@@ -166,23 +169,23 @@ export class SnowPattern implements Pattern {
 
   private createParticle(randomY = false): Particle {
     const chars = this.getParticleChars();
-    const char = chars[Math.floor(Math.random() * chars.length)];
-    const weight = 0.5 + Math.random() * 1.5;
+    const char = this.random.choice(chars);
+    const weight = 0.5 + this.random.next() * 1.5;
 
     return {
-      x: Math.random() * this.size.width,
-      y: randomY ? Math.random() * this.size.height : -1,
-      vx: (Math.random() - 0.5) * this.config.windStrength,
+      x: this.random.next() * this.size.width,
+      y: randomY ? this.random.next() * this.size.height : -1,
+      vx: (this.random.next() - 0.5) * this.config.windStrength,
       vy: this.config.fallSpeed * weight,
-      rotation: Math.random() * 360,
-      rotationSpeed: (Math.random() - 0.5) * this.config.rotationSpeed,
+      rotation: this.random.next() * 360,
+      rotationSpeed: (this.random.next() - 0.5) * this.config.rotationSpeed,
       char,
-      size: Math.floor(Math.random() * 3),
-      opacity: 0.6 + Math.random() * 0.4,
+      size: this.random.int(0, 2),
+      opacity: 0.6 + this.random.next() * 0.4,
       accumulated: false,
       accumulationTime: 0,
       weight,
-      pulsePhase: Math.random() * Math.PI * 2,
+      pulsePhase: this.random.next() * Math.PI * 2,
     };
   }
 
@@ -208,12 +211,12 @@ export class SnowPattern implements Pattern {
     if (particle.accumulated) {
       particle.accumulationTime += deltaTime;
       // After 2-5 seconds, remove accumulation
-      if (particle.accumulationTime > 2000 + Math.random() * 3000) {
+      if (particle.accumulationTime > 2000 + this.random.next() * 3000) {
         particle.accumulated = false;
         particle.y = -1;
-        particle.vx = (Math.random() - 0.5) * this.config.windStrength;
+        particle.vx = (this.random.next() - 0.5) * this.config.windStrength;
         particle.accumulationTime = 0;
-        particle.pulsePhase = Math.random() * Math.PI * 2;
+        particle.pulsePhase = this.random.next() * Math.PI * 2;
       }
       return;
     }
@@ -271,7 +274,7 @@ export class SnowPattern implements Pattern {
 
     // Handle bottom boundary
     if (particle.y >= this.size.height) {
-      if (this.config.accumulation && Math.random() < 0.3) {
+      if (this.config.accumulation && this.random.bool(0.3)) {
         // Accumulate at bottom
         particle.accumulated = true;
         particle.y = this.size.height - 1;
@@ -281,9 +284,9 @@ export class SnowPattern implements Pattern {
       } else {
         // Respawn at top
         particle.y = -1;
-        particle.x = Math.random() * this.size.width;
-        particle.vx = (Math.random() - 0.5) * this.config.windStrength;
-        particle.pulsePhase = Math.random() * Math.PI * 2;
+        particle.x = this.random.next() * this.size.width;
+        particle.vx = (this.random.next() - 0.5) * this.config.windStrength;
+        particle.pulsePhase = this.random.next() * Math.PI * 2;
       }
     }
   }
@@ -346,7 +349,7 @@ export class SnowPattern implements Pattern {
         };
       case 'autumn': {
         // Orange/red/yellow mix
-        const hue = Math.random();
+        const hue = this.random.next();
         if (hue < 0.33) {
           return { r: Math.floor(255 * intensity), g: Math.floor(100 * intensity), b: 0 }; // Orange
         } else if (hue < 0.66) {
@@ -394,7 +397,7 @@ export class SnowPattern implements Pattern {
     // Spawn burst of 20 particles at click position
     for (let i = 0; i < 20; i++) {
       const angle = (Math.PI * 2 * i) / 20;
-      const speed = 2 + Math.random() * 2;
+      const speed = 2 + this.random.next() * 2;
       const particle = this.createParticle();
       particle.x = pos.x;
       particle.y = pos.y;

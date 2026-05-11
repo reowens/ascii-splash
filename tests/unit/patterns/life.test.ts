@@ -1,5 +1,6 @@
 import { LifePattern } from '../../../src/patterns/LifePattern.js';
 import { Cell, Theme } from '../../../src/types/index.js';
+import { Mulberry32 } from '../../../src/utils/random.js';
 import { createMockTheme, createMockBuffer } from '../../utils/mocks.js';
 
 describe('LifePattern', () => {
@@ -10,7 +11,7 @@ describe('LifePattern', () => {
 
   beforeEach(() => {
     theme = createMockTheme();
-    pattern = new LifePattern(theme);
+    pattern = new LifePattern(theme, new Mulberry32(42));
     buffer = createMockBuffer(size.width, size.height);
   });
 
@@ -21,7 +22,7 @@ describe('LifePattern', () => {
     });
 
     it('should accept custom config', () => {
-      const customPattern = new LifePattern(theme, {
+      const customPattern = new LifePattern(theme, new Mulberry32(42), {
         cellSize: 1,
         updateSpeed: 50,
         wrapEdges: false,
@@ -290,7 +291,7 @@ describe('LifePattern', () => {
   describe('Game of Life rules', () => {
     it('should implement birth rule (dead cell with 3 neighbors becomes alive)', () => {
       // Create a pattern that will spawn a new cell
-      const testPattern = new LifePattern(theme, {
+      const testPattern = new LifePattern(theme, new Mulberry32(42), {
         cellSize: 1,
         updateSpeed: 50,
         wrapEdges: false,
@@ -307,7 +308,7 @@ describe('LifePattern', () => {
     });
 
     it('should implement survival rule (alive cell with 2-3 neighbors survives)', () => {
-      const testPattern = new LifePattern(theme, {
+      const testPattern = new LifePattern(theme, new Mulberry32(42), {
         cellSize: 1,
         updateSpeed: 50,
         wrapEdges: false,
@@ -326,7 +327,7 @@ describe('LifePattern', () => {
     });
 
     it('should implement death rule (alive cell with <2 or >3 neighbors dies)', () => {
-      const testPattern = new LifePattern(theme, {
+      const testPattern = new LifePattern(theme, new Mulberry32(42), {
         cellSize: 2,
         updateSpeed: 50,
         wrapEdges: false,
@@ -345,7 +346,7 @@ describe('LifePattern', () => {
 
   describe('initial patterns', () => {
     it('should create random pattern', () => {
-      const testPattern = new LifePattern(theme, {
+      const testPattern = new LifePattern(theme, new Mulberry32(42), {
         cellSize: 2,
         updateSpeed: 100,
         wrapEdges: true,
@@ -362,7 +363,7 @@ describe('LifePattern', () => {
     });
 
     it('should create glider pattern', () => {
-      const testPattern = new LifePattern(theme, {
+      const testPattern = new LifePattern(theme, new Mulberry32(42), {
         cellSize: 2,
         updateSpeed: 150,
         wrapEdges: true,
@@ -379,7 +380,7 @@ describe('LifePattern', () => {
     });
 
     it('should create oscillator patterns', () => {
-      const testPattern = new LifePattern(theme, {
+      const testPattern = new LifePattern(theme, new Mulberry32(42), {
         cellSize: 2,
         updateSpeed: 200,
         wrapEdges: false,
@@ -398,7 +399,7 @@ describe('LifePattern', () => {
 
   describe('configuration options', () => {
     it('should respect cellSize config', () => {
-      const testPattern = new LifePattern(theme, {
+      const testPattern = new LifePattern(theme, new Mulberry32(42), {
         cellSize: 3,
         updateSpeed: 100,
         wrapEdges: true,
@@ -415,7 +416,7 @@ describe('LifePattern', () => {
     });
 
     it('should respect updateSpeed config', () => {
-      const testPattern = new LifePattern(theme, {
+      const testPattern = new LifePattern(theme, new Mulberry32(42), {
         cellSize: 2,
         updateSpeed: 200,
         wrapEdges: true,
@@ -432,7 +433,7 @@ describe('LifePattern', () => {
     });
 
     it('should respect wrapEdges config', () => {
-      const testPattern = new LifePattern(theme, {
+      const testPattern = new LifePattern(theme, new Mulberry32(42), {
         cellSize: 2,
         updateSpeed: 100,
         wrapEdges: false,
@@ -449,7 +450,7 @@ describe('LifePattern', () => {
     });
 
     it('should use custom alive and dead chars', () => {
-      const testPattern = new LifePattern(theme, {
+      const testPattern = new LifePattern(theme, new Mulberry32(42), {
         cellSize: 2,
         updateSpeed: 100,
         wrapEdges: true,

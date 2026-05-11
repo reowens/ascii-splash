@@ -1,4 +1,5 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
+import { Random } from '../utils/random.js';
 
 interface Drop {
   x: number;
@@ -26,6 +27,7 @@ export class RainPattern implements Pattern {
   name = 'rain';
   private config: RainConfig;
   private theme: Theme;
+  private random: Random;
   private drops: Drop[] = [];
   private splashes: { x: number; y: number; time: number; radius: number }[] = [];
   private currentTime = 0;
@@ -105,8 +107,9 @@ export class RainPattern implements Pattern {
     },
   ];
 
-  constructor(theme: Theme, config?: Partial<RainConfig>) {
+  constructor(theme: Theme, random: Random, config?: Partial<RainConfig>) {
     this.theme = theme;
+    this.random = random;
     this.config = {
       density: 0.2,
       speed: 1.0,
@@ -127,11 +130,18 @@ export class RainPattern implements Pattern {
 
   private createDrop(size: Size): Drop {
     return {
-      x: Math.floor(Math.random() * size.width),
-      y: Math.random() * -10,
-      speed: (Math.random() * 0.5 + 0.5) * this.config.speed,
-      char: this.config.characters[Math.floor(Math.random() * this.config.characters.length)],
+      x: this.random.int(0, size.width - 1),
+      y: this.random.next() * -10,
+      speed: this.random.range(0.5, 1.0) * this.config.speed,
+      char: this.pickChar(),
     };
+  }
+
+  // Pick a random character, tolerating an empty `characters` array.
+  private pickChar(): string {
+    const chars = this.config.characters;
+    if (chars.length === 0) return '';
+    return chars[this.random.int(0, chars.length - 1)];
   }
 
   render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void {
@@ -251,12 +261,12 @@ export class RainPattern implements Pattern {
 
   onMouseMove(pos: Point): void {
     // Spawn extra drops near mouse
-    if (Math.random() < 0.3) {
+    if (this.random.bool(0.3)) {
       this.drops.push({
-        x: pos.x + Math.floor(Math.random() * 6) - 3,
+        x: pos.x + this.random.int(-3, 2),
         y: pos.y - 5,
-        speed: this.config.speed * (Math.random() * 0.5 + 0.5),
-        char: this.config.characters[Math.floor(Math.random() * this.config.characters.length)],
+        speed: this.config.speed * this.random.range(0.5, 1.0),
+        char: this.pickChar(),
       });
     }
   }
@@ -274,13 +284,13 @@ export class RainPattern implements Pattern {
     // Spawn burst of drops in all directions
     for (let i = 0; i < 15; i++) {
       const angle = (Math.PI * 2 * i) / 15;
-      const distance = 3 + Math.random() * 5;
+      const distance = 3 + this.random.next() * 5;
 
       this.drops.push({
         x: Math.floor(pos.x + Math.cos(angle) * distance),
         y: Math.floor(pos.y + Math.sin(angle) * distance - 5),
-        speed: this.config.speed * (Math.random() * 0.8 + 0.7),
-        char: this.config.characters[Math.floor(Math.random() * this.config.characters.length)],
+        speed: this.config.speed * this.random.range(0.7, 1.5),
+        char: this.pickChar(),
       });
     }
   }

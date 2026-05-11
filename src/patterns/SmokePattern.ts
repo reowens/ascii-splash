@@ -1,16 +1,17 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
 import { PerlinNoise } from '../utils/noise.js';
 import { clamp } from '../utils/math.js';
+import { Random } from '../utils/random.js';
 
 interface SmokeConfig {
-  plumeCount: number;       // Number of smoke sources (1-8)
-  particleCount: number;    // Particles per plume (20-100)
-  riseSpeed: number;        // Upward speed (0.1-2.0)
-  dissipationRate: number;  // How fast smoke fades (0.01-0.1)
-  turbulence: number;       // Noise strength (0-2.0)
-  spread: number;           // Horizontal spread (0.1-1.5)
-  windStrength: number;     // Horizontal wind (0-1.0)
-  mouseBlowForce: number;   // Mouse creates wind (0-5.0)
+  plumeCount: number; // Number of smoke sources (1-8)
+  particleCount: number; // Particles per plume (20-100)
+  riseSpeed: number; // Upward speed (0.1-2.0)
+  dissipationRate: number; // How fast smoke fades (0.01-0.1)
+  turbulence: number; // Noise strength (0-2.0)
+  spread: number; // Horizontal spread (0.1-1.5)
+  windStrength: number; // Horizontal wind (0-1.0)
+  mouseBlowForce: number; // Mouse creates wind (0-5.0)
 }
 
 interface SmokePreset {
@@ -23,20 +24,20 @@ interface SmokePreset {
 interface SmokeParticle {
   x: number;
   y: number;
-  vx: number;      // Horizontal velocity
-  vy: number;      // Vertical velocity
+  vx: number; // Horizontal velocity
+  vy: number; // Vertical velocity
   opacity: number; // 0-1, decreases over time
-  size: number;    // Visual size (0-3)
-  life: number;    // Lifetime counter
+  size: number; // Visual size (0-3)
+  life: number; // Lifetime counter
   maxLife: number; // When to respawn
   plumeId: number; // Which plume spawned this
   temperature: number; // Heat level (1.0 at spawn, decreases as it rises)
 }
 
 interface Plume {
-  x: number;       // Source X position
-  y: number;       // Source Y position (bottom of screen)
-  phase: number;   // For sine wave movement
+  x: number; // Source X position
+  y: number; // Source Y position (bottom of screen)
+  phase: number; // For sine wave movement
   active: boolean; // Is this plume emitting?
 }
 
@@ -44,6 +45,7 @@ export class SmokePattern implements Pattern {
   name = 'smoke';
   private config: SmokeConfig;
   private theme: Theme;
+  private random: Random;
   private particles: SmokeParticle[] = [];
   private plumes: Plume[] = [];
   private mousePos?: Point;
@@ -57,42 +59,97 @@ export class SmokePattern implements Pattern {
       id: 1,
       name: 'Gentle Wisp',
       description: 'Light, slow-rising smoke',
-      config: { plumeCount: 2, particleCount: 40, riseSpeed: 0.3, dissipationRate: 0.02, turbulence: 0.5, spread: 0.3, windStrength: 0.1, mouseBlowForce: 2.0 }
+      config: {
+        plumeCount: 2,
+        particleCount: 40,
+        riseSpeed: 0.3,
+        dissipationRate: 0.02,
+        turbulence: 0.5,
+        spread: 0.3,
+        windStrength: 0.1,
+        mouseBlowForce: 2.0,
+      },
     },
     {
       id: 2,
       name: 'Campfire',
       description: 'Classic campfire smoke',
-      config: { plumeCount: 3, particleCount: 60, riseSpeed: 0.5, dissipationRate: 0.03, turbulence: 0.8, spread: 0.5, windStrength: 0.2, mouseBlowForce: 2.5 }
+      config: {
+        plumeCount: 3,
+        particleCount: 60,
+        riseSpeed: 0.5,
+        dissipationRate: 0.03,
+        turbulence: 0.8,
+        spread: 0.5,
+        windStrength: 0.2,
+        mouseBlowForce: 2.5,
+      },
     },
     {
       id: 3,
       name: 'Industrial',
       description: 'Heavy, dense smoke columns',
-      config: { plumeCount: 5, particleCount: 80, riseSpeed: 0.4, dissipationRate: 0.015, turbulence: 0.3, spread: 0.2, windStrength: 0.3, mouseBlowForce: 3.0 }
+      config: {
+        plumeCount: 5,
+        particleCount: 80,
+        riseSpeed: 0.4,
+        dissipationRate: 0.015,
+        turbulence: 0.3,
+        spread: 0.2,
+        windStrength: 0.3,
+        mouseBlowForce: 3.0,
+      },
     },
     {
       id: 4,
       name: 'Incense',
       description: 'Thin, delicate smoke trail',
-      config: { plumeCount: 1, particleCount: 30, riseSpeed: 0.25, dissipationRate: 0.04, turbulence: 1.2, spread: 0.4, windStrength: 0.15, mouseBlowForce: 1.5 }
+      config: {
+        plumeCount: 1,
+        particleCount: 30,
+        riseSpeed: 0.25,
+        dissipationRate: 0.04,
+        turbulence: 1.2,
+        spread: 0.4,
+        windStrength: 0.15,
+        mouseBlowForce: 1.5,
+      },
     },
     {
       id: 5,
       name: 'Fog',
       description: 'Low-lying, spreading fog',
-      config: { plumeCount: 4, particleCount: 100, riseSpeed: 0.1, dissipationRate: 0.01, turbulence: 0.4, spread: 1.2, windStrength: 0.05, mouseBlowForce: 1.0 }
+      config: {
+        plumeCount: 4,
+        particleCount: 100,
+        riseSpeed: 0.1,
+        dissipationRate: 0.01,
+        turbulence: 0.4,
+        spread: 1.2,
+        windStrength: 0.05,
+        mouseBlowForce: 1.0,
+      },
     },
     {
       id: 6,
       name: 'Steam',
       description: 'Fast-rising, quickly dissipating',
-      config: { plumeCount: 6, particleCount: 50, riseSpeed: 1.5, dissipationRate: 0.08, turbulence: 1.5, spread: 0.6, windStrength: 0.4, mouseBlowForce: 4.0 }
-    }
+      config: {
+        plumeCount: 6,
+        particleCount: 50,
+        riseSpeed: 1.5,
+        dissipationRate: 0.08,
+        turbulence: 1.5,
+        spread: 0.6,
+        windStrength: 0.4,
+        mouseBlowForce: 4.0,
+      },
+    },
   ];
 
-  constructor(theme: Theme, config?: Partial<SmokeConfig>) {
+  constructor(theme: Theme, random: Random, config?: Partial<SmokeConfig>) {
     this.theme = theme;
+    this.random = random;
     this.config = {
       plumeCount: 3,
       particleCount: 60,
@@ -102,9 +159,9 @@ export class SmokePattern implements Pattern {
       spread: 0.5,
       windStrength: 0.2,
       mouseBlowForce: 2.5,
-      ...config
+      ...config,
     };
-    this.noise = new PerlinNoise(Math.random() * 10000);
+    this.noise = new PerlinNoise(this.random.next() * 10000);
     this.initializePlumes(80, 24); // Default size
   }
 
@@ -115,27 +172,27 @@ export class SmokePattern implements Pattern {
       this.plumes.push({
         x: spacing * (i + 1),
         y: height - 1,
-        phase: Math.random() * Math.PI * 2,
-        active: true
+        phase: this.random.next() * Math.PI * 2,
+        active: true,
       });
     }
   }
 
   private spawnParticle(plume: Plume, plumeId: number): SmokeParticle {
-    const spreadAngle = (Math.random() - 0.5) * Math.PI * this.config.spread;
-    const speed = this.config.riseSpeed * (0.8 + Math.random() * 0.4);
-    
+    const spreadAngle = (this.random.next() - 0.5) * Math.PI * this.config.spread;
+    const speed = this.config.riseSpeed * (0.8 + this.random.next() * 0.4);
+
     return {
-      x: plume.x + (Math.random() - 0.5) * 2,
+      x: plume.x + (this.random.next() - 0.5) * 2,
       y: plume.y,
       vx: Math.sin(spreadAngle) * speed * 0.3,
       vy: -Math.cos(spreadAngle) * speed,
-      opacity: 0.9 + Math.random() * 0.1,
-      size: Math.random() * 3,
+      opacity: 0.9 + this.random.next() * 0.1,
+      size: this.random.next() * 3,
       life: 0,
-      maxLife: 50 + Math.random() * 50,
+      maxLife: 50 + this.random.next() * 50,
       plumeId,
-      temperature: 1.0
+      temperature: 1.0,
     };
   }
 
@@ -146,7 +203,7 @@ export class SmokePattern implements Pattern {
     this.noiseOffset = 0;
     this.windOffset = 0;
     this.lastTime = 0;
-    this.noise = new PerlinNoise(Math.random() * 10000);
+    this.noise = new PerlinNoise(this.random.next() * 10000);
   }
 
   render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void {
@@ -183,7 +240,7 @@ export class SmokePattern implements Pattern {
       // Spawn particles
       const targetCount = Math.floor(this.config.particleCount / this.config.plumeCount);
       const currentCount = this.particles.filter(p => p.plumeId === i).length;
-      
+
       if (currentCount < targetCount) {
         for (let j = 0; j < Math.min(3, targetCount - currentCount); j++) {
           this.particles.push(this.spawnParticle(plume, i));
@@ -194,11 +251,11 @@ export class SmokePattern implements Pattern {
     // Update particles
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
-      
+
       // Age particle
       p.life++;
       p.opacity -= this.config.dissipationRate;
-      
+
       // Cool down as it rises
       p.temperature -= 0.01;
 
@@ -239,7 +296,7 @@ export class SmokePattern implements Pattern {
       // Apply velocity with damping
       p.x += p.vx * (deltaTime / 16);
       p.y += p.vy * (deltaTime / 16);
-      
+
       // Velocity damping (smoke slows down as it rises)
       p.vx *= 0.98;
       p.vy *= 0.99;
@@ -258,7 +315,7 @@ export class SmokePattern implements Pattern {
         // Opacity-based character selection
         const opacity = clamp(p.opacity, 0, 1);
         let char: string;
-        
+
         if (opacity > 0.7) char = '▓';
         else if (opacity > 0.5) char = '▒';
         else if (opacity > 0.3) char = '░';
@@ -269,7 +326,7 @@ export class SmokePattern implements Pattern {
         // Hot smoke (near source) is brighter, cool smoke (risen) is dimmer
         const heightRatio = clamp(p.y / height, 0, 1);
         const tempFactor = clamp(p.temperature, 0, 1);
-        
+
         // Combine height and temperature: hot = bright, cool + high = dim
         const heightIntensity = 1 - heightRatio * 0.4; // 0.6-1.0 based on height
         const tempIntensity = 0.7 + tempFactor * 0.3; // 0.7-1.0 based on temperature
@@ -291,20 +348,20 @@ export class SmokePattern implements Pattern {
     // Click spawns a burst of smoke at that location
     const burstCount = 15;
     for (let i = 0; i < burstCount; i++) {
-      const angle = (Math.random() - 0.5) * Math.PI;
-      const speed = 0.5 + Math.random() * 1.0;
-      
+      const angle = (this.random.next() - 0.5) * Math.PI;
+      const speed = 0.5 + this.random.next() * 1.0;
+
       this.particles.push({
-        x: pos.x + (Math.random() - 0.5) * 3,
-        y: pos.y + (Math.random() - 0.5) * 3,
+        x: pos.x + (this.random.next() - 0.5) * 3,
+        y: pos.y + (this.random.next() - 0.5) * 3,
         vx: Math.sin(angle) * speed,
         vy: -Math.abs(Math.cos(angle)) * speed,
         opacity: 0.8,
-        size: Math.random() * 3,
+        size: this.random.next() * 3,
         life: 0,
-        maxLife: 40 + Math.random() * 30,
+        maxLife: 40 + this.random.next() * 30,
         plumeId: -1, // Special ID for clicked particles
-        temperature: 1.0
+        temperature: 1.0,
       });
     }
   }
@@ -332,9 +389,10 @@ export class SmokePattern implements Pattern {
     return {
       particles: this.particles.length,
       plumes: activePlumes,
-      avgOpacity: this.particles.length > 0 
-        ? this.particles.reduce((sum, p) => sum + p.opacity, 0) / this.particles.length 
-        : 0
+      avgOpacity:
+        this.particles.length > 0
+          ? this.particles.reduce((sum, p) => sum + p.opacity, 0) / this.particles.length
+          : 0,
     };
   }
 }

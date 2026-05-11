@@ -7,6 +7,7 @@
 import { describe, test, expect, beforeEach } from '@jest/globals';
 import { MetaballPattern } from '../../../src/patterns/MetaballPattern.js';
 import { Theme, Cell, Color } from '../../../src/types/index.js';
+import { Mulberry32 } from '../../../src/utils/random.js';
 
 // Mock theme for testing
 const mockTheme: Theme = {
@@ -39,7 +40,7 @@ describe('MetaballPattern', () => {
   let pattern: MetaballPattern;
 
   beforeEach(() => {
-    pattern = new MetaballPattern(mockTheme);
+    pattern = new MetaballPattern(mockTheme, new Mulberry32(42));
   });
 
   describe('Initialization', () => {
@@ -49,7 +50,7 @@ describe('MetaballPattern', () => {
     });
 
     test('should accept custom config', () => {
-      const customPattern = new MetaballPattern(mockTheme, {
+      const customPattern = new MetaballPattern(mockTheme, new Mulberry32(42), {
         blobCount: 10,
         gravity: 0.5,
         colorMode: 'rainbow',
@@ -105,7 +106,7 @@ describe('MetaballPattern', () => {
 
   describe('Color Modes', () => {
     test('should render with theme color mode', () => {
-      const themePattern = new MetaballPattern(mockTheme, {
+      const themePattern = new MetaballPattern(mockTheme, new Mulberry32(42), {
         colorMode: 'theme',
       });
       const buffer = createBuffer(80, 24);
@@ -117,7 +118,7 @@ describe('MetaballPattern', () => {
     });
 
     test('should render with rainbow color mode', () => {
-      const rainbowPattern = new MetaballPattern(mockTheme, {
+      const rainbowPattern = new MetaballPattern(mockTheme, new Mulberry32(42), {
         colorMode: 'rainbow',
       });
       const buffer = createBuffer(80, 24);
@@ -129,7 +130,7 @@ describe('MetaballPattern', () => {
     });
 
     test('should render with gradient color mode', () => {
-      const gradientPattern = new MetaballPattern(mockTheme, {
+      const gradientPattern = new MetaballPattern(mockTheme, new Mulberry32(42), {
         colorMode: 'gradient',
       });
       const buffer = createBuffer(80, 24);
@@ -163,7 +164,7 @@ describe('MetaballPattern', () => {
     });
 
     test('should apply gravity', () => {
-      const gravityPattern = new MetaballPattern(mockTheme, {
+      const gravityPattern = new MetaballPattern(mockTheme, new Mulberry32(42), {
         gravity: 1.0,
         blobCount: 5,
       });
@@ -188,7 +189,7 @@ describe('MetaballPattern', () => {
     });
 
     test('should spawn blob on click when enabled', () => {
-      const spawnPattern = new MetaballPattern(mockTheme, {
+      const spawnPattern = new MetaballPattern(mockTheme, new Mulberry32(42), {
         spawnOnClick: true,
         blobCount: 5,
       });
@@ -210,7 +211,7 @@ describe('MetaballPattern', () => {
     });
 
     test('should repel blobs on click when spawn disabled', () => {
-      const repelPattern = new MetaballPattern(mockTheme, {
+      const repelPattern = new MetaballPattern(mockTheme, new Mulberry32(42), {
         spawnOnClick: false,
         blobCount: 5,
       });
@@ -357,7 +358,7 @@ describe('MetaballPattern', () => {
 
   describe('Physics', () => {
     test('should handle bouncing off walls', () => {
-      const bouncyPattern = new MetaballPattern(mockTheme, {
+      const bouncyPattern = new MetaballPattern(mockTheme, new Mulberry32(42), {
         bounce: 0.9,
         blobCount: 5,
       });
@@ -373,7 +374,7 @@ describe('MetaballPattern', () => {
     });
 
     test('should handle blob-blob collisions', () => {
-      const collisionPattern = new MetaballPattern(mockTheme, {
+      const collisionPattern = new MetaballPattern(mockTheme, new Mulberry32(42), {
         blobCount: 10,
         blobMinRadius: 3,
         blobMaxRadius: 5,
@@ -435,7 +436,7 @@ describe('MetaballPattern', () => {
       const counts = [1, 3, 8, 15];
 
       for (const count of counts) {
-        const testPattern = new MetaballPattern(mockTheme, {
+        const testPattern = new MetaballPattern(mockTheme, new Mulberry32(42), {
           blobCount: count,
         });
         const buffer = createBuffer(80, 24);
@@ -451,7 +452,7 @@ describe('MetaballPattern', () => {
       const thresholds = [0.5, 1.0, 1.5, 2.0];
 
       for (const threshold of thresholds) {
-        const testPattern = new MetaballPattern(mockTheme, {
+        const testPattern = new MetaballPattern(mockTheme, new Mulberry32(42), {
           threshold,
         });
         const buffer = createBuffer(80, 24);

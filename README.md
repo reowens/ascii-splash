@@ -15,6 +15,7 @@ Transform your terminal into a mesmerizing visual experience with **23 interacti
 - 🎨 **23 Interactive Patterns** - Waves, Starfield, Matrix, Rain, Quicksilver, Particles, Spiral, Plasma, Tunnel, Lightning, Fireworks, Life, Maze, DNA, Lava Lamp, Smoke, Snow, Ocean Beach, Campfire, Aquarium, Night Sky, Snowfall Park, Metaball Playground
 - 🎯 **138 Total Presets** - 6 carefully crafted variations for each pattern
 - 🌈 **5 Color Themes** - Ocean, Matrix, Starlight, Fire, Monochrome (all patterns adapt)
+- 🔗 **Shareable Scenes (v0.5.0+)** - Press `Shift+S` to copy a 12-char share code; `splash play <code>` reproduces the scene byte-for-byte on any machine
 - ⌨️ **Advanced Command System** - Multi-key commands for quick pattern/preset/theme switching
 - 💾 **Favorites System** - Save and recall your favorite combinations
 - 🔀 **Shuffle Mode** - Auto-cycle presets or entire configurations
@@ -194,6 +195,13 @@ splash -h
 | `--version`  | `-V`  | Show version              |                                                                                                                                                                                                                |
 | `--help`     | `-h`  | Show help                 |                                                                                                                                                                                                                |
 
+**Subcommands (v0.5.0+):**
+
+| Subcommand           | Description                                                                               |
+| -------------------- | ----------------------------------------------------------------------------------------- |
+| `splash share`       | Print a 12-character share code for the bootstrapped state and exit. No TTY required.     |
+| `splash play <code>` | Decode a share code and boot directly into the encoded scene (byte-for-byte reproducible) |
+
 ### 📸 Photo Mode (v0.4.0+, on `feature/v0.4.0-phase1-photo-pattern`)
 
 `splash --photo PATH` adds a `PhotoPattern` alongside the 23 procedural patterns. The image is decoded via `sharp`, resized to fit the terminal preserving aspect ratio, and drawn into the same `Cell[][]` buffer the procedural patterns use — so themes, the command system, favorites, etc. all keep working.
@@ -248,6 +256,46 @@ Cycle presets at runtime with `.` / `,`, or jump directly with `c13` (preset 13)
 - `splash --photo ~/Pictures/code-screenshot.png --pattern matrix` — green matrix rain falling through the source code
 
 > **Status:** v0.4.0 Phases 1 + 2 + 3 + 4 are done on the feature branch but not yet released to npm. Phase 5 (Kitty / iTerm2 / Sixel native protocol pass-through) is the next milestone.
+
+### 🔗 Share Codes (v0.5.0+, on `feature/v0.5.0-phase7-share-codes`)
+
+Every procedural pattern is now deterministic — the random seed that drives a scene can be captured in a 12-character code and replayed on any machine, byte-for-byte.
+
+**Three entry points:**
+
+| How                  | What it does                                                                                                                                                                                                                          |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Shift+S` (in-app)   | Encodes the running scene, copies the code to your clipboard, shows a toast `Share code XXXXXXXXXXXX copied`. Falls back to printing the code if no clipboard tool is available.                                                      |
+| `splash share`       | Prints a code for the would-be-initial-scene (config defaults + a fresh random seed) and exits. No TTY required — usable in scripts and CI.                                                                                           |
+| `splash play <code>` | Decodes the code and boots directly into the encoded scene. Validates against your local config and refuses on mismatch (so a code from a differently-configured machine fails loudly instead of silently playing a different scene). |
+
+**Try it:**
+
+```bash
+# In one terminal, generate a code
+$ splash share
+2N9KT7VBQX3M
+
+# In another, play it back — byte-for-byte identical animation
+$ splash play 2N9KT7VBQX3M
+```
+
+**Format:** 12 characters from the Crockford base32 alphabet (no `I`, `L`, `O`, `U` — codes survive being read aloud over the phone). Case-insensitive. You can also paste it hyphenated as `2N9K-T7VB-QX3M` — decoding strips the hyphens.
+
+**What's encoded:**
+
+- Pattern (0–22 procedural patterns; Photo and Layered slots are intentionally excluded — they depend on a local image file)
+- Preset (1–6)
+- Theme (ocean / matrix / starlight / fire / monochrome)
+- PRNG seed (u32 — the actual scene state)
+- 13-bit fingerprint of your non-default pattern config (so a code generated on a machine with custom settings won't silently produce a different scene on yours)
+
+**Errors:**
+
+- `Share code is version N, but this build only understands v1` — upgrade ascii-splash to play a code from a newer release.
+- `Share code must be 12 characters` — code was truncated or has extra characters.
+- `Invalid character "X" in share code` — typo, or a char outside Crockford base32.
+- `This share code was made with different settings for "pattern"` — your local config has overrides that would change the scene. Use the default config to play this code, or ask the sender to share their config too.
 
 ## 📝 Configuration File
 
@@ -346,6 +394,7 @@ Each pattern has its own configuration options. See [examples/.splashrc.example]
   - 5-second timeout or ESC to cancel
 - **r**: Random (pattern + preset + theme)
 - **s**: Save current config to file
+- **Shift+S**: Copy share code for the current scene to clipboard (v0.5.0+)
 - **Space**: Pause/Resume
 - **+/-**: Adjust FPS (10-60)
 - **[/]**: Cycle performance modes (LOW/MEDIUM/HIGH)

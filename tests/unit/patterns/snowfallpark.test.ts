@@ -7,6 +7,7 @@
 import { describe, test, expect, beforeEach } from '@jest/globals';
 import { SnowfallParkPattern } from '../../../src/patterns/SnowfallParkPattern.js';
 import { Theme, Cell, Color } from '../../../src/types/index.js';
+import { Mulberry32 } from '../../../src/utils/random.js';
 
 // Mock theme for testing
 const mockTheme: Theme = {
@@ -39,7 +40,7 @@ describe('SnowfallParkPattern', () => {
   let pattern: SnowfallParkPattern;
 
   beforeEach(() => {
-    pattern = new SnowfallParkPattern(mockTheme);
+    pattern = new SnowfallParkPattern(mockTheme, new Mulberry32(42));
   });
 
   describe('Initialization', () => {
@@ -49,7 +50,7 @@ describe('SnowfallParkPattern', () => {
     });
 
     test('should accept custom config', () => {
-      const customPattern = new SnowfallParkPattern(mockTheme, {
+      const customPattern = new SnowfallParkPattern(mockTheme, new Mulberry32(42), {
         snowDensity: 2.0,
         treeCount: 6,
         lampCount: 3,
@@ -132,7 +133,7 @@ describe('SnowfallParkPattern', () => {
     });
 
     test('should render lamps', () => {
-      const lampPattern = new SnowfallParkPattern(mockTheme, {
+      const lampPattern = new SnowfallParkPattern(mockTheme, new Mulberry32(42), {
         lampCount: 3,
       });
       const buffer = createBuffer(80, 24);
@@ -168,7 +169,7 @@ describe('SnowfallParkPattern', () => {
 
   describe('Accumulation', () => {
     test('should accumulate snow when enabled', () => {
-      const accPattern = new SnowfallParkPattern(mockTheme, {
+      const accPattern = new SnowfallParkPattern(mockTheme, new Mulberry32(42), {
         accumulationEnabled: true,
         accumulationHeight: 3,
         snowDensity: 2.0,
@@ -198,7 +199,7 @@ describe('SnowfallParkPattern', () => {
     });
 
     test('should not accumulate when disabled', () => {
-      const noAccPattern = new SnowfallParkPattern(mockTheme, {
+      const noAccPattern = new SnowfallParkPattern(mockTheme, new Mulberry32(42), {
         accumulationEnabled: false,
       });
       const buffer = createBuffer(80, 24);
@@ -390,7 +391,7 @@ describe('SnowfallParkPattern', () => {
 
   describe('Wind Effects', () => {
     test('should apply wind to snowflakes', () => {
-      const windyPattern = new SnowfallParkPattern(mockTheme, {
+      const windyPattern = new SnowfallParkPattern(mockTheme, new Mulberry32(42), {
         windStrength: 0.9,
         windVariation: 0.8,
       });
@@ -451,7 +452,7 @@ describe('SnowfallParkPattern', () => {
       const counts = [1, 3, 5, 8];
 
       for (const count of counts) {
-        const testPattern = new SnowfallParkPattern(mockTheme, {
+        const testPattern = new SnowfallParkPattern(mockTheme, new Mulberry32(42), {
           treeCount: count,
         });
         const buffer = createBuffer(80, 24);
@@ -467,7 +468,7 @@ describe('SnowfallParkPattern', () => {
       const counts = [0, 1, 2, 4];
 
       for (const count of counts) {
-        const testPattern = new SnowfallParkPattern(mockTheme, {
+        const testPattern = new SnowfallParkPattern(mockTheme, new Mulberry32(42), {
           lampCount: count,
         });
         const buffer = createBuffer(80, 24);

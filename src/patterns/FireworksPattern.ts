@@ -1,4 +1,5 @@
 import { Pattern, Cell, Size, Point, Theme, Color } from '../types/index.js';
+import { Random } from '../utils/random.js';
 
 interface FireworkConfig {
   burstSize: number;
@@ -49,6 +50,7 @@ export class FireworksPattern implements Pattern {
   name = 'fireworks';
   private config: FireworkConfig;
   private theme: Theme;
+  private random: Random;
   private fireworks: Firework[] = [];
   private lastSpawn = 0;
 
@@ -157,8 +159,9 @@ export class FireworksPattern implements Pattern {
     },
   ];
 
-  constructor(theme: Theme, config?: Partial<FireworkConfig>) {
+  constructor(theme: Theme, random: Random, config?: Partial<FireworkConfig>) {
     this.theme = theme;
+    this.random = random;
     this.config = {
       burstSize: 60,
       launchSpeed: 1.5,
@@ -216,18 +219,18 @@ export class FireworksPattern implements Pattern {
   }
 
   private spawnFirework(size: Size, targetX?: number, targetY?: number, instant = false): Firework {
-    const startX = targetX ?? Math.random() * size.width;
-    const targetH = targetY ?? size.height * (0.2 + Math.random() * 0.3);
+    const startX = targetX ?? this.random.next() * size.width;
+    const targetH = targetY ?? size.height * (0.2 + this.random.next() * 0.3);
 
     // Pick a random color from theme
-    const colorIntensity = 0.5 + Math.random() * 0.5;
+    const colorIntensity = 0.5 + this.random.next() * 0.5;
     const burstColor = this.theme.getColor(colorIntensity);
 
     const firework: Firework = {
       x: startX,
       y: instant ? targetH : size.height,
-      vx: (Math.random() - 0.5) * 0.5,
-      vy: instant ? 0 : -this.config.launchSpeed * (8 + Math.random() * 4),
+      vx: (this.random.next() - 0.5) * 0.5,
+      vy: instant ? 0 : -this.config.launchSpeed * (8 + this.random.next() * 4),
       state: instant ? 'exploded' : 'launching',
       particles: [],
       burstColor,
@@ -253,15 +256,15 @@ export class FireworksPattern implements Pattern {
       case 'circle':
         // Traditional radial burst
         return {
-          angle: (Math.PI * 2 * index) / total + (Math.random() - 0.5) * 0.5,
+          angle: (Math.PI * 2 * index) / total + (this.random.next() - 0.5) * 0.5,
           speedMult: 1.0,
         };
 
       case 'ring':
         // Hollow ring (skip center, concentrate at edge)
         return {
-          angle: (Math.PI * 2 * index) / total + (Math.random() - 0.5) * 0.3,
-          speedMult: 0.8 + Math.random() * 0.4, // 0.8-1.2x speed (more uniform)
+          angle: (Math.PI * 2 * index) / total + (this.random.next() - 0.5) * 0.3,
+          speedMult: 0.8 + this.random.next() * 0.4, // 0.8-1.2x speed (more uniform)
         };
 
       case 'heart': {
@@ -275,7 +278,7 @@ export class FireworksPattern implements Pattern {
           Math.cos(4 * heartT);
         return {
           angle: Math.atan2(-heartY, heartX), // Negative Y to flip upright
-          speedMult: 0.7 + Math.random() * 0.4, // Slightly slower for shape clarity
+          speedMult: 0.7 + this.random.next() * 0.4, // Slightly slower for shape clarity
         };
       }
 
@@ -294,7 +297,7 @@ export class FireworksPattern implements Pattern {
       case 'random':
         // Should never reach here (handled in explode)
         return {
-          angle: Math.random() * Math.PI * 2,
+          angle: this.random.next() * Math.PI * 2,
           speedMult: 1.0,
         };
     }
@@ -314,18 +317,18 @@ export class FireworksPattern implements Pattern {
     let shape = this.config.burstShape;
     if (shape === 'random') {
       const shapes: ('circle' | 'ring' | 'heart' | 'star')[] = ['circle', 'ring', 'heart', 'star'];
-      shape = shapes[Math.floor(Math.random() * shapes.length)];
+      shape = this.random.choice(shapes);
     }
 
     // Create burst particles in shaped pattern
     for (let i = 0; i < burstSize; i++) {
       const { angle, speedMult } = this.getShapedBurstParams(i, burstSize, shape);
-      const baseSpeed = 2 + Math.random() * 3;
+      const baseSpeed = 2 + this.random.next() * 3;
       const speed = baseSpeed * speedScale * speedMult;
 
       // Determine if this particle can explode (only if under depth limit)
-      const canExplode = depth < this.config.maxBurstDepth && Math.random() < 0.3;
-      const burstTimer = canExplode ? 200 + Math.random() * 300 : -1; // 200-500ms delay
+      const canExplode = depth < this.config.maxBurstDepth && this.random.bool(0.3);
+      const burstTimer = canExplode ? 200 + this.random.next() * 300 : -1; // 200-500ms delay
 
       firework.particles.push({
         x: firework.x,
@@ -444,21 +447,21 @@ export class FireworksPattern implements Pattern {
           p.vy *= 0.99;
 
           // Spawn sparkle particles (only from normal particles with sufficient life)
-          if (p.type === 'normal' && p.life > 0.5 && Math.random() < this.config.sparkleChance) {
+          if (p.type === 'normal' && p.life > 0.5 && this.random.bool(this.config.sparkleChance)) {
             // Recalculate total particles immediately before spawning sparkles to prevent race conditions
             const currentTotal = this.fireworks.reduce((sum, f) => sum + f.particles.length, 0);
             if (currentTotal < 450) {
-              const sparkleCount = Math.floor(Math.random() * 3) + 1; // 1-3 sparkles
+              const sparkleCount = this.random.int(1, 3); // 1-3 sparkles
               for (let s = 0; s < sparkleCount; s++) {
-                const sparkleAngle = Math.random() * Math.PI * 2;
-                const sparkleSpeed = 3 + Math.random() * 4; // 3-7 units/frame (faster than parent)
+                const sparkleAngle = this.random.next() * Math.PI * 2;
+                const sparkleSpeed = 3 + this.random.next() * 4; // 3-7 units/frame (faster than parent)
 
                 fw.particles.push({
                   x: p.x,
                   y: p.y,
                   vx: Math.cos(sparkleAngle) * sparkleSpeed,
                   vy: Math.sin(sparkleAngle) * sparkleSpeed,
-                  life: 0.15 + Math.random() * 0.15, // Very short life (0.15-0.3)
+                  life: 0.15 + this.random.next() * 0.15, // Very short life (0.15-0.3)
                   trail: [], // No trails for sparkles
                   hue: 0, // Not used (sparkles are white/yellow)
                   depth: p.depth + 1, // One level deeper
@@ -504,7 +507,7 @@ export class FireworksPattern implements Pattern {
 
             if (p.type === 'sparkle') {
               // Sparkle particles - bright, white/yellow, small characters
-              char = ['✧', '✦', '*', '·'][Math.floor(Math.random() * 4)];
+              char = this.random.choice(['✧', '✦', '*', '·']);
               const brightness = Math.floor(p.life * 255);
               color = {
                 r: 255,
@@ -516,24 +519,24 @@ export class FireworksPattern implements Pattern {
               if (p.depth === 0) {
                 // Primary burst - full character set
                 if (p.life > 0.7) {
-                  char = ['●', '◉', '★', '✦'][Math.floor(Math.random() * 4)];
+                  char = this.random.choice(['●', '◉', '★', '✦']);
                 } else if (p.life > 0.4) {
-                  char = ['○', '◎', '*', '✧'][Math.floor(Math.random() * 4)];
+                  char = this.random.choice(['○', '◎', '*', '✧']);
                 } else {
-                  char = ['·', '∙', '.'][Math.floor(Math.random() * 3)];
+                  char = this.random.choice(['·', '∙', '.']);
                 }
               } else if (p.depth === 1) {
                 // Secondary burst - smaller character set
                 if (p.life > 0.7) {
-                  char = ['○', '◎', '*'][Math.floor(Math.random() * 3)];
+                  char = this.random.choice(['○', '◎', '*']);
                 } else if (p.life > 0.4) {
-                  char = ['∙', '·'][Math.floor(Math.random() * 2)];
+                  char = this.random.choice(['∙', '·']);
                 } else {
                   char = '.';
                 }
               } else {
                 // Tertiary and deeper - minimal characters
-                char = ['·', '∙', '.'][Math.floor(Math.random() * 3)];
+                char = this.random.choice(['·', '∙', '.']);
               }
 
               // Blend between burst color and rainbow hue color
