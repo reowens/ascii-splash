@@ -226,7 +226,7 @@ describe('Additional Pattern Tests', () => {
     const mockTheme = createMockTheme();
 
     beforeEach(() => {
-      pattern = new RainPattern(mockTheme);
+      pattern = new RainPattern(mockTheme, new Mulberry32(42));
     });
 
     describe('getPresets()', () => {
@@ -1105,7 +1105,7 @@ describe('Additional Pattern Tests', () => {
     const mockTheme = createMockTheme();
 
     beforeEach(() => {
-      pattern = new TunnelPattern(mockTheme);
+      pattern = new TunnelPattern(mockTheme, new Mulberry32(42));
     });
 
     describe('getPresets()', () => {

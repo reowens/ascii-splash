@@ -119,7 +119,7 @@ describe('Performance Benchmarks', () => {
     });
 
     test('TunnelPattern should maintain 30+ FPS', () => {
-      const pattern = new TunnelPattern(mockTheme);
+      const pattern = new TunnelPattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, standardSize);
 
       expect(avgFrameTime).toBeLessThan(MAX_FRAME_TIME_MS);
@@ -140,7 +140,7 @@ describe('Performance Benchmarks', () => {
     });
 
     test('MazePattern should maintain 30+ FPS', () => {
-      const pattern = new MazePattern(mockTheme);
+      const pattern = new MazePattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, standardSize);
 
       expect(avgFrameTime).toBeLessThan(MAX_FRAME_TIME_MS);

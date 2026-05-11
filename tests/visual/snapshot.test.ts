@@ -119,7 +119,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('RainPattern should have rain characters', () => {
-      const pattern = new RainPattern(mockTheme);
+      const pattern = new RainPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       for (let i = 0; i < 50; i++) {

@@ -1,4 +1,5 @@
 import { RainPattern } from '../../../src/patterns/RainPattern.js';
+import { Mulberry32 } from '../../../src/utils/random.js';
 import { createMockTheme, createMockSize, createMockBuffer } from '../../utils/mocks.js';
 import { Point } from '../../../src/types/index.js';
 
@@ -7,7 +8,7 @@ describe('RainPattern', () => {
   const mockTheme = createMockTheme();
 
   beforeEach(() => {
-    pattern = new RainPattern(mockTheme);
+    pattern = new RainPattern(mockTheme, new Mulberry32(42));
   });
 
   describe('Constructor', () => {
@@ -16,7 +17,7 @@ describe('RainPattern', () => {
     });
 
     it('creates pattern with custom config', () => {
-      const customPattern = new RainPattern(mockTheme, {
+      const customPattern = new RainPattern(mockTheme, new Mulberry32(42), {
         density: 0.5,
         speed: 2.0,
         characters: ['|', '!'],
@@ -25,7 +26,7 @@ describe('RainPattern', () => {
     });
 
     it('merges custom config with defaults', () => {
-      const customPattern = new RainPattern(mockTheme, { density: 0.8 });
+      const customPattern = new RainPattern(mockTheme, new Mulberry32(42), { density: 0.8 });
       // Should use custom density but default speed
       const buffer = createMockBuffer(80, 24);
       const size = createMockSize(80, 24);
@@ -379,7 +380,10 @@ describe('RainPattern', () => {
       const size = createMockSize(80, 24);
 
       // Create pattern with high speed and density to ensure visible drops
-      const fastPattern = new RainPattern(mockTheme, { speed: 10.0, density: 0.3 });
+      const fastPattern = new RainPattern(mockTheme, new Mulberry32(42), {
+        speed: 10.0,
+        density: 0.3,
+      });
 
       // Render multiple times to allow drops to fall into view
       // With speed 10.0, drops move 5 units per render (speed * 0.5)
@@ -469,7 +473,9 @@ describe('RainPattern', () => {
 
     it('drops use configured characters', () => {
       const customChars = ['X', 'Y', 'Z'];
-      const customPattern = new RainPattern(mockTheme, { characters: customChars });
+      const customPattern = new RainPattern(mockTheme, new Mulberry32(42), {
+        characters: customChars,
+      });
       const buffer = createMockBuffer(80, 24);
       const size = createMockSize(80, 24);
 
@@ -495,8 +501,8 @@ describe('RainPattern', () => {
 
   describe('Density Configuration', () => {
     it('high density creates more drops', () => {
-      const lowDensity = new RainPattern(mockTheme, { density: 0.1 });
-      const highDensity = new RainPattern(mockTheme, { density: 0.5 });
+      const lowDensity = new RainPattern(mockTheme, new Mulberry32(42), { density: 0.1 });
+      const highDensity = new RainPattern(mockTheme, new Mulberry32(42), { density: 0.5 });
 
       const buffer = createMockBuffer(80, 24);
       const size = createMockSize(80, 24);
@@ -545,7 +551,7 @@ describe('RainPattern', () => {
     });
 
     it('handles zero density gracefully', () => {
-      const zeroPattern = new RainPattern(mockTheme, { density: 0 });
+      const zeroPattern = new RainPattern(mockTheme, new Mulberry32(42), { density: 0 });
       const buffer = createMockBuffer(80, 24);
       const size = createMockSize(80, 24);
 
@@ -555,7 +561,7 @@ describe('RainPattern', () => {
     });
 
     it('handles zero speed', () => {
-      const staticPattern = new RainPattern(mockTheme, { speed: 0 });
+      const staticPattern = new RainPattern(mockTheme, new Mulberry32(42), { speed: 0 });
       const buffer = createMockBuffer(80, 24);
       const size = createMockSize(80, 24);
 
@@ -565,7 +571,7 @@ describe('RainPattern', () => {
     });
 
     it('handles empty character array gracefully', () => {
-      const noCharPattern = new RainPattern(mockTheme, { characters: [] });
+      const noCharPattern = new RainPattern(mockTheme, new Mulberry32(42), { characters: [] });
       const buffer = createMockBuffer(80, 24);
       const size = createMockSize(80, 24);
 

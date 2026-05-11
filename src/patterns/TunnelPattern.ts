@@ -1,5 +1,6 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
 import { bresenhamLine } from '../utils/drawing.js';
+import { Random } from '../utils/random.js';
 
 interface TunnelConfig {
   shape: 'circle' | 'square' | 'hexagon' | 'star';
@@ -44,6 +45,7 @@ export class TunnelPattern implements Pattern {
   name = 'tunnel';
   private config: TunnelConfig;
   private theme: Theme;
+  private random: Random;
   private rings: Ring[] = [];
   private particles: StreamParticle[] = [];
   private speedLines: SpeedLine[] = [];
@@ -159,8 +161,9 @@ export class TunnelPattern implements Pattern {
     },
   ];
 
-  constructor(theme: Theme, config?: Partial<TunnelConfig>) {
+  constructor(theme: Theme, random: Random, config?: Partial<TunnelConfig>) {
     this.theme = theme;
+    this.random = random;
     this.config = {
       shape: 'circle',
       ringCount: 35,
@@ -184,7 +187,7 @@ export class TunnelPattern implements Pattern {
     for (let i = 0; i < this.config.ringCount; i++) {
       this.rings.push({
         z: i / this.config.ringCount,
-        rotation: Math.random() * Math.PI * 2,
+        rotation: this.random.next() * Math.PI * 2,
       });
     }
   }
@@ -193,11 +196,11 @@ export class TunnelPattern implements Pattern {
     this.particles = [];
     for (let i = 0; i < this.config.particleCount; i++) {
       this.particles.push({
-        x: (Math.random() - 0.5) * 2,
-        y: (Math.random() - 0.5) * 2,
-        z: Math.random(),
-        speed: 0.5 + Math.random() * 0.5,
-        trailLength: 3 + Math.floor(Math.random() * 5),
+        x: (this.random.next() - 0.5) * 2,
+        y: (this.random.next() - 0.5) * 2,
+        z: this.random.next(),
+        speed: 0.5 + this.random.next() * 0.5,
+        trailLength: 3 + this.random.int(0, 4),
       });
     }
   }
@@ -206,9 +209,9 @@ export class TunnelPattern implements Pattern {
     this.speedLines = [];
     for (let i = 0; i < this.config.speedLineCount; i++) {
       this.speedLines.push({
-        angle: Math.random() * Math.PI * 2,
-        length: 0.3 + Math.random() * 0.4,
-        offset: Math.random(),
+        angle: this.random.next() * Math.PI * 2,
+        length: 0.3 + this.random.next() * 0.4,
+        offset: this.random.next(),
       });
     }
   }
@@ -448,8 +451,8 @@ export class TunnelPattern implements Pattern {
 
       if (particle.z > 1) {
         particle.z = 0;
-        particle.x = (Math.random() - 0.5) * 2;
-        particle.y = (Math.random() - 0.5) * 2;
+        particle.x = (this.random.next() - 0.5) * 2;
+        particle.y = (this.random.next() - 0.5) * 2;
       }
 
       // Draw particle trail

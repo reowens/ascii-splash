@@ -1,5 +1,6 @@
 import { LavaLampPattern } from '../../../src/patterns/LavaLampPattern.js';
 import { Cell, Theme, Point } from '../../../src/types/index.js';
+import { Mulberry32 } from '../../../src/utils/random.js';
 import { createMockTheme, createMockBuffer } from '../../utils/mocks.js';
 
 describe('LavaLampPattern', () => {
@@ -10,7 +11,7 @@ describe('LavaLampPattern', () => {
 
   beforeEach(() => {
     theme = createMockTheme();
-    pattern = new LavaLampPattern(theme);
+    pattern = new LavaLampPattern(theme, new Mulberry32(42));
     buffer = createMockBuffer(size.width, size.height);
   });
 
@@ -21,7 +22,7 @@ describe('LavaLampPattern', () => {
     });
 
     it('should accept custom config', () => {
-      const customPattern = new LavaLampPattern(theme, {
+      const customPattern = new LavaLampPattern(theme, new Mulberry32(42), {
         blobCount: 8,
         minRadius: 4,
         maxRadius: 16,
@@ -409,7 +410,7 @@ describe('LavaLampPattern', () => {
     });
 
     it('should handle extreme config values', () => {
-      const extremePattern = new LavaLampPattern(theme, {
+      const extremePattern = new LavaLampPattern(theme, new Mulberry32(42), {
         blobCount: 12,
         minRadius: 2,
         maxRadius: 20,

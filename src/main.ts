@@ -216,7 +216,7 @@ async function main() {
         density: cfg.patterns?.matrix?.columnDensity,
         speed: cfg.patterns?.matrix?.speed,
       }),
-      new RainPattern(theme, {
+      new RainPattern(theme, new Mulberry32(randomSeed()), {
         density: cfg.patterns?.rain?.dropCount ? cfg.patterns.rain.dropCount / 500 : undefined,
         speed: cfg.patterns?.rain?.speed,
       }),
@@ -247,7 +247,7 @@ async function main() {
         speed: cfg.patterns?.plasma?.speed,
         complexity: cfg.patterns?.plasma?.complexity,
       }),
-      new TunnelPattern(theme, {
+      new TunnelPattern(theme, new Mulberry32(randomSeed()), {
         shape: cfg.patterns?.tunnel?.shape,
         ringCount: cfg.patterns?.tunnel?.ringCount,
         speed: cfg.patterns?.tunnel?.speed,
@@ -274,7 +274,7 @@ async function main() {
         spawnInterval: cfg.patterns?.fireworks?.spawnInterval,
         trailLength: cfg.patterns?.fireworks?.trailLength,
       }),
-      new MazePattern(theme, {
+      new MazePattern(theme, new Mulberry32(randomSeed()), {
         algorithm: cfg.patterns?.maze?.algorithm,
         cellSize: cfg.patterns?.maze?.cellSize,
         generationSpeed: cfg.patterns?.maze?.generationSpeed,
@@ -300,7 +300,7 @@ async function main() {
         twistRate: cfg.patterns?.dna?.twistRate,
         showLabels: true,
       }),
-      new LavaLampPattern(theme, {
+      new LavaLampPattern(theme, new Mulberry32(randomSeed()), {
         blobCount: cfg.patterns?.lavaLamp?.blobCount,
         minRadius: cfg.patterns?.lavaLamp?.minRadius,
         maxRadius: cfg.patterns?.lavaLamp?.maxRadius,
@@ -311,7 +311,7 @@ async function main() {
         turbulence: cfg.patterns?.lavaLamp?.turbulence,
         gravity: cfg.patterns?.lavaLamp?.gravity,
       }),
-      new SmokePattern(theme, {
+      new SmokePattern(theme, new Mulberry32(randomSeed()), {
         plumeCount: cfg.patterns?.smoke?.plumeCount,
         particleCount: cfg.patterns?.smoke?.particleCount,
         riseSpeed: cfg.patterns?.smoke?.riseSpeed,
