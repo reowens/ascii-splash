@@ -40,11 +40,11 @@ describe('Memory Leak Detection', () => {
   describe('Pattern Stability Under Load', () => {
     test.each([
       ['WavePattern', () => new WavePattern(createMockTheme('test'))],
-      ['StarfieldPattern', () => new StarfieldPattern(createMockTheme('test'))],
-      ['ParticlePattern', () => new ParticlePattern(createMockTheme('test'))],
+      ['StarfieldPattern', () => new StarfieldPattern(createMockTheme('test'), new Mulberry32(42))],
+      ['ParticlePattern', () => new ParticlePattern(createMockTheme('test'), new Mulberry32(42))],
       ['FireworksPattern', () => new FireworksPattern(createMockTheme('test'))],
-      ['LifePattern', () => new LifePattern(createMockTheme('test'))],
-      ['MetaballPattern', () => new MetaballPattern(createMockTheme('test'))],
+      ['LifePattern', () => new LifePattern(createMockTheme('test'), new Mulberry32(42))],
+      ['MetaballPattern', () => new MetaballPattern(createMockTheme('test'), new Mulberry32(42))],
       ['AquariumPattern', () => new AquariumPattern(createMockTheme('test'), new Mulberry32(42))],
       ['SnowfallParkPattern', () => new SnowfallParkPattern(createMockTheme('test'))],
       ['CampfirePattern', () => new CampfirePattern(createMockTheme('test'))],
@@ -62,7 +62,7 @@ describe('Memory Leak Detection', () => {
 
   describe('Pattern Reset Cleanup', () => {
     test('ParticlePattern reset should clear particles', () => {
-      const pattern = new ParticlePattern(mockTheme);
+      const pattern = new ParticlePattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       // Build up state
@@ -102,7 +102,7 @@ describe('Memory Leak Detection', () => {
     });
 
     test('LifePattern reset should clear grid', () => {
-      const pattern = new LifePattern(mockTheme);
+      const pattern = new LifePattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       // Run simulation
@@ -120,7 +120,7 @@ describe('Memory Leak Detection', () => {
     });
 
     test('MetaballPattern reset should clear blobs', () => {
-      const pattern = new MetaballPattern(mockTheme);
+      const pattern = new MetaballPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       // Run simulation
@@ -231,9 +231,9 @@ describe('Memory Leak Detection', () => {
     test('switching patterns repeatedly should not throw', () => {
       const patterns = [
         new WavePattern(mockTheme),
-        new StarfieldPattern(mockTheme),
-        new ParticlePattern(mockTheme),
-        new MetaballPattern(mockTheme),
+        new StarfieldPattern(mockTheme, new Mulberry32(42)),
+        new ParticlePattern(mockTheme, new Mulberry32(42)),
+        new MetaballPattern(mockTheme, new Mulberry32(42)),
       ];
 
       const buffer = mockRenderer.getBuffer();
@@ -290,7 +290,7 @@ describe('Memory Leak Detection', () => {
 
   describe('Extended Run Stability', () => {
     test('pattern should maintain stability over extended run', () => {
-      const pattern = new ParticlePattern(mockTheme);
+      const pattern = new ParticlePattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       // Simulate 5 minutes at 30fps (9000 frames)

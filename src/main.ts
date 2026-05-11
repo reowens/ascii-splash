@@ -208,11 +208,11 @@ async function main() {
         speed: cfg.patterns?.waves?.speed,
         frequency: cfg.patterns?.waves?.frequency,
       }),
-      new StarfieldPattern(theme, {
+      new StarfieldPattern(theme, new Mulberry32(randomSeed()), {
         starCount: cfg.patterns?.starfield?.starCount,
         speed: cfg.patterns?.starfield?.speed,
       }),
-      new MatrixPattern(theme, {
+      new MatrixPattern(theme, new Mulberry32(randomSeed()), {
         density: cfg.patterns?.matrix?.columnDensity,
         speed: cfg.patterns?.matrix?.speed,
       }),
@@ -220,19 +220,19 @@ async function main() {
         density: cfg.patterns?.rain?.dropCount ? cfg.patterns.rain.dropCount / 500 : undefined,
         speed: cfg.patterns?.rain?.speed,
       }),
-      new QuicksilverPattern(theme, {
+      new QuicksilverPattern(theme, new Mulberry32(randomSeed()), {
         speed: cfg.patterns?.quicksilver?.speed,
         flowIntensity: cfg.patterns?.quicksilver?.viscosity,
         noiseScale: 0.05,
       }),
-      new ParticlePattern(theme, {
+      new ParticlePattern(theme, new Mulberry32(randomSeed()), {
         particleCount: cfg.patterns?.particles?.particleCount,
         speed: cfg.patterns?.particles?.speed,
         gravity: cfg.patterns?.particles?.gravity,
         mouseForce: cfg.patterns?.particles?.mouseForce,
         spawnRate: cfg.patterns?.particles?.spawnRate,
       }),
-      new SpiralPattern(theme, {
+      new SpiralPattern(theme, new Mulberry32(randomSeed()), {
         armCount: cfg.patterns?.spiral?.armCount,
         particleCount: cfg.patterns?.spiral?.particleCount,
         spiralTightness: cfg.patterns?.spiral?.spiralTightness,
@@ -242,7 +242,7 @@ async function main() {
         direction: cfg.patterns?.spiral?.direction,
         pulseEffect: cfg.patterns?.spiral?.pulseEffect,
       }),
-      new PlasmaPattern(theme, {
+      new PlasmaPattern(theme, new Mulberry32(randomSeed()), {
         frequency: cfg.patterns?.plasma?.frequency,
         speed: cfg.patterns?.plasma?.speed,
         complexity: cfg.patterns?.plasma?.complexity,
@@ -282,7 +282,7 @@ async function main() {
         pathChar: cfg.patterns?.maze?.pathChar,
         animateGeneration: cfg.patterns?.maze?.animateGeneration,
       }),
-      new LifePattern(theme, {
+      new LifePattern(theme, new Mulberry32(randomSeed()), {
         cellSize: cfg.patterns?.life?.cellSize,
         updateSpeed: cfg.patterns?.life?.updateSpeed,
         wrapEdges: cfg.patterns?.life?.wrapEdges,
@@ -336,7 +336,7 @@ async function main() {
       new NightSkyPattern(theme, {}),
       new AquariumPattern(theme, new Mulberry32(randomSeed()), {}),
       new SnowfallParkPattern(theme, {}),
-      new MetaballPattern(theme, {}),
+      new MetaballPattern(theme, new Mulberry32(randomSeed()), {}),
     ];
   }
 
@@ -363,7 +363,7 @@ async function main() {
       });
     }
     if (name === 'plasma') {
-      return new PlasmaPattern(theme, {
+      return new PlasmaPattern(theme, new Mulberry32(randomSeed()), {
         frequency: cfg.patterns?.plasma?.frequency,
         speed: cfg.patterns?.plasma?.speed,
         complexity: cfg.patterns?.plasma?.complexity,

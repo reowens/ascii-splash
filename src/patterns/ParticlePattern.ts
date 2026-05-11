@@ -1,5 +1,6 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
 import { validateCount, validateSpeed, clamp, ensureNonNegative } from '../utils/validation.js';
+import { Random } from '../utils/random.js';
 
 interface Particle {
   x: number;
@@ -31,6 +32,7 @@ export class ParticlePattern implements Pattern {
   name = 'particles';
   private config: ParticleConfig;
   private theme: Theme;
+  private random: Random;
   private particles: Particle[] = [];
   private attractMode = false; // Toggle between attract/repel
   private particleChars = ['●', '◉', '○', '◐', '◑', '◒', '◓', '•', '∘', '·', '.'];
@@ -74,8 +76,9 @@ export class ParticlePattern implements Pattern {
     },
   ];
 
-  constructor(theme: Theme, config?: Partial<ParticleConfig>) {
+  constructor(theme: Theme, random: Random, config?: Partial<ParticleConfig>) {
     this.theme = theme;
+    this.random = random;
     const merged = {
       particleCount: 100,
       speed: 1.0,
@@ -102,13 +105,13 @@ export class ParticlePattern implements Pattern {
 
   private spawnParticle(size: Size): Particle {
     return {
-      x: Math.random() * size.width,
-      y: Math.random() * size.height,
-      vx: (Math.random() - 0.5) * 2 * this.config.speed,
-      vy: (Math.random() - 0.5) * 2 * this.config.speed,
+      x: this.random.next() * size.width,
+      y: this.random.next() * size.height,
+      vx: (this.random.next() - 0.5) * 2 * this.config.speed,
+      vy: (this.random.next() - 0.5) * 2 * this.config.speed,
       life: 1.0,
       maxLife: 1.0,
-      size: Math.random() * 3,
+      size: this.random.next() * 3,
       trail: [],
     };
   }
@@ -248,7 +251,7 @@ export class ParticlePattern implements Pattern {
     // Spawn burst of particles at click location
     for (let i = 0; i < 20; i++) {
       const angle = (Math.PI * 2 * i) / 20;
-      const speed = 2 + Math.random() * 2;
+      const speed = 2 + this.random.next() * 2;
       this.particles.push({
         x: pos.x,
         y: pos.y,
@@ -256,7 +259,7 @@ export class ParticlePattern implements Pattern {
         vy: Math.sin(angle) * speed,
         life: 1.0,
         maxLife: 1.0,
-        size: Math.random() * 3,
+        size: this.random.next() * 3,
         trail: [],
       });
     }

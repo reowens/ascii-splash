@@ -1,4 +1,5 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
+import { Random } from '../utils/random.js';
 
 interface LifeConfig {
   cellSize: number;
@@ -21,6 +22,7 @@ export class LifePattern implements Pattern {
   name = 'life';
   private config: LifeConfig;
   private theme: Theme;
+  private random: Random;
   private grid: boolean[][] = []; // true = alive, false = dead
   private nextGrid: boolean[][] = [];
   private neighborCounts: number[][] = []; // Cache neighbor counts for rendering
@@ -119,8 +121,9 @@ export class LifePattern implements Pattern {
     },
   ];
 
-  constructor(theme: Theme, config?: Partial<LifeConfig>) {
+  constructor(theme: Theme, random: Random, config?: Partial<LifeConfig>) {
     this.theme = theme;
+    this.random = random;
     this.config = {
       cellSize: 2,
       updateSpeed: 100,
@@ -193,7 +196,7 @@ export class LifePattern implements Pattern {
       // Random initialization
       for (let y = 0; y < this.gridHeight; y++) {
         for (let x = 0; x < this.gridWidth; x++) {
-          this.grid[y][x] = Math.random() < this.config.randomDensity;
+          this.grid[y][x] = this.random.bool(this.config.randomDensity);
         }
       }
     } else if (pattern === 'gliders') {
@@ -216,9 +219,9 @@ export class LifePattern implements Pattern {
     } else if (pattern === 'still-life') {
       // Place blocks, beehives, loaves
       for (let i = 0; i < 10; i++) {
-        const x = Math.floor(Math.random() * (this.gridWidth - 10)) + 5;
-        const y = Math.floor(Math.random() * (this.gridHeight - 10)) + 5;
-        const type = Math.floor(Math.random() * 3);
+        const x = this.random.int(5, this.gridWidth - 6);
+        const y = this.random.int(5, this.gridHeight - 6);
+        const type = this.random.int(0, 2);
         if (type === 0) this.placeBlock(x, y);
         else if (type === 1) this.placeBeehive(x, y);
         else this.placeLoaf(x, y);
@@ -226,7 +229,7 @@ export class LifePattern implements Pattern {
       // Add some random cells
       for (let y = 0; y < this.gridHeight; y++) {
         for (let x = 0; x < this.gridWidth; x++) {
-          if (Math.random() < this.config.randomDensity) {
+          if (this.random.bool(this.config.randomDensity)) {
             this.grid[y][x] = true;
           }
         }

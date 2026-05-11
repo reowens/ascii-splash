@@ -1,5 +1,6 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
 import { validateDensity, validateSpeed } from '../utils/validation.js';
+import { Random } from '../utils/random.js';
 
 interface Column {
   x: number;
@@ -27,6 +28,7 @@ export class MatrixPattern implements Pattern {
   name = 'matrix';
   private config: MatrixConfig;
   private theme: Theme;
+  private random: Random;
   private columns: Column[] = [];
   private charSets = {
     katakana: 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜｦﾝ',
@@ -74,8 +76,9 @@ export class MatrixPattern implements Pattern {
     },
   ];
 
-  constructor(theme: Theme, config?: Partial<MatrixConfig>) {
+  constructor(theme: Theme, random: Random, config?: Partial<MatrixConfig>) {
     this.theme = theme;
+    this.random = random;
     const merged = {
       density: 0.3,
       speed: 1.0,
@@ -104,17 +107,17 @@ export class MatrixPattern implements Pattern {
 
   private createColumn(size: Size): Column {
     const charset = this.charSets[this.config.charset];
-    const length = Math.floor(Math.random() * 15) + 5;
+    const length = this.random.int(5, 19);
     const chars: string[] = [];
 
     for (let i = 0; i < length; i++) {
-      chars.push(charset[Math.floor(Math.random() * charset.length)]);
+      chars.push(charset[this.random.int(0, charset.length - 1)]);
     }
 
     return {
-      x: Math.floor(Math.random() * size.width),
+      x: this.random.int(0, size.width - 1),
       y: -length,
-      speed: (Math.random() * 0.5 + 0.5) * this.config.speed,
+      speed: this.random.range(0.5, 1.0) * this.config.speed,
       chars,
       length,
       age: 0,
@@ -123,7 +126,7 @@ export class MatrixPattern implements Pattern {
 
   private getRandomChar(): string {
     const charset = this.charSets[this.config.charset];
-    return charset[Math.floor(Math.random() * charset.length)];
+    return charset[this.random.int(0, charset.length - 1)];
   }
 
   render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void {
@@ -204,7 +207,7 @@ export class MatrixPattern implements Pattern {
           }
 
           // Occasionally change a character
-          if (Math.random() < 0.05) {
+          if (this.random.bool(0.05)) {
             col.chars[j] = this.getRandomChar();
           }
         }
@@ -221,7 +224,7 @@ export class MatrixPattern implements Pattern {
     const size = { width: 100, height: 100 }; // Will be overridden in render
     for (let i = 0; i < 3; i++) {
       const newCol = this.createColumn(size);
-      newCol.x = pos.x + Math.floor(Math.random() * 6) - 3;
+      newCol.x = pos.x + this.random.int(-3, 2);
       newCol.y = pos.y - newCol.length;
       this.columns.push(newCol);
     }

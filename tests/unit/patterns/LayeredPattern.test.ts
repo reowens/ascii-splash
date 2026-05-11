@@ -21,6 +21,7 @@ import { WavePattern } from '../../../src/patterns/WavePattern.js';
 import { StarfieldPattern } from '../../../src/patterns/StarfieldPattern.js';
 import { Cell, Pattern, Point, Size, Theme } from '../../../src/types/index.js';
 import { Buffer as RenderBuffer } from '../../../src/renderer/Buffer.js';
+import { Mulberry32 } from '../../../src/utils/random.js';
 import { createMockBuffer, createMockSize, createMockTheme } from '../../utils/mocks.js';
 
 async function makeSolidPng(
@@ -136,7 +137,7 @@ describe('LayeredPattern', () => {
       const size = createMockSize(20, 10);
       const photo = await loadedPhoto(theme, size);
       // Starfield is sparse — paints stars on top of an otherwise photo-filled buffer.
-      const overlay = new StarfieldPattern(theme, { starCount: 5 });
+      const overlay = new StarfieldPattern(theme, new Mulberry32(42), { starCount: 5 });
       const layered = new LayeredPattern(photo, overlay);
 
       const buffer = createMockBuffer(size.width, size.height);
@@ -157,7 +158,7 @@ describe('LayeredPattern', () => {
       const photo = await loadedPhoto(theme, size);
       // Plasma at intensity == 1 emits a ' ' character; with transparentBg it
       // skips writing those cells, leaving photo half-blocks underneath.
-      const overlay = new PlasmaPattern(theme, { transparentBg: true });
+      const overlay = new PlasmaPattern(theme, new Mulberry32(42), { transparentBg: true });
       const layered = new LayeredPattern(photo, overlay);
 
       const buffer = createMockBuffer(size.width, size.height);
@@ -174,7 +175,7 @@ describe('LayeredPattern', () => {
     test('dense overlay WITHOUT transparentBg overwrites photo entirely', async () => {
       const size = createMockSize(8, 4);
       const photo = await loadedPhoto(theme, size);
-      const overlay = new PlasmaPattern(theme, { transparentBg: false });
+      const overlay = new PlasmaPattern(theme, new Mulberry32(42), { transparentBg: false });
       const layered = new LayeredPattern(photo, overlay);
 
       const buffer = createMockBuffer(size.width, size.height);
@@ -272,7 +273,7 @@ describe('LayeredPattern', () => {
     test('static photo + sparse overlay produces few changes per frame', async () => {
       const size = createMockSize(20, 10);
       const photo = await loadedPhoto(theme, size);
-      const overlay = new StarfieldPattern(theme, { starCount: 4 });
+      const overlay = new StarfieldPattern(theme, new Mulberry32(42), { starCount: 4 });
       const layered = new LayeredPattern(photo, overlay);
 
       const renderBuffer = new RenderBuffer(size);
@@ -298,7 +299,7 @@ describe('LayeredPattern', () => {
     test('dense overlay with transparentBg still keeps photo cells stable across frames', async () => {
       const size = createMockSize(12, 6);
       const photo = await loadedPhoto(theme, size);
-      const overlay = new PlasmaPattern(theme, { transparentBg: true });
+      const overlay = new PlasmaPattern(theme, new Mulberry32(42), { transparentBg: true });
       const layered = new LayeredPattern(photo, overlay);
 
       const renderBuffer = new RenderBuffer(size);

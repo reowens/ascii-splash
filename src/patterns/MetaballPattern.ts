@@ -11,6 +11,7 @@
 
 import { Pattern, Cell, Size, Point, Theme, Color } from '../types/index.js';
 import { clamp } from '../utils/math.js';
+import { Random } from '../utils/random.js';
 
 interface MetaballConfig {
   blobCount: number; // Number of blobs (3-15)
@@ -47,6 +48,7 @@ export class MetaballPattern implements Pattern {
 
   private config: MetaballConfig;
   private theme: Theme;
+  private random: Random;
   private blobs: Blob[] = [];
   private lastTime = 0;
   private mousePos: Point | null = null;
@@ -160,8 +162,9 @@ export class MetaballPattern implements Pattern {
     },
   ];
 
-  constructor(theme: Theme, config: Partial<MetaballConfig> = {}) {
+  constructor(theme: Theme, random: Random, config: Partial<MetaballConfig> = {}) {
     this.theme = theme;
+    this.random = random;
     this.config = {
       blobCount: 8,
       blobMinRadius: 3,
@@ -190,16 +193,14 @@ export class MetaballPattern implements Pattern {
   }
 
   private spawnBlob(size: Size, pos?: Point): void {
-    const radius =
-      this.config.blobMinRadius +
-      Math.random() * (this.config.blobMaxRadius - this.config.blobMinRadius);
+    const radius = this.random.range(this.config.blobMinRadius, this.config.blobMaxRadius);
 
-    const x = pos?.x ?? radius + Math.random() * (size.width - radius * 2);
-    const y = pos?.y ?? radius + Math.random() * (size.height - radius * 2);
+    const x = pos?.x ?? radius + this.random.next() * (size.width - radius * 2);
+    const y = pos?.y ?? radius + this.random.next() * (size.height - radius * 2);
 
     // Random initial velocity
-    const angle = Math.random() * Math.PI * 2;
-    const speed = 0.5 + Math.random() * 1.5;
+    const angle = this.random.next() * Math.PI * 2;
+    const speed = 0.5 + this.random.next() * 1.5;
 
     this.blobs.push({
       id: this.nextBlobId++,
@@ -208,7 +209,7 @@ export class MetaballPattern implements Pattern {
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
       radius,
-      hue: Math.random() * 360,
+      hue: this.random.next() * 360,
     });
   }
 

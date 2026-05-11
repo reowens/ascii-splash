@@ -1,4 +1,5 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
+import { Random } from '../utils/random.js';
 
 interface Star {
   x: number;
@@ -29,6 +30,7 @@ export class StarfieldPattern implements Pattern {
   name = 'starfield';
   private config: StarConfig;
   private theme: Theme;
+  private random: Random;
   private stars: Star[] = [];
   private starChars = ['.', '·', '*', '✦', '✧', '★'];
   private explosions: {
@@ -114,8 +116,9 @@ export class StarfieldPattern implements Pattern {
     },
   ];
 
-  constructor(theme: Theme, config?: Partial<StarConfig>) {
+  constructor(theme: Theme, random: Random, config?: Partial<StarConfig>) {
     this.theme = theme;
+    this.random = random;
     this.config = {
       starCount: 100,
       speed: 1.0,
@@ -155,13 +158,13 @@ export class StarfieldPattern implements Pattern {
 
   private createStar(size: Size): Star {
     return {
-      x: Math.random() * size.width - size.width / 2,
-      y: Math.random() * size.height - size.height / 2,
-      z: Math.random() * 10 + 1,
-      speed: Math.random() * 0.5 + 0.5,
-      twinklePhase: Math.random() * Math.PI * 2,
-      twinkleSpeed: Math.random() * 0.002 + 0.001, // 0.001-0.003
-      size: Math.random() * 1.0 + 0.5, // 0.5-1.5 size multiplier
+      x: this.random.next() * size.width - size.width / 2,
+      y: this.random.next() * size.height - size.height / 2,
+      z: this.random.next() * 10 + 1,
+      speed: this.random.next() * 0.5 + 0.5,
+      twinklePhase: this.random.next() * Math.PI * 2,
+      twinkleSpeed: this.random.next() * 0.002 + 0.001, // 0.001-0.003
+      size: this.random.next() * 1.0 + 0.5, // 0.5-1.5 size multiplier
     };
   }
 

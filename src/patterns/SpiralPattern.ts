@@ -1,4 +1,5 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
+import { Random } from '../utils/random.js';
 
 interface SpiralConfig {
   armCount: number;
@@ -41,6 +42,7 @@ export class SpiralPattern implements Pattern {
   name = 'spiral';
   private config: SpiralConfig;
   private theme: Theme;
+  private random: Random;
   private particles: Particle[] = [];
   private clickBursts: ClickBurst[] = [];
   private armRotation = 0;
@@ -144,8 +146,9 @@ export class SpiralPattern implements Pattern {
     },
   ];
 
-  constructor(theme: Theme, config?: Partial<SpiralConfig>) {
+  constructor(theme: Theme, random: Random, config?: Partial<SpiralConfig>) {
     this.theme = theme;
+    this.random = random;
     this.config = {
       armCount: 4,
       particleCount: 100,
@@ -167,26 +170,26 @@ export class SpiralPattern implements Pattern {
 
     // Generate unique rotation speeds for each arm (0.8-1.2x variation)
     for (let i = 0; i < armCount; i++) {
-      this.armSpeeds.push(0.8 + Math.random() * 0.4);
+      this.armSpeeds.push(0.8 + this.random.next() * 0.4);
     }
 
     for (let i = 0; i < particleCount; i++) {
       // Distribute particles across arms
-      const armIndex = Math.floor(Math.random() * armCount);
+      const armIndex = this.random.int(0, armCount - 1);
 
       // Random angle along the spiral (0 to ~20 radians for good spread)
       let angle: number;
       if (direction === 'bidirectional') {
-        angle = Math.random() * 15;
+        angle = this.random.next() * 15;
       } else {
-        angle = Math.random() * 20;
+        angle = this.random.next() * 20;
       }
 
       this.particles.push({
         angle,
         armIndex,
-        speed: 0.8 + Math.random() * 0.4, // 0.8-1.2x speed variation
-        phase: Math.random() * Math.PI * 2, // For pulse effect
+        speed: 0.8 + this.random.next() * 0.4, // 0.8-1.2x speed variation
+        phase: this.random.next() * Math.PI * 2, // For pulse effect
         trail: [],
       });
     }
@@ -419,7 +422,7 @@ export class SpiralPattern implements Pattern {
     for (let i = 0; i < 12; i++) {
       burstParticles.push({
         angle: (Math.PI * 2 * i) / 12,
-        speed: 0.8 + Math.random() * 0.4,
+        speed: 0.8 + this.random.next() * 0.4,
         life: 1.0,
       });
     }
