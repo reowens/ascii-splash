@@ -18,6 +18,7 @@ import { FireworksPattern } from '../../src/patterns/FireworksPattern.js';
 import { LifePattern } from '../../src/patterns/LifePattern.js';
 import { MazePattern } from '../../src/patterns/MazePattern.js';
 import { DNAPattern } from '../../src/patterns/DNAPattern.js';
+import { Mulberry32 } from '../../src/utils/random.js';
 import { MetaballPattern } from '../../src/patterns/MetaballPattern.js';
 import { AquariumPattern } from '../../src/patterns/AquariumPattern.js';
 import { Pattern, Theme, Size } from '../../src/types/index.js';
@@ -146,7 +147,7 @@ describe('Performance Benchmarks', () => {
     });
 
     test('DNAPattern should maintain 30+ FPS', () => {
-      const pattern = new DNAPattern(mockTheme);
+      const pattern = new DNAPattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, standardSize);
 
       expect(avgFrameTime).toBeLessThan(MAX_FRAME_TIME_MS);

@@ -1,5 +1,6 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
 import { Point3D, projectTo2D, inBounds, clamp } from '../utils/math.js';
+import { Random } from '../utils/random.js';
 
 interface DNAConfig {
   rotationSpeed: number; // radians per second
@@ -27,6 +28,7 @@ export class DNAPattern implements Pattern {
   name = 'dna';
   private config: DNAConfig;
   private theme: Theme;
+  private random: Random;
   private basePairs: BasePair[] = [];
   private mutationCenters: { y: number; time: number; radius: number }[] = [];
   private twistOffset = 0;
@@ -112,8 +114,9 @@ export class DNAPattern implements Pattern {
     },
   ];
 
-  constructor(theme: Theme, config?: Partial<DNAConfig>) {
+  constructor(theme: Theme, random: Random, config?: Partial<DNAConfig>) {
     this.theme = theme;
+    this.random = random;
     this.config = {
       rotationSpeed: 0.5,
       helixRadius: 10,
@@ -135,14 +138,14 @@ export class DNAPattern implements Pattern {
         y,
         type: this.randomBasePairType(),
         flash: 0,
-        pulsePhase: Math.random() * Math.PI * 2,
+        pulsePhase: this.random.next() * Math.PI * 2,
       });
     }
   }
 
   private randomBasePairType(): 'AT' | 'GC' | 'TA' | 'CG' {
     const types: ('AT' | 'GC' | 'TA' | 'CG')[] = ['AT', 'GC', 'TA', 'CG'];
-    return types[Math.floor(Math.random() * types.length)];
+    return this.random.choice(types);
   }
 
   render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void {

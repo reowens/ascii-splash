@@ -39,6 +39,7 @@ import { CommandExecutor } from './engine/CommandExecutor.js';
 import { getStatusBar } from './ui/StatusBar.js';
 import { getToastManager } from './ui/ToastManager.js';
 import { getHelpOverlay } from './ui/HelpOverlay.js';
+import { Mulberry32, randomSeed } from './utils/random.js';
 import { getTransitionManager } from './renderer/TransitionManager.js';
 
 const term = terminalKit.terminal;
@@ -290,7 +291,7 @@ async function main() {
         randomDensity: cfg.patterns?.life?.randomDensity,
         initialPattern: cfg.patterns?.life?.initialPattern,
       }),
-      new DNAPattern(theme, {
+      new DNAPattern(theme, new Mulberry32(randomSeed()), {
         rotationSpeed: cfg.patterns?.dna?.rotationSpeed,
         helixRadius: cfg.patterns?.dna?.helixRadius,
         basePairDensity: cfg.patterns?.dna?.basePairSpacing

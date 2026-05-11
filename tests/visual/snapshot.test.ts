@@ -26,6 +26,7 @@ import { SpiralPattern } from '../../src/patterns/SpiralPattern.js';
 import { ParticlePattern } from '../../src/patterns/ParticlePattern.js';
 import { RainPattern } from '../../src/patterns/RainPattern.js';
 import { DNAPattern } from '../../src/patterns/DNAPattern.js';
+import { Mulberry32 } from '../../src/utils/random.js';
 import { MetaballPattern } from '../../src/patterns/MetaballPattern.js';
 import { AquariumPattern } from '../../src/patterns/AquariumPattern.js';
 import { SnowfallParkPattern } from '../../src/patterns/SnowfallParkPattern.js';
@@ -133,7 +134,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('DNAPattern should have helix structure', () => {
-      const pattern = new DNAPattern(mockTheme);
+      const pattern = new DNAPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       pattern.render(buffer, 1000, size);
