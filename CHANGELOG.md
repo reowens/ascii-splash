@@ -5,7 +5,18 @@ All notable changes to ascii-splash will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.0] - 2026-05-10
+
+### 🎯 Theme: "Photos in the Terminal"
+
+This release adds image-based rendering as a first-class peer to the procedural patterns: half-block (2×) and braille (8×) photo rendering, a chafa-style symbol matcher, and live composition of procedural overlays on top of a photo background. Four shippable phases (1–4 of the v0.4.0 roadmap); native protocol pass-through (Phase 5), share codes (Phase 7) and asciinema export (Phase 8) remain for follow-up releases.
+
+### ⚠️ HIGHLIGHTS
+
+- **`splash --photo <path>`** renders any image into the terminal at 2× / 8× resolution (half-block, braille, or chafa-style symbol matcher).
+- **Layered scene composition**: `splash --photo bg.jpg --pattern starfield` overlays any procedural pattern on top of a photo.
+- **18 photo presets** across three render modes (half-block / braille / symbol), reachable via `.` / `,` or `c01`–`c18`.
+- **+147 tests** (2244 total, up from 2097 in v0.3.0).
 
 ### Added
 
