@@ -14,12 +14,14 @@ Replaces every `Math.random()` call in `src/patterns/` with a constructor-inject
 ### Added
 
 - **`Random` interface + `Mulberry32`** (`src/utils/random.ts`): deterministic, u32-seeded PRNG with `next` / `range` / `int` / `choice` / `bool` / `reseed`. `randomSeed()` helper picks a fresh u32 from `Math.random()` for non-deterministic sessions. 21 unit tests, including pinned reference vectors for `seed=1` so future PRNG swaps require an explicit migration.
-- **Pattern constructors threaded with `Random`**: `(theme, random, config?)` signature; required, not optional. Mass migration in progress, broken into batches:
+- **Pattern constructors threaded with `Random`**: `(theme, random, config?)` signature; required, not optional. **Phase 7c complete — all 22 patterns migrated, zero `Math.random()` calls remain in `src/patterns/`.** Landed in batches:
   - Phase 7a (`7f9b4c1`): foundation + `DNAPattern` proof of concept.
   - Phase 7b (`f18eb65`): `boids.createFlock` and `ParticleSystem` accept `Random`; `AquariumPattern` constructor wired up.
   - Phase 7c batch 1 (`433dbc9`): `PlasmaPattern`, `QuicksilverPattern`, `LifePattern`, `MetaballPattern`, `MatrixPattern`, `StarfieldPattern`, `ParticlePattern`, `SpiralPattern`.
   - Phase 7c batch 2 (`df6bebe`): `RainPattern`, `TunnelPattern`, `MazePattern`, `SmokePattern`, `LavaLampPattern`. Adds `RainPattern.pickChar()` helper so an empty `characters` config keeps degrading gracefully instead of throwing from `Random.choice`.
   - Phase 7c batch 3 (`abdac12`): finish `AquariumPattern` (~20 internal sites left from 7b).
+  - Phase 7c batch 4 (`123aefa`): `SnowPattern`, `SnowfallParkPattern`, `OceanBeachPattern`, `LightningPattern`, `NightSkyPattern`.
+  - Phase 7c batch 5 (`9a32fa2`): `CampfirePattern`, `FireworksPattern`.
 
 ### Notes
 
@@ -29,7 +31,6 @@ Replaces every `Math.random()` call in `src/patterns/` with a constructor-inject
 
 ### Remaining (this release)
 
-- Phase 7c batches 4–5: `SnowPattern`, `SnowfallParkPattern`, `OceanBeachPattern`, `LightningPattern`, `NightSkyPattern`, `CampfirePattern`, `FireworksPattern`.
 - Phase 7d: `src/utils/shareCode.ts` — base32 encode/decode with a version prefix.
 - Phase 7e: `splash share` / `splash play <code>` CLI + in-app `S`-to-clipboard.
 - Phase 7f: determinism tests (round-trip, frame-N replay, version-skew rejection).

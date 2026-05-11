@@ -321,7 +321,7 @@ interface Theme {
 
 **Released**: v0.4.0 — "Photos in the Terminal" ✅ **STABLE RELEASE** (2026-05-10)
 **Previous**: v0.3.0 — Next-Generation Terminal Graphics (2025-12-23)
-**In progress**: v0.5.0 — "Shareable Scenes" on `feature/v0.5.0-phase7-share-codes`. Phase 7 of the v0.4 roadmap, scoped to its own release. Seeded PRNG + share codes (`splash share` / `splash play <code>`). Phase 7a + 7b + 7c batches 1–3 done; 7c batches 4–5 + 7d–7f remaining. See [docs/planning/v0.5.0-ROADMAP.md](docs/planning/v0.5.0-ROADMAP.md).
+**In progress**: v0.5.0 — "Shareable Scenes" on `feature/v0.5.0-phase7-share-codes`. Phase 7 of the v0.4 roadmap, scoped to its own release. Seeded PRNG + share codes (`splash share` / `splash play <code>`). Phases 7a + 7b + 7c complete — every pattern is on the injected `Random` (zero `Math.random()` in `src/patterns/`). 7d (share-code encoder) + 7e (CLI) + 7f (determinism tests) remaining. See [docs/planning/v0.5.0-ROADMAP.md](docs/planning/v0.5.0-ROADMAP.md).
 **Next**: Remaining v0.4 roadmap phases (Kitty/iTerm2/Sixel, color-mask sprites, asciinema export, GIF export) — likely v0.6+.
 
 **v0.3.0 (released)**:
@@ -499,6 +499,6 @@ npm run test:coverage # Coverage report
 
 ---
 
-**Last Updated**: May 10, 2026 (v0.5.0 phase 7c batch 3 — `AquariumPattern` fully migrated to injected `Random`; 14 of 22 patterns done; 2265 tests passing on the in-progress branch)
+**Last Updated**: May 10, 2026 (v0.5.0 phase 7c complete — all 22 patterns migrated to injected `Random`; zero `Math.random()` calls remain in `src/patterns/`; 2265 tests passing on the in-progress branch; 7d–7f remaining)
 **For**: AI Assistant navigation and project context
 **Human Readers**: Please see [README.md](README.md) instead
