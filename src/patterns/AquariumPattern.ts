@@ -255,25 +255,25 @@ export class AquariumPattern implements Pattern {
       ...boid,
       y: boid.y * 0.85, // Keep fish in upper 85% (above plants)
       species: i % 4,
-      size: 1 + Math.floor(Math.random() * 3),
-      tailPhase: Math.random() * Math.PI * 2,
+      size: this.random.int(1, 3),
+      tailPhase: this.random.next() * Math.PI * 2,
     }));
 
     // Create plants along the bottom
     this.plants = [];
     const plantSpacing = size.width / (this.config.plantCount + 1);
     for (let i = 0; i < this.config.plantCount; i++) {
-      const x = plantSpacing * (i + 1) + (Math.random() - 0.5) * plantSpacing * 0.5;
+      const x = plantSpacing * (i + 1) + (this.random.next() - 0.5) * plantSpacing * 0.5;
       this.plants.push({
         x: Math.floor(x),
         baseY: size.height - 2,
-        height: 4 + Math.floor(Math.random() * 6),
-        segments: 3 + Math.floor(Math.random() * 4),
-        phase: Math.random() * Math.PI * 2,
+        height: this.random.int(4, 9),
+        segments: this.random.int(3, 6),
+        phase: this.random.next() * Math.PI * 2,
         color: {
-          r: 30 + Math.floor(Math.random() * 40),
-          g: 120 + Math.floor(Math.random() * 80),
-          b: 50 + Math.floor(Math.random() * 40),
+          r: this.random.int(30, 69),
+          g: this.random.int(120, 199),
+          b: this.random.int(50, 89),
         },
       });
     }
@@ -393,15 +393,15 @@ export class AquariumPattern implements Pattern {
   }
 
   private spawnBubble(size: Size, pos?: Point): void {
-    const x = pos?.x ?? Math.random() * size.width;
+    const x = pos?.x ?? this.random.next() * size.width;
     const y = pos?.y ?? size.height - 3;
 
     this.bubbles.push({
       x,
       y,
-      size: Math.floor(Math.random() * 3),
-      wobblePhase: Math.random() * Math.PI * 2,
-      speed: 0.5 + Math.random() * 1.5,
+      size: this.random.int(0, 2),
+      wobblePhase: this.random.next() * Math.PI * 2,
+      speed: 0.5 + this.random.next() * 1.5,
     });
   }
 
@@ -448,8 +448,8 @@ export class AquariumPattern implements Pattern {
 
       if (y >= 0 && y < size.height && x >= 0 && x < size.width) {
         const bubbleColor: Color = {
-          r: 180 + Math.floor(Math.random() * 30),
-          g: 220 + Math.floor(Math.random() * 30),
+          r: this.random.int(180, 209),
+          g: this.random.int(220, 249),
           b: 255,
         };
 
@@ -508,15 +508,15 @@ export class AquariumPattern implements Pattern {
       for (let x = 0; x < size.width; x++) {
         // Sandy color with variation
         const sandColor: Color = {
-          r: 180 + Math.floor(Math.random() * 20),
-          g: 150 + Math.floor(Math.random() * 20),
-          b: 100 + Math.floor(Math.random() * 20),
+          r: this.random.int(180, 199),
+          g: this.random.int(150, 169),
+          b: this.random.int(100, 119),
         };
 
         // Occasional shells or pebbles
         let sandChar = '~';
-        if (Math.random() < 0.03) {
-          sandChar = ['@', '*', '.'][Math.floor(Math.random() * 3)];
+        if (this.random.bool(0.03)) {
+          sandChar = this.random.choice(['@', '*', '.']);
         }
 
         const cell = buffer[sandY]?.[x];
@@ -538,7 +538,7 @@ export class AquariumPattern implements Pattern {
       this.spawnBubble(
         { width: 100, height: 30 },
         {
-          x: pos.x + (Math.random() - 0.5) * 3,
+          x: pos.x + (this.random.next() - 0.5) * 3,
           y: pos.y,
         }
       );
