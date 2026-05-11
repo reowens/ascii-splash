@@ -321,7 +321,7 @@ interface Theme {
 
 **Released**: v0.4.0 — "Photos in the Terminal" ✅ **STABLE RELEASE** (2026-05-10)
 **Previous**: v0.3.0 — Next-Generation Terminal Graphics (2025-12-23)
-**In progress**: v0.5.0 — "Shareable Scenes" on `feature/v0.5.0-phase7-share-codes`. Phase 7 of the v0.4 roadmap, scoped to its own release. Seeded PRNG + share codes (`splash share` / `splash play <code>`). Phases 7a + 7b + 7c complete — every pattern is on the injected `Random` (zero `Math.random()` in `src/patterns/`). 7d (share-code encoder) + 7e (CLI) + 7f (determinism tests) remaining. See [docs/planning/v0.5.0-ROADMAP.md](docs/planning/v0.5.0-ROADMAP.md).
+**In progress**: v0.5.0 — "Shareable Scenes" on `feature/v0.5.0-phase7-share-codes`, all phases complete, awaiting review before tagging. Seeded PRNG + 12-char Crockford base32 share codes (`splash share` / `splash play <code>` / in-app `Shift+S` to copy). All 7a–7f phases shipped: every pattern on injected `Random` (zero `Math.random()` in `src/patterns/`), encoder/decoder with version-prefix + 13-bit FNV-1a config fingerprint, CLI subcommands + clipboard helper, determinism test suite with byte-for-byte replay canaries on DNA + Starfield + Fireworks. 2317 tests. See [docs/planning/v0.5.0-ROADMAP.md](docs/planning/v0.5.0-ROADMAP.md).
 **Next**: Remaining v0.4 roadmap phases (Kitty/iTerm2/Sixel, color-mask sprites, asciinema export, GIF export) — likely v0.6+.
 
 **v0.3.0 (released)**:
@@ -499,6 +499,6 @@ npm run test:coverage # Coverage report
 
 ---
 
-**Last Updated**: May 10, 2026 (v0.5.0 phase 7c complete — all 22 patterns migrated to injected `Random`; zero `Math.random()` calls remain in `src/patterns/`; 2265 tests passing on the in-progress branch; 7d–7f remaining)
+**Last Updated**: May 11, 2026 (v0.5.0 phases 7d–7f complete — share-code encoder/decoder, CLI wiring (`splash share` / `splash play <code>` / in-app `Shift+S`), determinism test suite. 2317 tests passing on the branch. Awaiting review before tagging.)
 **For**: AI Assistant navigation and project context
 **Human Readers**: Please see [README.md](README.md) instead
