@@ -32,6 +32,7 @@ import { PhotoPattern } from './patterns/PhotoPattern.js';
 import { LayeredPattern } from './patterns/LayeredPattern.js';
 import { Pattern, CliOptions, QualityPreset, ConfigSchema, Theme } from './types/index.js';
 import { ConfigLoader } from './config/ConfigLoader.js';
+import { defaultConfig } from './config/defaults.js';
 import { getTheme, getNextThemeName } from './config/themes.js';
 import { CommandBuffer } from './engine/CommandBuffer.js';
 import { CommandParser } from './engine/CommandParser.js';
@@ -40,14 +41,35 @@ import { getStatusBar } from './ui/StatusBar.js';
 import { getToastManager } from './ui/ToastManager.js';
 import { getHelpOverlay } from './ui/HelpOverlay.js';
 import { Mulberry32, randomSeed } from './utils/random.js';
+import {
+  PROCEDURAL_PATTERN_IDS,
+  encodeShareCode,
+  decodeShareCode,
+  hashConfig,
+  patternIdByName,
+  patternNameById,
+  ShareCodeError,
+  type ShareState,
+} from './utils/shareCode.js';
+import { copyToClipboard, ClipboardError } from './utils/clipboard.js';
 import { getTransitionManager } from './renderer/TransitionManager.js';
 
 const term = terminalKit.terminal;
 
 /**
+ * Result of parsing CLI args. `mode` discriminates the three top-level
+ * actions: normal interactive run, `splash share` (print a code + exit),
+ * and `splash play <code>` (boot directly into the encoded state).
+ */
+type ParsedCli =
+  | { mode: 'run'; options: CliOptions }
+  | { mode: 'share'; options: CliOptions }
+  | { mode: 'play'; options: CliOptions; code: string };
+
+/**
  * Parse command line arguments
  */
-function parseCliArguments(): CliOptions {
+function parseCliArguments(): ParsedCli {
   const program = new Command();
 
   // Read package.json for version
@@ -93,6 +115,33 @@ function parseCliArguments(): CliOptions {
     'Render an image file via PhotoPattern (half-block, 2× vertical resolution)'
   );
 
+  // v0.5.0 Phase 7e: share-code subcommands. `splash share` prints a code
+  // for the would-be-initial-state (config defaults + a fresh random seed)
+  // and exits. `splash play <code>` decodes a code and boots directly into
+  // its encoded state. The default invocation (`splash` with no
+  // subcommand) still runs the interactive engine.
+  //
+  // Object wrapper (rather than two `let`s) keeps TS from narrowing the
+  // mode type to its initial value — the .action callbacks mutate it
+  // after assignment, but TS's control-flow analysis can't prove the
+  // closures fired, so we'd otherwise lose the union.
+  const subcommand: { mode: 'run' | 'share' | 'play'; code?: string } = { mode: 'run' };
+
+  program
+    .command('share')
+    .description('Print a share code for the bootstrapped state and exit')
+    .action(() => {
+      subcommand.mode = 'share';
+    });
+
+  program
+    .command('play <code>')
+    .description('Boot directly into the scene encoded by a share code')
+    .action((code: string) => {
+      subcommand.mode = 'play';
+      subcommand.code = code;
+    });
+
   program.parse();
   const options = program.opts();
 
@@ -136,7 +185,7 @@ function parseCliArguments(): CliOptions {
     );
   }
 
-  return {
+  const opts: CliOptions = {
     pattern: options.pattern?.toLowerCase(),
     quality: options.quality?.toLowerCase() as QualityPreset,
     fps: options.fps,
@@ -144,6 +193,116 @@ function parseCliArguments(): CliOptions {
     mouse: options.mouse,
     photo: options.photo,
   };
+  if (subcommand.mode === 'play' && subcommand.code) {
+    return { mode: 'play', options: opts, code: subcommand.code };
+  }
+  if (subcommand.mode === 'share') return { mode: 'share', options: opts };
+  return { mode: 'run', options: opts };
+}
+
+/**
+ * Map a procedural pattern name to its key in `ConfigSchema.patterns`.
+ * Most names match 1:1 (e.g., `'matrix'` → `'matrix'`); the only exception
+ * today is `'lavalamp'` → `'lavaLamp'`. Patterns added after Snow
+ * (oceanbeach, campfire, …) don't have a slot in `ConfigSchema.patterns`
+ * yet — those return `null` and contribute a zero config fingerprint.
+ */
+function configKeyFor(patternName: string): keyof NonNullable<ConfigSchema['patterns']> | null {
+  switch (patternName) {
+    case 'waves':
+      return 'waves';
+    case 'starfield':
+      return 'starfield';
+    case 'matrix':
+      return 'matrix';
+    case 'rain':
+      return 'rain';
+    case 'quicksilver':
+      return 'quicksilver';
+    case 'particles':
+      return 'particles';
+    case 'spiral':
+      return 'spiral';
+    case 'plasma':
+      return 'plasma';
+    case 'tunnel':
+      return 'tunnel';
+    case 'lightning':
+      return 'lightning';
+    case 'fireworks':
+      return 'fireworks';
+    case 'maze':
+      return 'maze';
+    case 'life':
+      return 'life';
+    case 'dna':
+      return 'dna';
+    case 'lavalamp':
+      return 'lavaLamp';
+    case 'smoke':
+      return 'smoke';
+    case 'snow':
+      return 'snow';
+    default:
+      return null;
+  }
+}
+
+/**
+ * Compute the 13-bit config fingerprint for a pattern, using the live
+ * config diffed against {@link defaultConfig}. Returns 0 for patterns
+ * with no `ConfigSchema.patterns` entry (no overridable fields → no
+ * fingerprint to track).
+ */
+function computeConfigHash(patternName: string, cfg: ConfigSchema): number {
+  const key = configKeyFor(patternName);
+  if (!key) return 0;
+  return hashConfig(
+    cfg.patterns?.[key] as Record<string, unknown> | undefined,
+    (defaultConfig.patterns?.[key] ?? {}) as Record<string, unknown>
+  );
+}
+
+/**
+ * `splash share` entry point. Bootstraps just enough state to emit a
+ * share code for the would-be-initial-scene (config-default pattern +
+ * theme, a fresh random seed, preset 1) and exits. No animation runs;
+ * useful for generating reproducible codes from scripts.
+ */
+function runShareCommand(opts: CliOptions): never {
+  const configLoader = new ConfigLoader();
+  const cfg = configLoader.load(opts);
+  const patternName = (opts.pattern ?? cfg.defaultPattern ?? 'waves').toLowerCase();
+
+  if (patternName === 'photo' || patternName === 'layered') {
+    console.error(
+      `Error: share codes are procedural-only. ${patternName === 'photo' ? 'PhotoPattern' : 'LayeredPattern'} ` +
+        `depends on a local image file that can't be reproduced from a code. ` +
+        `Pass --pattern <procedural> or remove --photo, then try again.`
+    );
+    process.exit(1);
+  }
+
+  const patternId = patternIdByName(patternName);
+  if (patternId < 0) {
+    console.error(`Error: unknown pattern "${patternName}" — cannot encode a share code.`);
+    process.exit(1);
+  }
+
+  const themeNames = ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'];
+  const themeName = (opts.theme ?? cfg.theme ?? 'ocean').toLowerCase();
+  const themeId = Math.max(0, themeNames.indexOf(themeName));
+
+  const state: ShareState = {
+    patternId,
+    presetId: 1,
+    themeId,
+    seed: randomSeed(),
+    configHash: computeConfigHash(patternName, cfg),
+  };
+  const code = encodeShareCode(state);
+  process.stdout.write(`${code}\n`);
+  process.exit(0);
 }
 
 /**
@@ -163,14 +322,67 @@ function checkTTY(): void {
 
 async function main() {
   // Parse CLI arguments (allows --help/--version to work without TTY)
-  const cliOptions = parseCliArguments();
+  const parsed = parseCliArguments();
 
-  // Check TTY after parsing arguments (so --help works)
-  checkTTY();
+  // `splash share` short-circuits before any engine setup — emits a code
+  // for the bootstrapped state and exits. No TTY required: useful in
+  // scripts / CI for generating reproducible codes.
+  if (parsed.mode === 'share') {
+    runShareCommand(parsed.options);
+  }
+
+  const cliOptions = parsed.options;
 
   // Load configuration (CLI > config file > defaults)
   const configLoader = new ConfigLoader();
   const config = configLoader.load(cliOptions);
+
+  // v0.5.0 Phase 7e: `splash play <code>` decodes the share code and
+  // overrides config.defaultPattern + config.theme so the rest of main()
+  // boots into the encoded scene. Done *before* the TTY check so a
+  // malformed/version-skewed code reports cleanly when piped. `playState`
+  // flows down to the pattern construction so the chosen pattern uses
+  // the decoded seed instead of a fresh randomSeed().
+  let playState: ShareState | null = null;
+  if (parsed.mode === 'play') {
+    try {
+      playState = decodeShareCode(parsed.code);
+    } catch (err) {
+      if (err instanceof ShareCodeError) {
+        console.error(`Error: ${err.message}`);
+      } else {
+        console.error(
+          `Error: failed to decode share code "${parsed.code}": ${err instanceof Error ? err.message : String(err)}`
+        );
+      }
+      process.exit(1);
+    }
+    const decodedName = patternNameById(playState.patternId);
+    if (!decodedName) {
+      console.error(
+        `Error: share code references patternId ${String(playState.patternId)}, which this build doesn't recognise. Upgrade ascii-splash.`
+      );
+      process.exit(1);
+    }
+    // Validate config fingerprint *before* swapping defaults so the
+    // diagnostic message names the pattern in question.
+    const localHash = computeConfigHash(decodedName, config);
+    if (localHash !== playState.configHash) {
+      console.error(
+        `Error: this share code was made with different settings for "${decodedName}" ` +
+          `(local config fingerprint 0x${localHash.toString(16)}, code expects 0x${playState.configHash.toString(16)}). ` +
+          `Replay would diverge — refusing.`
+      );
+      process.exit(1);
+    }
+    const themeNames = ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'];
+    config.defaultPattern = decodedName;
+    config.theme = themeNames[playState.themeId] ?? config.theme;
+  }
+
+  // Check TTY *after* play-code validation so malformed codes get a
+  // friendly diagnostic even when stdout is piped.
+  checkTTY();
 
   // Determine mouse enabled state from config
   const mouseEnabled = config.mouseEnabled !== false;
@@ -200,39 +412,57 @@ async function main() {
   const layeredOverlayName: string | null =
     cliOptions.photo && cliOptions.pattern ? cliOptions.pattern : null;
 
-  function createPatternsFromConfig(cfg: ConfigSchema, theme: Theme): Pattern[] {
-    return [
+  /**
+   * Build the 23 procedural patterns. Returns parallel `patterns` and
+   * `seeds` arrays — `seeds[i]` is the u32 used to construct `patterns[i]`
+   * (or 0 for WavePattern, which is purely math-based and takes no
+   * Random). `seedOverride` lets `splash play <code>` reproduce a scene
+   * by replacing the random seed for one slot; every other slot still
+   * gets a fresh random seed (they're not the active pattern).
+   */
+  function createPatternsFromConfig(
+    cfg: ConfigSchema,
+    theme: Theme,
+    seedOverride?: { patternIdx: number; seed: number }
+  ): { patterns: Pattern[]; seeds: number[] } {
+    const seeds: number[] = new Array<number>(PROCEDURAL_PATTERN_IDS.length).fill(0);
+    function rng(idx: number): Mulberry32 {
+      const s = seedOverride?.patternIdx === idx ? seedOverride.seed : randomSeed();
+      seeds[idx] = s;
+      return new Mulberry32(s);
+    }
+    const list: Pattern[] = [
       new WavePattern(theme, {
         layers: cfg.patterns?.waves?.layers,
         amplitude: cfg.patterns?.waves?.amplitude,
         speed: cfg.patterns?.waves?.speed,
         frequency: cfg.patterns?.waves?.frequency,
       }),
-      new StarfieldPattern(theme, new Mulberry32(randomSeed()), {
+      new StarfieldPattern(theme, rng(1), {
         starCount: cfg.patterns?.starfield?.starCount,
         speed: cfg.patterns?.starfield?.speed,
       }),
-      new MatrixPattern(theme, new Mulberry32(randomSeed()), {
+      new MatrixPattern(theme, rng(2), {
         density: cfg.patterns?.matrix?.columnDensity,
         speed: cfg.patterns?.matrix?.speed,
       }),
-      new RainPattern(theme, new Mulberry32(randomSeed()), {
+      new RainPattern(theme, rng(3), {
         density: cfg.patterns?.rain?.dropCount ? cfg.patterns.rain.dropCount / 500 : undefined,
         speed: cfg.patterns?.rain?.speed,
       }),
-      new QuicksilverPattern(theme, new Mulberry32(randomSeed()), {
+      new QuicksilverPattern(theme, rng(4), {
         speed: cfg.patterns?.quicksilver?.speed,
         flowIntensity: cfg.patterns?.quicksilver?.viscosity,
         noiseScale: 0.05,
       }),
-      new ParticlePattern(theme, new Mulberry32(randomSeed()), {
+      new ParticlePattern(theme, rng(5), {
         particleCount: cfg.patterns?.particles?.particleCount,
         speed: cfg.patterns?.particles?.speed,
         gravity: cfg.patterns?.particles?.gravity,
         mouseForce: cfg.patterns?.particles?.mouseForce,
         spawnRate: cfg.patterns?.particles?.spawnRate,
       }),
-      new SpiralPattern(theme, new Mulberry32(randomSeed()), {
+      new SpiralPattern(theme, rng(6), {
         armCount: cfg.patterns?.spiral?.armCount,
         particleCount: cfg.patterns?.spiral?.particleCount,
         spiralTightness: cfg.patterns?.spiral?.spiralTightness,
@@ -242,12 +472,12 @@ async function main() {
         direction: cfg.patterns?.spiral?.direction,
         pulseEffect: cfg.patterns?.spiral?.pulseEffect,
       }),
-      new PlasmaPattern(theme, new Mulberry32(randomSeed()), {
+      new PlasmaPattern(theme, rng(7), {
         frequency: cfg.patterns?.plasma?.frequency,
         speed: cfg.patterns?.plasma?.speed,
         complexity: cfg.patterns?.plasma?.complexity,
       }),
-      new TunnelPattern(theme, new Mulberry32(randomSeed()), {
+      new TunnelPattern(theme, rng(8), {
         shape: cfg.patterns?.tunnel?.shape,
         ringCount: cfg.patterns?.tunnel?.ringCount,
         speed: cfg.patterns?.tunnel?.speed,
@@ -259,14 +489,14 @@ async function main() {
         rotationSpeed: cfg.patterns?.tunnel?.rotationSpeed,
         radius: cfg.patterns?.tunnel?.radius,
       }),
-      new LightningPattern(theme, new Mulberry32(randomSeed()), {
+      new LightningPattern(theme, rng(9), {
         branchProbability: cfg.patterns?.lightning?.branchProbability,
         fadeTime: cfg.patterns?.lightning?.fadeTime,
         strikeInterval: cfg.patterns?.lightning?.strikeInterval,
         mainPathJaggedness: cfg.patterns?.lightning?.mainPathJaggedness,
         branchSpread: cfg.patterns?.lightning?.branchSpread,
       }),
-      new FireworksPattern(theme, new Mulberry32(randomSeed()), {
+      new FireworksPattern(theme, rng(10), {
         burstSize: cfg.patterns?.fireworks?.burstSize,
         launchSpeed: cfg.patterns?.fireworks?.launchSpeed,
         gravity: cfg.patterns?.fireworks?.gravity,
@@ -274,7 +504,7 @@ async function main() {
         spawnInterval: cfg.patterns?.fireworks?.spawnInterval,
         trailLength: cfg.patterns?.fireworks?.trailLength,
       }),
-      new MazePattern(theme, new Mulberry32(randomSeed()), {
+      new MazePattern(theme, rng(11), {
         algorithm: cfg.patterns?.maze?.algorithm,
         cellSize: cfg.patterns?.maze?.cellSize,
         generationSpeed: cfg.patterns?.maze?.generationSpeed,
@@ -282,7 +512,7 @@ async function main() {
         pathChar: cfg.patterns?.maze?.pathChar,
         animateGeneration: cfg.patterns?.maze?.animateGeneration,
       }),
-      new LifePattern(theme, new Mulberry32(randomSeed()), {
+      new LifePattern(theme, rng(12), {
         cellSize: cfg.patterns?.life?.cellSize,
         updateSpeed: cfg.patterns?.life?.updateSpeed,
         wrapEdges: cfg.patterns?.life?.wrapEdges,
@@ -291,7 +521,7 @@ async function main() {
         randomDensity: cfg.patterns?.life?.randomDensity,
         initialPattern: cfg.patterns?.life?.initialPattern,
       }),
-      new DNAPattern(theme, new Mulberry32(randomSeed()), {
+      new DNAPattern(theme, rng(13), {
         rotationSpeed: cfg.patterns?.dna?.rotationSpeed,
         helixRadius: cfg.patterns?.dna?.helixRadius,
         basePairDensity: cfg.patterns?.dna?.basePairSpacing
@@ -300,7 +530,7 @@ async function main() {
         twistRate: cfg.patterns?.dna?.twistRate,
         showLabels: true,
       }),
-      new LavaLampPattern(theme, new Mulberry32(randomSeed()), {
+      new LavaLampPattern(theme, rng(14), {
         blobCount: cfg.patterns?.lavaLamp?.blobCount,
         minRadius: cfg.patterns?.lavaLamp?.minRadius,
         maxRadius: cfg.patterns?.lavaLamp?.maxRadius,
@@ -311,7 +541,7 @@ async function main() {
         turbulence: cfg.patterns?.lavaLamp?.turbulence,
         gravity: cfg.patterns?.lavaLamp?.gravity,
       }),
-      new SmokePattern(theme, new Mulberry32(randomSeed()), {
+      new SmokePattern(theme, rng(15), {
         plumeCount: cfg.patterns?.smoke?.plumeCount,
         particleCount: cfg.patterns?.smoke?.particleCount,
         riseSpeed: cfg.patterns?.smoke?.riseSpeed,
@@ -321,7 +551,7 @@ async function main() {
         windStrength: cfg.patterns?.smoke?.windStrength,
         mouseBlowForce: cfg.patterns?.smoke?.mouseBlowForce,
       }),
-      new SnowPattern(theme, new Mulberry32(randomSeed()), {
+      new SnowPattern(theme, rng(16), {
         particleCount: cfg.patterns?.snow?.particleCount,
         fallSpeed: cfg.patterns?.snow?.fallSpeed,
         windStrength: cfg.patterns?.snow?.windStrength,
@@ -331,13 +561,14 @@ async function main() {
         accumulation: cfg.patterns?.snow?.accumulation,
         mouseWindForce: cfg.patterns?.snow?.mouseWindForce,
       }),
-      new OceanBeachPattern(theme, new Mulberry32(randomSeed()), {}),
-      new CampfirePattern(theme, new Mulberry32(randomSeed()), {}),
-      new NightSkyPattern(theme, new Mulberry32(randomSeed()), {}),
-      new AquariumPattern(theme, new Mulberry32(randomSeed()), {}),
-      new SnowfallParkPattern(theme, new Mulberry32(randomSeed()), {}),
-      new MetaballPattern(theme, new Mulberry32(randomSeed()), {}),
+      new OceanBeachPattern(theme, rng(17), {}),
+      new CampfirePattern(theme, rng(18), {}),
+      new NightSkyPattern(theme, rng(19), {}),
+      new AquariumPattern(theme, rng(20), {}),
+      new SnowfallParkPattern(theme, rng(21), {}),
+      new MetaballPattern(theme, rng(22), {}),
     ];
+    return { patterns: list, seeds };
   }
 
   /**
@@ -379,48 +610,43 @@ async function main() {
    * Without this, cycling themes while on the photo or layered slot would
    * leave `patterns[currentPatternIndex]` undefined.
    */
-  function buildPatterns(cfg: ConfigSchema, theme: Theme): Pattern[] {
-    const list = createPatternsFromConfig(cfg, theme);
-    if (!photoPattern) return list;
+  function buildPatterns(
+    cfg: ConfigSchema,
+    theme: Theme,
+    seedOverride?: { patternIdx: number; seed: number }
+  ): { patterns: Pattern[]; seeds: number[] } {
+    const { patterns: list, seeds } = createPatternsFromConfig(cfg, theme, seedOverride);
+    if (!photoPattern) return { patterns: list, seeds };
     list.push(photoPattern);
+    seeds.push(0); // photo slot is not encodable in share codes
     if (layeredOverlayName) {
       const overlayIdx = patternNames.indexOf(layeredOverlayName);
       if (overlayIdx >= 0) {
         const overlay = makeLayeredOverlay(layeredOverlayName, cfg, theme, list[overlayIdx]);
         list.push(new LayeredPattern(photoPattern, overlay));
+        seeds.push(0); // layered slot is not encodable either
       }
     }
-    return list;
+    return { patterns: list, seeds };
   }
 
-  patterns = createPatternsFromConfig(config, currentTheme);
+  let patternSeeds: number[];
+  // Inject the decoded seed for the played pattern; every other slot
+  // still gets a fresh random seed (they aren't the active scene).
+  const initialSeedOverride = playState
+    ? { patternIdx: playState.patternId, seed: playState.seed }
+    : undefined;
+  ({ patterns, seeds: patternSeeds } = createPatternsFromConfig(
+    config,
+    currentTheme,
+    initialSeedOverride
+  ));
 
-  // Pattern names mapping (internal names)
-  const patternNames: string[] = [
-    'waves',
-    'starfield',
-    'matrix',
-    'rain',
-    'quicksilver',
-    'particles',
-    'spiral',
-    'plasma',
-    'tunnel',
-    'lightning',
-    'fireworks',
-    'maze',
-    'life',
-    'dna',
-    'lavalamp',
-    'smoke',
-    'snow',
-    'oceanbeach',
-    'campfire',
-    'nightsky',
-    'aquarium',
-    'snowfallpark',
-    'metaball',
-  ];
+  // Pattern names mapping (internal names). Sourced from the share-code
+  // registry so the on-the-wire patternId byte stays in sync with the
+  // runtime index. PhotoPattern + LayeredPattern slots may be appended
+  // below when --photo is supplied.
+  const patternNames: string[] = [...PROCEDURAL_PATTERN_IDS];
 
   // Pattern display names for user-facing messages
   const patternDisplayNames: Record<string, string> = {
@@ -473,7 +699,7 @@ async function main() {
       patternDisplayNames.layered = `Photo + ${overlayDisplay}`;
     }
     // Rebuild now that photoPattern + layered slot are available.
-    patterns = buildPatterns(config, currentTheme);
+    ({ patterns, seeds: patternSeeds } = buildPatterns(config, currentTheme));
   }
 
   // Determine starting pattern from config
@@ -554,7 +780,7 @@ async function main() {
     const themeNames = ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'];
     currentTheme = getTheme(themeNames[themeIndex]);
     currentThemeIndex = themeIndex;
-    patterns = buildPatterns(config, currentTheme);
+    ({ patterns, seeds: patternSeeds } = buildPatterns(config, currentTheme));
     engine.setPattern(patterns[currentPatternIndex]);
     commandExecutor.updateState(currentPatternIndex, currentThemeIndex);
     // Update status bar
@@ -572,6 +798,15 @@ async function main() {
 
   // Preset tracking state (for cycling presets)
   let currentPresetIndex = 1; // Default to preset 1 (1-6)
+
+  // Apply the decoded preset for `splash play <code>`. Done after engine
+  // setup so the pattern instance exists; the engine picks up the new
+  // state on its next frame.
+  if (playState && playState.presetId !== 1) {
+    patterns[currentPatternIndex].applyPreset?.(playState.presetId);
+    currentPresetIndex = playState.presetId;
+    statusBar.update({ presetNumber: currentPresetIndex });
+  }
 
   function switchPattern(index: number) {
     if (index >= 0 && index < patterns.length && index !== currentPatternIndex) {
@@ -609,7 +844,7 @@ async function main() {
 
     // Update config with new quality
     config.quality = quality;
-    patterns = buildPatterns(config, currentTheme);
+    ({ patterns, seeds: patternSeeds } = buildPatterns(config, currentTheme));
     engine.setFps(qualityFpsPresets[quality]);
     engine.setPattern(patterns[currentPatternIndex]);
 
@@ -628,7 +863,7 @@ async function main() {
     );
 
     // Recreate patterns with new theme
-    patterns = buildPatterns(config, currentTheme);
+    ({ patterns, seeds: patternSeeds } = buildPatterns(config, currentTheme));
     engine.setPattern(patterns[currentPatternIndex]);
     commandExecutor.updateState(currentPatternIndex, currentThemeIndex);
 
@@ -1120,6 +1355,37 @@ async function main() {
       if (parsed) {
         const result = commandExecutor.execute(parsed);
         showCommandResult(result.message, result.success);
+      }
+    }
+    // v0.5.0 Phase 7e: copy a share code for the current scene. Refuses
+    // on Photo/Layered slots (those depend on a local image file).
+    else if (name === 'S') {
+      const patternName = patternNames[currentPatternIndex];
+      const patternId = patternIdByName(patternName);
+      if (patternId < 0) {
+        showMessage(
+          `Share codes are procedural-only — ${patternDisplayNames[patternName] ?? patternName} can't be encoded.`
+        );
+      } else {
+        const state: ShareState = {
+          patternId,
+          presetId: currentPresetIndex,
+          themeId: currentThemeIndex,
+          seed: patternSeeds[currentPatternIndex],
+          configHash: computeConfigHash(patternName, config),
+        };
+        const code = encodeShareCode(state);
+        copyToClipboard(code)
+          .then(() => {
+            showMessage(`Share code ${code} copied`);
+          })
+          .catch((err: unknown) => {
+            if (err instanceof ClipboardError) {
+              showMessage(`Share code: ${code} (clipboard unavailable)`);
+            } else {
+              showMessage(`Share code: ${code}`);
+            }
+          });
       }
     }
     // Quality presets

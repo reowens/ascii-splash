@@ -45,6 +45,55 @@ export const SHARE_CODE_LENGTH = 12;
 export const SHARE_CODE_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 
 /**
+ * Frozen registry mapping `patternId` (0-based) to the internal pattern
+ * name used by `main.ts`'s `patternNames` array.
+ *
+ * **Do not reorder.** A share code records `patternId` as a 5-bit integer
+ * indexing into this list; reordering or renaming entries would silently
+ * break every existing share code in the wild. Adding a new pattern is
+ * safe — append to the end (use the next free id). Removing one means
+ * leaving a tombstone (or bumping {@link SHARE_CODE_VERSION}).
+ *
+ * PhotoPattern and LayeredPattern intentionally aren't here: they depend
+ * on a local image file and can't be reproduced from a code alone.
+ */
+export const PROCEDURAL_PATTERN_IDS: readonly string[] = Object.freeze([
+  'waves', // 0
+  'starfield', // 1
+  'matrix', // 2
+  'rain', // 3
+  'quicksilver', // 4
+  'particles', // 5
+  'spiral', // 6
+  'plasma', // 7
+  'tunnel', // 8
+  'lightning', // 9
+  'fireworks', // 10
+  'maze', // 11
+  'life', // 12
+  'dna', // 13
+  'lavalamp', // 14
+  'smoke', // 15
+  'snow', // 16
+  'oceanbeach', // 17
+  'campfire', // 18
+  'nightsky', // 19
+  'aquarium', // 20
+  'snowfallpark', // 21
+  'metaball', // 22
+]);
+
+/** Look up `patternId` (0-based) for an internal pattern name, or `-1`. */
+export function patternIdByName(name: string): number {
+  return PROCEDURAL_PATTERN_IDS.indexOf(name);
+}
+
+/** Look up the internal pattern name for a `patternId`, or `undefined`. */
+export function patternNameById(id: number): string | undefined {
+  return PROCEDURAL_PATTERN_IDS[id];
+}
+
+/**
  * Categorises share-code failures so the CLI can surface the right
  * friendly message.
  *

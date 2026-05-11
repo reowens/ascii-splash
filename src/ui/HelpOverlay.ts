@@ -23,6 +23,7 @@ const HELP_SECTIONS: Record<HelpTab, HelpSection[]> = {
         { key: '. / ,', description: 'Next/Prev preset' },
         { key: 'r', description: 'Random everything' },
         { key: 't', description: 'Cycle themes' },
+        { key: 'S', description: 'Copy share code' },
         { key: 'SPACE', description: 'Pause/Resume' },
         { key: 'd', description: 'Debug overlay' },
         { key: '?', description: 'Toggle help' },
