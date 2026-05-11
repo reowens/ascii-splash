@@ -1735,7 +1735,7 @@ describe('Additional Pattern Tests', () => {
     const mockTheme = createMockTheme();
 
     beforeEach(() => {
-      pattern = new FireworksPattern(mockTheme);
+      pattern = new FireworksPattern(mockTheme, new Mulberry32(42));
     });
 
     describe('getPresets()', () => {

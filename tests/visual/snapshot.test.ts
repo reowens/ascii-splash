@@ -187,7 +187,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('CampfirePattern should have flame characters', () => {
-      const pattern = new CampfirePattern(mockTheme);
+      const pattern = new CampfirePattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       pattern.render(buffer, 1000, size);

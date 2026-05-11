@@ -266,7 +266,7 @@ async function main() {
         mainPathJaggedness: cfg.patterns?.lightning?.mainPathJaggedness,
         branchSpread: cfg.patterns?.lightning?.branchSpread,
       }),
-      new FireworksPattern(theme, {
+      new FireworksPattern(theme, new Mulberry32(randomSeed()), {
         burstSize: cfg.patterns?.fireworks?.burstSize,
         launchSpeed: cfg.patterns?.fireworks?.launchSpeed,
         gravity: cfg.patterns?.fireworks?.gravity,
@@ -332,7 +332,7 @@ async function main() {
         mouseWindForce: cfg.patterns?.snow?.mouseWindForce,
       }),
       new OceanBeachPattern(theme, new Mulberry32(randomSeed()), {}),
-      new CampfirePattern(theme, {}),
+      new CampfirePattern(theme, new Mulberry32(randomSeed()), {}),
       new NightSkyPattern(theme, new Mulberry32(randomSeed()), {}),
       new AquariumPattern(theme, new Mulberry32(randomSeed()), {}),
       new SnowfallParkPattern(theme, new Mulberry32(randomSeed()), {}),

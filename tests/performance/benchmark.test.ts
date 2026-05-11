@@ -126,7 +126,7 @@ describe('Performance Benchmarks', () => {
     });
 
     test('FireworksPattern should maintain 30+ FPS', () => {
-      const pattern = new FireworksPattern(mockTheme);
+      const pattern = new FireworksPattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, standardSize);
 
       expect(avgFrameTime).toBeLessThan(MAX_FRAME_TIME_MS);

@@ -42,7 +42,7 @@ describe('Memory Leak Detection', () => {
       ['WavePattern', () => new WavePattern(createMockTheme('test'))],
       ['StarfieldPattern', () => new StarfieldPattern(createMockTheme('test'), new Mulberry32(42))],
       ['ParticlePattern', () => new ParticlePattern(createMockTheme('test'), new Mulberry32(42))],
-      ['FireworksPattern', () => new FireworksPattern(createMockTheme('test'))],
+      ['FireworksPattern', () => new FireworksPattern(createMockTheme('test'), new Mulberry32(42))],
       ['LifePattern', () => new LifePattern(createMockTheme('test'), new Mulberry32(42))],
       ['MetaballPattern', () => new MetaballPattern(createMockTheme('test'), new Mulberry32(42))],
       ['AquariumPattern', () => new AquariumPattern(createMockTheme('test'), new Mulberry32(42))],
@@ -50,7 +50,7 @@ describe('Memory Leak Detection', () => {
         'SnowfallParkPattern',
         () => new SnowfallParkPattern(createMockTheme('test'), new Mulberry32(42)),
       ],
-      ['CampfirePattern', () => new CampfirePattern(createMockTheme('test'))],
+      ['CampfirePattern', () => new CampfirePattern(createMockTheme('test'), new Mulberry32(42))],
     ])('%s should handle 1000 frames without error', (_name, createPattern) => {
       const pattern = createPattern();
       const buffer = mockRenderer.getBuffer();
@@ -83,7 +83,7 @@ describe('Memory Leak Detection', () => {
     });
 
     test('FireworksPattern reset should clear all explosions', () => {
-      const pattern = new FireworksPattern(mockTheme);
+      const pattern = new FireworksPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       // Trigger many fireworks
