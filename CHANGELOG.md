@@ -5,6 +5,35 @@ All notable changes to ascii-splash will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — v0.5.0 "Shareable Scenes" (in progress)
+
+Branch: `feature/v0.5.0-phase7-share-codes`. Tracking doc: [docs/planning/v0.5.0-ROADMAP.md](docs/planning/v0.5.0-ROADMAP.md).
+
+Replaces every `Math.random()` call in `src/patterns/` with a constructor-injected, seedable PRNG so scenes can be reproduced byte-for-byte from a share code. Foundation for `splash share` / `splash play <code>` (CLI lands in phase 7e).
+
+### Added
+
+- **`Random` interface + `Mulberry32`** (`src/utils/random.ts`): deterministic, u32-seeded PRNG with `next` / `range` / `int` / `choice` / `bool` / `reseed`. `randomSeed()` helper picks a fresh u32 from `Math.random()` for non-deterministic sessions. 21 unit tests, including pinned reference vectors for `seed=1` so future PRNG swaps require an explicit migration.
+- **Pattern constructors threaded with `Random`**: `(theme, random, config?)` signature; required, not optional. Mass migration in progress, broken into batches:
+  - Phase 7a (`7f9b4c1`): foundation + `DNAPattern` proof of concept.
+  - Phase 7b (`f18eb65`): `boids.createFlock` and `ParticleSystem` accept `Random`; `AquariumPattern` constructor wired up.
+  - Phase 7c batch 1 (`433dbc9`): `PlasmaPattern`, `QuicksilverPattern`, `LifePattern`, `MetaballPattern`, `MatrixPattern`, `StarfieldPattern`, `ParticlePattern`, `SpiralPattern`.
+  - Phase 7c batch 2 (`df6bebe`): `RainPattern`, `TunnelPattern`, `MazePattern`, `SmokePattern`, `LavaLampPattern`. Adds `RainPattern.pickChar()` helper so an empty `characters` config keeps degrading gracefully instead of throwing from `Random.choice`.
+  - Phase 7c batch 3 (`abdac12`): finish `AquariumPattern` (~20 internal sites left from 7b).
+
+### Notes
+
+- `src/engine/CommandExecutor.ts` intentionally stays on `Math.random()` — the `c*`, `c**`, and `r` "surprise me" commands are UX random, not scene random, and should remain non-reproducible.
+- `Random.int(min, max)` is **inclusive on both ends**, unlike `Math.floor(Math.random() * N)` which is `[0, N-1]`. The migration recipe in the v0.5.0 roadmap documents the careful translation table.
+- All 2265 tests passing after each batch (1 test net-new — `RainPattern` empty-characters graceful-degradation case).
+
+### Remaining (this release)
+
+- Phase 7c batches 4–5: `SnowPattern`, `SnowfallParkPattern`, `OceanBeachPattern`, `LightningPattern`, `NightSkyPattern`, `CampfirePattern`, `FireworksPattern`.
+- Phase 7d: `src/utils/shareCode.ts` — base32 encode/decode with a version prefix.
+- Phase 7e: `splash share` / `splash play <code>` CLI + in-app `S`-to-clipboard.
+- Phase 7f: determinism tests (round-trip, frame-N replay, version-skew rejection).
+
 ## [0.4.0] - 2026-05-10
 
 ### 🎯 Theme: "Photos in the Terminal"
