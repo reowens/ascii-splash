@@ -2,28 +2,68 @@
 
 This document describes how to create and publish a new release of ascii-splash.
 
-## Quick Start
+## TL;DR — One Command
 
-Create a new release in 5 simple steps:
+Releases are fully automated. After updating `CHANGELOG.md` with the new version section:
 
 ```bash
-# 1. Update version
-npm version patch  # or: minor, major
+npm version minor  # or: patch, major
+```
 
-# 2. Update CHANGELOG.md
-# Add section: ## [X.Y.Z] - YYYY-MM-DD
+That single command runs `preversion` (test + typecheck), bumps `package.json` + `package-lock.json`, commits, and runs `postversion` (push main → push tag → watch CI → reinstall global).
 
-# 3. Commit and push
-git add package.json CHANGELOG.md
-git commit -m "chore: bump version to X.Y.Z"
-git push origin main
+Pushing the tag triggers `.github/workflows/release.yml`, which:
 
-# 4. Publish to npm (manual - requires authentication)
-npm publish
+1. Verifies the tag commit is on `main` and that the tag matches `package.json` version
+2. Installs deps, typechecks, builds, runs the full test suite
+3. Audits the npm tarball for unexpected files (source leak protection)
+4. Publishes to npm with `--provenance`
+5. Creates the GitHub Release with notes extracted from `CHANGELOG.md`
 
-# 5. Create and push tag (triggers GitHub Release)
-git tag -a vX.Y.Z -m "Release version X.Y.Z"
-git push origin vX.Y.Z
+No manual `npm publish` is needed.
+
+## Prerequisites (one-time setup)
+
+### `NPM_TOKEN` GitHub repo secret
+
+The CI workflow publishes to npm using a token. Create one and add it as a repo secret:
+
+1. **Create an npm Automation token**
+   - Go to <https://www.npmjs.com/> → your avatar → **Access Tokens** → **Generate New Token** → **Classic Token** → **Automation**
+   - Copy the token (starts with `npm_…`)
+
+2. **Add it to the repo secrets**
+
+   ```bash
+   gh secret set NPM_TOKEN
+   # Paste the token when prompted
+   ```
+
+   Or via the GitHub UI: **Settings → Secrets and variables → Actions → New repository secret**, name `NPM_TOKEN`.
+
+3. **Verify**
+
+   ```bash
+   gh secret list
+   # Should show NPM_TOKEN
+   ```
+
+### `gh` CLI authenticated
+
+The `postversion` script uses `gh run watch` to follow the release workflow. Make sure `gh auth status` shows you're logged in.
+
+## Step-by-step
+
+Create a new release:
+
+```bash
+# 1. Update CHANGELOG.md — add `## [X.Y.Z] - YYYY-MM-DD` section above [Unreleased]
+#    (or convert [Unreleased] → the dated section)
+# 2. Commit the CHANGELOG update on main
+git add CHANGELOG.md && git commit -m "docs: changelog for X.Y.Z" && git push
+
+# 3. Bump version — triggers the entire pipeline
+npm version minor  # or: patch, major
 ```
 
 **Verify the release:**
@@ -36,120 +76,23 @@ splash --version
 
 ---
 
-## Detailed Release Workflow
+## What the CI release workflow does
 
-### Prerequisites
+`.github/workflows/release.yml` triggers on any `v*.*.*` tag push and runs these steps in order. If any step fails, the release aborts before publishing — nothing partial reaches the registry.
 
-1. **npm Account & Authentication**
-   - Create an account at [npmjs.com](https://www.npmjs.com)
-   - Log in locally: `npm login`
-   - Verify login: `npm whoami`
-
-2. **GitHub Permissions**
-   - Ensure you have write access to the repository
-
-### 1. Update Version and Changelog
-
-```bash
-# Update version in package.json (choose one):
-npm version patch  # Bug fixes (0.1.0 → 0.1.1)
-npm version minor  # New features (0.1.0 → 0.2.0)
-npm version major  # Breaking changes (0.1.0 → 1.0.0)
-
-# Or manually edit package.json and update:
-# "version": "0.1.1"
-```
-
-### 2. Update CHANGELOG.md
-
-Add a new section at the top of `CHANGELOG.md`:
-
-```markdown
-## [0.1.1] - 2025-11-02
-
-### Added
-
-- New feature description
-
-### Changed
-
-- Changes to existing functionality
-
-### Fixed
-
-- Bug fixes
-
-### Removed
-
-- Removed features
-```
-
-### 3. Commit Changes
-
-```bash
-git add package.json CHANGELOG.md
-git commit -m "chore: bump version to 0.1.1"
-git push origin main
-```
-
-### 4. Publish to npm
-
-**Important**: npm publishing is done manually from your local machine.
-
-```bash
-# Ensure you're logged in
-npm whoami
-
-# Build and test first
-npm run build
-npm test
-
-# Publish to npm
-npm publish
-```
-
-The `prepublishOnly` script in package.json will automatically run `npm run build && npm test` before publishing.
-
-**Note**: If you have 2FA enabled with passkey authentication, npm will prompt you to authenticate in your browser during publish.
-
-### 5. Create and Push Tag
-
-After successful npm publish, create the git tag to trigger the GitHub Release:
-
-```bash
-# Create annotated tag
-git tag -a v0.1.1 -m "Release version 0.1.1"
-
-# Push tag to trigger GitHub Release workflow
-git push origin v0.1.1
-```
-
-**This will automatically trigger the release workflow** which will:
-
-1. ✅ Create GitHub Release with changelog notes
-
-### 6. Verify Release
-
-After workflow completes:
-
-```bash
-# Check npm
-npm view ascii-splash version
-npm view ascii-splash
-
-# Test installation
-npm install -g ascii-splash@latest
-splash --version
-```
+1. **Verify tag commit is on `main`** — refuses to publish from arbitrary branches.
+2. **Verify tag matches `package.json` version** — refuses if `v0.4.0` tag points at a commit whose `package.json` says `0.3.1`. Catches forgotten version bumps.
+3. **`npm ci`** with frozen lockfile.
+4. **`npx tsc --noEmit`** — type check.
+5. **`npm run build`** — compile to `dist/`.
+6. **`npm test`** — full Jest suite (2244 tests).
+7. **Tarball audit** — verifies only whitelisted paths (`dist/`, `examples/`, `package.json`, `README.md`, `LICENSE`, `CHANGELOG.md`) end up in the published tarball. Source-leak protection.
+8. **`npm publish --access public --provenance`** — uses `NPM_TOKEN` secret; publishes with provenance attestation.
+9. **Extract changelog section** for this version and create the GitHub Release with those notes.
 
 ## Continuous Integration (CI)
 
-The CI workflow runs automatically on:
-
-- Every push to `main` or `develop` branches
-- Every pull request to `main` or `develop`
-
-CI checks:
+The CI workflow (`.github/workflows/ci.yml`) runs automatically on every push and PR:
 
 - ✅ Tests on Node 20
 - ✅ TypeScript compilation
@@ -157,19 +100,27 @@ CI checks:
 
 ## Troubleshooting
 
-### npm Publish Fails
+### CI release workflow fails
 
-**Problem**: Authentication error
+**Problem**: `Refusing to publish: tag commit is not on main`
 
-- **Solution**: Run `npm login` and verify with `npm whoami`
+- **Cause**: Tag points at a commit that isn't an ancestor of `origin/main`.
+- **Solution**: Delete the tag (`git tag -d vX.Y.Z && git push origin :refs/tags/vX.Y.Z`), get the right commit onto `main`, then re-tag.
 
-**Problem**: Version already exists
+**Problem**: `Tag vX.Y.Z does not match package.json version vA.B.C`
 
-- **Solution**: Increment the version number and try again
+- **Cause**: Forgot to bump `package.json` before tagging.
+- **Solution**: Delete the tag (see above), run `npm version <bump>` to bump + commit + push + re-tag in one shot.
 
-**Problem**: 2FA prompt
+**Problem**: `Tarball audit` fails with unexpected files
 
-- **Solution**: If using passkey auth, complete the browser authentication prompt
+- **Cause**: A new path landed in the npm tarball that isn't in the whitelist (the `case` pattern in `release.yml`).
+- **Solution**: Either trim `package.json`'s `files` field to exclude it, or add it to both `files` and the workflow's `case` pattern.
+
+**Problem**: `npm publish` step fails with 401/403
+
+- **Cause**: `NPM_TOKEN` repo secret is missing, expired, or scoped incorrectly.
+- **Solution**: Generate a fresh **Automation** token at npmjs.com and `gh secret set NPM_TOKEN` again. Verify with `gh secret list`.
 
 ### Rollback a Release
 
@@ -199,67 +150,51 @@ git push origin :refs/tags/v0.1.1
 
 ## Pre-Release / Beta Versions
 
-For testing releases before publishing to `latest` tag:
+For testing releases before publishing to the `latest` dist-tag:
 
 ```bash
-# Update to pre-release version
-npm version 0.2.0-beta.1
-
-# Publish with beta tag
-npm publish --tag beta
-
-# Create and push tag
-git tag -a v0.2.0-beta.1 -m "Beta release 0.2.0-beta.1"
-git push origin v0.2.0-beta.1
+# Bump to a pre-release version (fires the same preversion/postversion pipeline)
+npm version 0.5.0-beta.1
 ```
 
-Users can then install with:
+The CI workflow detects the `-beta.` suffix in the tag and publishes to npm. To install:
 
 ```bash
-npm install ascii-splash@beta
+npm install ascii-splash@0.5.0-beta.1
 ```
+
+Note: by default, `npm publish` from the workflow uses the implicit `latest` tag. To publish a beta without bumping `latest`, you'd need to add `--tag beta` to the publish step in `release.yml` conditionally — currently this isn't wired up. Open an issue if you need it.
 
 ## Release Checklist
 
 Before creating a release:
 
-- [ ] All tests pass locally: `npm test`
-- [ ] Build succeeds: `npm run build`
-- [ ] Version updated in `package.json`
-- [ ] `CHANGELOG.md` updated with changes
-- [ ] Changes committed and pushed to `main`
-- [ ] **npm publish completed**: `npm publish`
-- [ ] Tag created with correct version: `git tag -a v0.1.1 -m "..."`
-- [ ] Tag pushed: `git push origin v0.1.1`
-- [ ] GitHub Release created (automatic from tag push)
-- [ ] npm package visible: `npm view ascii-splash`
+- [ ] `CHANGELOG.md` has a section for the new version (or `[Unreleased]` is converted to a dated section)
+- [ ] `NPM_TOKEN` repo secret exists (`gh secret list`)
+- [ ] `gh auth status` is logged in (`postversion` uses `gh run watch`)
+- [ ] On `main`, working tree clean, in sync with `origin/main`
+- [ ] Run `npm version <bump>` — that's it
+
+After release:
+
+- [ ] CI run on the tag is green (`gh run list --workflow=release.yml --branch vX.Y.Z`)
+- [ ] `npm view ascii-splash version` shows the new version
+- [ ] GitHub Release page shows the changelog notes
+- [ ] `splash --version` on a fresh global install matches
 
 ## Workflow Files
 
 ### `.github/workflows/ci.yml`
 
-Runs on every push and PR to ensure code quality:
-
-- TypeScript compilation checks
-- Test execution
-- Build verification
+Runs on every push and PR — typecheck, tests, build.
 
 ### `.github/workflows/release.yml`
 
-Runs on tag push (`v*.*.*`) to create GitHub Release:
-
-- Extracts changelog for the version
-- Creates GitHub Release with notes
-
-**Note**: npm publishing is NOT automated. Always publish manually with `npm publish`.
+Runs on tag push (`v*.*.*`). Does the full publish + GitHub Release. See [What the CI release workflow does](#what-the-ci-release-workflow-does) above.
 
 ## Best Practices
 
-1. **Always test locally before publishing**
-
-   ```bash
-   npm run build && npm test
-   ```
+1. **One source of truth for version**: never edit `package.json`'s `version` field by hand — always go through `npm version <bump>`. Manual edits skip `preversion` (tests) and won't trigger `postversion` (push + tag).
 
 2. **Use semantic versioning**
    - `MAJOR.MINOR.PATCH` (e.g., `1.2.3`)
@@ -272,19 +207,11 @@ Runs on tag push (`v*.*.*`) to create GitHub Release:
    - Group by: Added, Changed, Fixed, Removed
    - Include issue/PR references when relevant
 
-4. **Create annotated tags**
+4. **Let `npm version` create the tag**
 
-   ```bash
-   # Good: Annotated tag with message
-   git tag -a v0.1.1 -m "Release 0.1.1: Fix text overlay display"
+   `npm version <bump>` automatically creates an annotated tag — no need to `git tag` by hand. The tag message is whatever you set in your git config (`commit.template`) or defaults to `v$version`.
 
-   # Avoid: Lightweight tag
-   git tag v0.1.1
-   ```
-
-5. **Publish to npm BEFORE pushing tag**
-   - This ensures the npm package exists before the GitHub Release is created
-   - If npm publish fails, you haven't created a tag for a non-existent release
+5. **Atomic releases**: `npm version` bumps + commits + tags + (via postversion) pushes + watches CI. If any step in the CI workflow fails, nothing reaches the npm registry — the publish step runs _after_ the audit and verification gates.
 
 6. **Test the published package**
    ```bash
@@ -303,4 +230,4 @@ If you encounter issues with the release process:
 
 ---
 
-**Last Updated**: January 22, 2026
+**Last Updated**: 2026-05-10

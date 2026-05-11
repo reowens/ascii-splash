@@ -27,7 +27,10 @@
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
     "prepare": "husky",
-    "prepublishOnly": "npm run build && npm test"
+    "prepublishOnly": "npm run build && npm test",
+    "typecheck": "tsc --noEmit",
+    "preversion": "npm test && npm run typecheck",
+    "postversion": "git push origin main && git push origin v$npm_package_version && sleep 5 && gh run watch $(gh run list --workflow=release.yml --branch v$npm_package_version --limit 1 --json databaseId --jq '.[0].databaseId') --exit-status && sleep 30 && npm cache clean --force && npm install -g ascii-splash@$npm_package_version"
   },
   "lint-staged": {
     "*.ts": [

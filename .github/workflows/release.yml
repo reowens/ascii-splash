@@ -4,55 +4,111 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
-  create-github-release:
-    name: Create GitHub Release
+  publish-npm:
+    name: Publish to npm + create GitHub Release
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Extract version from tag
-      id: version
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
 
-    - name: Extract changelog for this version
-      id: changelog
-      run: |
-        VERSION=${{ steps.version.outputs.VERSION }}
+      - name: Verify tag commit is on main
+        run: |
+          git fetch origin main --depth=1
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "Refusing to publish: tag commit is not on main"
+            exit 1
+          fi
 
-        # Try to extract changelog section for this version
-        if grep -q "## \[$VERSION\]" CHANGELOG.md 2>/dev/null; then
-          awk "/## \[$VERSION\]/{flag=1; next} /## \[/{flag=0} flag" CHANGELOG.md > release_notes.md
-        elif grep -q "## $VERSION" CHANGELOG.md 2>/dev/null; then
-          awk "/## $VERSION/{flag=1; next} /## /{flag=0} flag" CHANGELOG.md > release_notes.md
-        else
-          echo "Release $VERSION" > release_notes.md
-          echo "" >> release_notes.md
-          echo "See [CHANGELOG.md](CHANGELOG.md) for details." >> release_notes.md
-        fi
+      - name: Verify tag matches package.json version
+        run: |
+          TAG="${GITHUB_REF##*/}"
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [ "v$PKG_VERSION" != "$TAG" ]; then
+            echo "Tag $TAG does not match package.json version v$PKG_VERSION"
+            exit 1
+          fi
 
-        # If release notes are empty, add default message
-        if [ ! -s release_notes.md ]; then
-          echo "Release $VERSION" > release_notes.md
-          echo "" >> release_notes.md
-          echo "See [CHANGELOG.md](CHANGELOG.md) for details." >> release_notes.md
-        fi
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Create GitHub Release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ steps.version.outputs.VERSION }}
-        body_path: release_notes.md
-        draft: false
-        prerelease: false
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+      # Audit the npm tarball to ensure no source code or internal files leak.
+      #
+      # Why this exists: package.json "files" whitelists dist/, examples/,
+      # README.md, LICENSE, CHANGELOG.md. This step verifies that ONLY those
+      # paths end up in the tarball. If something unexpected appears — a src/
+      # file, a .env, test fixtures, internal docs — this fails the release
+      # before it reaches the registry.
+      #
+      # Run `npm pack --dry-run` locally to preview what would ship.
+      - name: Audit npm tarball for source leaks
+        run: |
+          FILES=$(npm pack --dry-run 2>&1 | sed -n 's/^npm notice [0-9][0-9.]*[kMG]*B[[:space:]]*//p')
+          LEAKED=""
+          while IFS= read -r FILE; do
+            [ -z "$FILE" ] && continue
+            case "$FILE" in
+              dist/*|examples/*|package.json|README.md|LICENSE|CHANGELOG.md) ;;
+              *) LEAKED="${LEAKED}  - ${FILE}\n" ;;
+            esac
+          done <<< "$FILES"
+          if [ -n "$LEAKED" ]; then
+            printf "ERROR: Unexpected files in npm tarball:\n%b" "$LEAKED"
+            echo ""
+            echo "If these files are intentional, add them to the case pattern"
+            echo "in this workflow step and to \"files\" in package.json."
+            exit 1
+          fi
+          echo "Tarball audit passed — no unexpected files."
+
+      - name: Publish to npm
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          VERSION="${GITHUB_REF##*/v}"
+          if grep -q "## \[$VERSION\]" CHANGELOG.md 2>/dev/null; then
+            awk "/## \[$VERSION\]/{flag=1; next} /## \[/{flag=0} flag" CHANGELOG.md > release_notes.md
+          else
+            echo "Release $VERSION" > release_notes.md
+            echo "" >> release_notes.md
+            echo "See [CHANGELOG.md](CHANGELOG.md) for details." >> release_notes.md
+          fi
+          if [ ! -s release_notes.md ]; then
+            echo "Release $VERSION" > release_notes.md
+            echo "" >> release_notes.md
+            echo "See [CHANGELOG.md](CHANGELOG.md) for details." >> release_notes.md
+          fi
+
+      - name: Create GitHub Release
+        run: gh release create "${{ github.ref_name }}" --title "${{ github.ref_name }}" --notes-file release_notes.md || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
