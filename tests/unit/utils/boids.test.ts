@@ -14,16 +14,17 @@ import {
   getBoidDirection,
   isBoidFacingLeft,
 } from '../../../src/utils/boids.js';
+import { Mulberry32 } from '../../../src/utils/random.js';
 
 describe('Boids Utility', () => {
   describe('createFlock', () => {
     test('should create specified number of boids', () => {
-      const boids = createFlock(10, 100, 50);
+      const boids = createFlock(10, 100, 50, new Mulberry32(42));
       expect(boids).toHaveLength(10);
     });
 
     test('should create boids with unique IDs', () => {
-      const boids = createFlock(10, 100, 50);
+      const boids = createFlock(10, 100, 50, new Mulberry32(42));
       const ids = boids.map(b => b.id);
       const uniqueIds = [...new Set(ids)];
       expect(uniqueIds).toHaveLength(10);
@@ -32,7 +33,7 @@ describe('Boids Utility', () => {
     test('should create boids within bounds', () => {
       const width = 100;
       const height = 50;
-      const boids = createFlock(20, width, height);
+      const boids = createFlock(20, width, height, new Mulberry32(42));
 
       for (const boid of boids) {
         expect(boid.x).toBeGreaterThanOrEqual(0);
@@ -43,7 +44,7 @@ describe('Boids Utility', () => {
     });
 
     test('should create boids with velocities', () => {
-      const boids = createFlock(10, 100, 50);
+      const boids = createFlock(10, 100, 50, new Mulberry32(42));
 
       for (const boid of boids) {
         // Each boid should have non-zero velocity (usually)
@@ -57,7 +58,7 @@ describe('Boids Utility', () => {
         ...DEFAULT_BOID_CONFIG,
         maxSpeed: 2,
       };
-      const boids = createFlock(20, 100, 50, config);
+      const boids = createFlock(20, 100, 50, new Mulberry32(42), config);
 
       for (const boid of boids) {
         const speed = Math.sqrt(boid.vx * boid.vx + boid.vy * boid.vy);
@@ -68,7 +69,7 @@ describe('Boids Utility', () => {
 
   describe('updateBoids', () => {
     test('should update boid positions', () => {
-      const boids = createFlock(5, 100, 50);
+      const boids = createFlock(5, 100, 50, new Mulberry32(42));
       const initialPositions = boids.map(b => ({ x: b.x, y: b.y }));
 
       updateBoids(boids, 100, 50);
@@ -100,7 +101,7 @@ describe('Boids Utility', () => {
     test('should keep boids within bounds (with soft wrap)', () => {
       const width = 100;
       const height = 50;
-      const boids = createFlock(20, width, height);
+      const boids = createFlock(20, width, height, new Mulberry32(42));
 
       // Run many updates
       for (let i = 0; i < 100; i++) {
@@ -121,7 +122,7 @@ describe('Boids Utility', () => {
         ...DEFAULT_BOID_CONFIG,
         maxSpeed: 3,
       };
-      const boids = createFlock(10, 100, 50, config);
+      const boids = createFlock(10, 100, 50, new Mulberry32(42), config);
 
       // Run many updates
       for (let i = 0; i < 50; i++) {
@@ -136,7 +137,7 @@ describe('Boids Utility', () => {
     });
 
     test('should apply delta time correctly', () => {
-      const boids1 = createFlock(5, 100, 50);
+      const boids1 = createFlock(5, 100, 50, new Mulberry32(42));
       const boids2 = boids1.map(b => ({ ...b })); // Clone
 
       updateBoids(boids1, 100, 50, DEFAULT_BOID_CONFIG, 1);

@@ -1,5 +1,6 @@
 import { Particle, ParticleEmitter, Cell, Size, Color } from '../types/index.js';
 import { vec2Add, vec2Multiply, inBounds, lerp } from '../utils/math.js';
+import { Random } from '../utils/random.js';
 
 /**
  * ParticleSystem - Enhanced particle system with emitters and force fields
@@ -20,8 +21,10 @@ export class ParticleSystem {
   private emitters: ParticleEmitter[] = [];
   private particles: Particle[] = [];
   private maxParticles: number;
+  private random: Random;
 
-  constructor(maxParticles = 1000) {
+  constructor(random: Random, maxParticles = 1000) {
+    this.random = random;
     this.maxParticles = maxParticles;
   }
 
@@ -194,10 +197,10 @@ export class ParticleSystem {
     };
 
     // Random character from set
-    const char = emitter.characters[Math.floor(Math.random() * emitter.characters.length)];
+    const char = this.random.choice(emitter.characters);
 
     // Interpolate color within range
-    const t = Math.random();
+    const t = this.random.next();
     const color = {
       r: Math.floor(lerp(emitter.colorRange.start.r, emitter.colorRange.end.r, t)),
       g: Math.floor(lerp(emitter.colorRange.start.g, emitter.colorRange.end.g, t)),
@@ -223,7 +226,7 @@ export class ParticleSystem {
    * @returns Random value between min and max
    */
   private randomRange(min: number, max: number): number {
-    return min + Math.random() * (max - min);
+    return this.random.range(min, max);
   }
 
   /**

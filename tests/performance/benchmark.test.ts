@@ -161,7 +161,7 @@ describe('Performance Benchmarks', () => {
     });
 
     test('AquariumPattern should maintain 30+ FPS', () => {
-      const pattern = new AquariumPattern(mockTheme);
+      const pattern = new AquariumPattern(mockTheme, new Mulberry32(42));
       const { avgFrameTime } = benchmarkPattern(pattern, standardSize);
 
       expect(avgFrameTime).toBeLessThan(MAX_FRAME_TIME_MS);

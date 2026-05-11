@@ -334,7 +334,7 @@ async function main() {
       new OceanBeachPattern(theme, {}),
       new CampfirePattern(theme, {}),
       new NightSkyPattern(theme, {}),
-      new AquariumPattern(theme, {}),
+      new AquariumPattern(theme, new Mulberry32(randomSeed()), {}),
       new SnowfallParkPattern(theme, {}),
       new MetaballPattern(theme, {}),
     ];

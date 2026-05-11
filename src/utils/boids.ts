@@ -5,6 +5,8 @@
  * Used by patterns that need schooling fish, birds, or other swarm movement.
  */
 
+import { Random } from './random.js';
+
 export interface Boid {
   x: number;
   y: number;
@@ -277,18 +279,19 @@ export function createFlock(
   count: number,
   width: number,
   height: number,
+  random: Random,
   config: BoidConfig = DEFAULT_BOID_CONFIG
 ): Boid[] {
   const boids: Boid[] = [];
 
   for (let i = 0; i < count; i++) {
-    const angle = Math.random() * Math.PI * 2;
-    const speed = config.maxSpeed * 0.5 + Math.random() * config.maxSpeed * 0.5;
+    const angle = random.next() * Math.PI * 2;
+    const speed = config.maxSpeed * 0.5 + random.next() * config.maxSpeed * 0.5;
 
     boids.push({
       id: i,
-      x: Math.random() * width,
-      y: Math.random() * height,
+      x: random.next() * width,
+      y: random.next() * height,
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
     });

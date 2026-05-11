@@ -20,6 +20,7 @@ import {
   DEFAULT_BOID_CONFIG,
 } from '../utils/boids.js';
 import { clamp } from '../utils/math.js';
+import { Random } from '../utils/random.js';
 
 interface AquariumConfig {
   fishCount: number; // Number of fish (5-30)
@@ -68,6 +69,7 @@ export class AquariumPattern implements Pattern {
 
   private config: AquariumConfig;
   private theme: Theme;
+  private random: Random;
   private fish: Fish[] = [];
   private plants: Plant[] = [];
   private bubbles: Bubble[] = [];
@@ -207,8 +209,9 @@ export class AquariumPattern implements Pattern {
     },
   ];
 
-  constructor(theme: Theme, config: Partial<AquariumConfig> = {}) {
+  constructor(theme: Theme, random: Random, config: Partial<AquariumConfig> = {}) {
     this.theme = theme;
+    this.random = random;
     this.config = {
       fishCount: 12,
       schoolingStrength: 1.0,
@@ -244,6 +247,7 @@ export class AquariumPattern implements Pattern {
       this.config.fishCount,
       size.width,
       size.height - 4,
+      this.random,
       this.boidConfig
     );
 

@@ -20,6 +20,7 @@ import { SnowfallParkPattern } from '../../src/patterns/SnowfallParkPattern.js';
 import { CampfirePattern } from '../../src/patterns/CampfirePattern.js';
 import { EventBus } from '../../src/engine/EventBus.js';
 import { Theme, Size } from '../../src/types/index.js';
+import { Mulberry32 } from '../../src/utils/random.js';
 
 describe('Memory Leak Detection', () => {
   let mockRenderer: MockTerminalRenderer;
@@ -44,7 +45,7 @@ describe('Memory Leak Detection', () => {
       ['FireworksPattern', () => new FireworksPattern(createMockTheme('test'))],
       ['LifePattern', () => new LifePattern(createMockTheme('test'))],
       ['MetaballPattern', () => new MetaballPattern(createMockTheme('test'))],
-      ['AquariumPattern', () => new AquariumPattern(createMockTheme('test'))],
+      ['AquariumPattern', () => new AquariumPattern(createMockTheme('test'), new Mulberry32(42))],
       ['SnowfallParkPattern', () => new SnowfallParkPattern(createMockTheme('test'))],
       ['CampfirePattern', () => new CampfirePattern(createMockTheme('test'))],
     ])('%s should handle 1000 frames without error', (_name, createPattern) => {

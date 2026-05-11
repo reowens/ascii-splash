@@ -158,7 +158,7 @@ describe('Visual Snapshot Tests', () => {
     });
 
     test('AquariumPattern should have fish and plant characters', () => {
-      const pattern = new AquariumPattern(mockTheme);
+      const pattern = new AquariumPattern(mockTheme, new Mulberry32(42));
       const buffer = mockRenderer.getBuffer();
 
       for (let i = 0; i < 20; i++) {
