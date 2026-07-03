@@ -1,3 +1,8 @@
+---
+type: doc
+status: reference
+---
+
 # Planning & Enhancement Proposals
 
 This directory contains enhancement proposals, feature plans, and future roadmap items for ascii-splash.
@@ -49,6 +54,27 @@ Comprehensive roadmap for v0.3.0 featuring 5 new scene-based patterns (Ocean Bea
 - Core Scenes: Aquarium, Night Sky, Snowfall
 - Technical Showcase: Metaball Playground
 - Polish: Enhancements, documentation, testing
+
+---
+
+### [Workspace Visualization — `splash watch`](./enhancement-proposals/WORKSPACE_VIZ.md)
+
+**Status**: 📝 Draft proposal (scoped + gap-checked)
+**Difficulty**: High — ~3,300 LOC, ~210 tests, 6–7.5 weeks (MVP: Phases A–C, 4–5 weeks)
+**Impact**: New flagship feature — live, agent-aware working-directory visualization
+
+Live ambient visualization of a working directory as it is coded — Gource, but
+live, in the terminal, and agent-aware. File edits become pulses and particle
+bursts, commits become fireworks, test failures become lightning, and coding
+agents appear as fireflies darting between the files they touch. Includes
+deterministic session record/replay.
+
+- Phase A: Tree model, radial layout, LOD, camera (fixtures only)
+- Phase B: Live filesystem watcher + event visuals
+- Phase C: Git awareness (commits, branches, staging)
+- Phase D: Actor fireflies + Claude Code hook integration
+- Phase E: Record & replay
+- Phase F: Garden/constellation skins + polish
 
 ---
 
