@@ -132,7 +132,13 @@ splash/
 │       ├── AquariumPattern.ts     # Scene-based (v0.3.0)
 │       ├── NightSkyPattern.ts     # Scene-based (v0.3.0)
 │       ├── SnowfallParkPattern.ts # Scene-based (v0.3.0)
-│       └── MetaballPattern.ts     # Enhanced (v0.3.0)
+│       ├── MetaballPattern.ts     # Enhanced (v0.3.0)
+│       └── workspace/             # workspace-viz Phase A (splash watch)
+│           ├── WorkspaceModel.ts  # Persistent session model (tree/heat/camera)
+│           ├── RadialLayout.ts    # Gource-style radial layout
+│           ├── Camera.ts          # Damped pan/zoom transform
+│           ├── WorkspaceVizPattern.ts # Disposable view (Pattern interface)
+│           └── fixture.ts         # Schema-versioned fixture parser (pure)
 │
 ├── tests/                        # Jest test suites (2244 tests)
 │   ├── unit/patterns/           # Pattern tests (23 + optional Photo)
@@ -319,10 +325,16 @@ interface Theme {
 
 ## Current Status (AI Awareness)
 
-**Released**: v0.4.0 — "Photos in the Terminal" ✅ **STABLE RELEASE** (2026-05-10)
-**Previous**: v0.3.0 — Next-Generation Terminal Graphics (2025-12-23)
-**In progress**: v0.5.0 — "Shareable Scenes" on `feature/v0.5.0-phase7-share-codes`, all phases complete, awaiting review before tagging. Seeded PRNG + 12-char Crockford base32 share codes (`splash share` / `splash play <code>` / in-app `Shift+S` to copy). All 7a–7f phases shipped: every pattern on injected `Random` (zero `Math.random()` in `src/patterns/`), encoder/decoder with version-prefix + 13-bit FNV-1a config fingerprint, CLI subcommands + clipboard helper, determinism test suite with byte-for-byte replay canaries on DNA + Starfield + Fireworks. 2317 tests. See [docs/planning/v0.5.0-ROADMAP.md](docs/planning/v0.5.0-ROADMAP.md).
-**Next**: Remaining v0.4 roadmap phases (Kitty/iTerm2/Sixel, color-mask sprites, asciinema export, GIF export) — likely v0.6+.
+**Released**: v0.5.0 — "Shareable Scenes" ✅ **STABLE RELEASE** (2026-05-11, tag `v0.5.0`). Seeded PRNG + 12-char Crockford base32 share codes (`splash share` / `splash play <code>` / in-app `Shift+S`). Every pattern on injected `Random` (zero `Math.random()` in `src/patterns/`), encoder/decoder with version-prefix + 13-bit FNV-1a config fingerprint, determinism suite with byte-for-byte replay canaries. 2317 tests. See [docs/planning/v0.5.0-ROADMAP.md](docs/planning/v0.5.0-ROADMAP.md).
+**Previous**: v0.4.0 — "Photos in the Terminal" (2026-05-10)
+**In progress**: workspace-viz ("`splash watch`") **Phase A — model + static render**, source landed on `main` (2026-07-03), unit tests pending. Proposal: [docs/planning/enhancement-proposals/WORKSPACE_VIZ.md](docs/planning/enhancement-proposals/WORKSPACE_VIZ.md). Shipped so far:
+
+- `src/patterns/workspace/` — `WorkspaceModel` (persistent session state: tree, lazy heat decay via decayed-counter subtree aggregates, LOD visible-tree under a hard node budget, model-time epoch), `RadialLayout` (Gource-style angular sectors, log-scaled weights, stable sibling order), `Camera` (damped pan/zoom, cell-aspect correction, lives on the model), `WorkspaceVizPattern` (disposable view: eased node glides, heat/extension-driven glyphs + theme-aware colors, hot labels, presets 1–3 radial/focus/minimal-mono), `fixture.ts` (schema-v1 pure parser).
+- Lifecycle contract honored: the model is created once in `main.ts` and survives theme rebuilds + pattern switches; `buildPatterns()` constructs a fresh view per rebuild; `reset()` clears view transients only; no `Date.now()`/`Math.random()` in the pattern.
+- CLI: `splash watch --fixture tests/fixtures/tree-medium.json` (live watching lands in Phase B). New `ConfigSchema.patterns.workspaceViz` + defaults; the slot is appended like the photo slot (absent in plain `splash`, `seeds.push(0)`, not share-code encodable).
+- Fixtures: `tests/fixtures/tree-small.json` (14 files), `tree-medium.json` (105 files, warm billing-flow working set).
+
+**Next**: Phase A test suites (~55: model/layout/camera/fixture/pattern lifecycle), visual tuning at 80×24 (the kill/pivot gate), then Phase B (live FS events via chokidar). After workspace-viz: remaining v0.4 roadmap phases (Kitty/iTerm2/Sixel, color-mask sprites, asciinema export, GIF export).
 
 **v0.3.0 (released)**:
 
@@ -508,6 +520,6 @@ npm run test:coverage # Coverage report
 
 ---
 
-**Last Updated**: May 11, 2026 (v0.5.0 phases 7d–7f complete — share-code encoder/decoder, CLI wiring (`splash share` / `splash play <code>` / in-app `Shift+S`), determinism test suite. 2317 tests passing on the branch. Awaiting review before tagging.)
+**Last Updated**: July 3, 2026 (workspace-viz Phase A source landed on main — WorkspaceModel/RadialLayout/Camera/WorkspaceVizPattern/fixtures + `splash watch --fixture` CLI. All 2317 existing tests green; Phase A unit tests are the next task.)
 **For**: AI Assistant navigation and project context
 **Human Readers**: Please see [README.md](README.md) instead

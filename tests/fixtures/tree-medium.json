@@ -1,0 +1,434 @@
+{
+  "kind": "splash-workspace-fixture",
+  "schema": 1,
+  "name": "tree-medium",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 4800
+    },
+    {
+      "path": "package.json",
+      "bytes": 2100
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 600
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "bytes": 1400
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "bytes": 1100
+    },
+    {
+      "path": "src/components/App.tsx",
+      "bytes": 2220
+    },
+    {
+      "path": "src/components/App.css",
+      "bytes": 570
+    },
+    {
+      "path": "src/components/Button.tsx",
+      "bytes": 3240
+    },
+    {
+      "path": "src/components/Button.css",
+      "bytes": 840
+    },
+    {
+      "path": "src/components/Card.tsx",
+      "bytes": 2560
+    },
+    {
+      "path": "src/components/Card.css",
+      "bytes": 660
+    },
+    {
+      "path": "src/components/Dialog.tsx",
+      "bytes": 3240
+    },
+    {
+      "path": "src/components/Dialog.css",
+      "bytes": 840
+    },
+    {
+      "path": "src/components/Dropdown.tsx",
+      "bytes": 3920
+    },
+    {
+      "path": "src/components/Dropdown.css",
+      "bytes": 1020
+    },
+    {
+      "path": "src/components/Form.tsx",
+      "bytes": 2560,
+      "heat": 1.8
+    },
+    {
+      "path": "src/components/Form.css",
+      "bytes": 660
+    },
+    {
+      "path": "src/components/Grid.tsx",
+      "bytes": 2560
+    },
+    {
+      "path": "src/components/Grid.css",
+      "bytes": 660
+    },
+    {
+      "path": "src/components/Header.tsx",
+      "bytes": 3240
+    },
+    {
+      "path": "src/components/Header.css",
+      "bytes": 840
+    },
+    {
+      "path": "src/components/Icon.tsx",
+      "bytes": 2560
+    },
+    {
+      "path": "src/components/Icon.css",
+      "bytes": 660
+    },
+    {
+      "path": "src/components/Input.tsx",
+      "bytes": 2900
+    },
+    {
+      "path": "src/components/Input.css",
+      "bytes": 750
+    },
+    {
+      "path": "src/components/List.tsx",
+      "bytes": 2560
+    },
+    {
+      "path": "src/components/List.css",
+      "bytes": 660
+    },
+    {
+      "path": "src/components/Menu.tsx",
+      "bytes": 2560
+    },
+    {
+      "path": "src/components/Menu.css",
+      "bytes": 660
+    },
+    {
+      "path": "src/components/Modal.tsx",
+      "bytes": 2900
+    },
+    {
+      "path": "src/components/Modal.css",
+      "bytes": 750
+    },
+    {
+      "path": "src/components/Nav.tsx",
+      "bytes": 2220
+    },
+    {
+      "path": "src/components/Nav.css",
+      "bytes": 570
+    },
+    {
+      "path": "src/components/Panel.tsx",
+      "bytes": 2900
+    },
+    {
+      "path": "src/components/Panel.css",
+      "bytes": 750
+    },
+    {
+      "path": "src/components/Table.tsx",
+      "bytes": 2900
+    },
+    {
+      "path": "src/components/Table.css",
+      "bytes": 750
+    },
+    {
+      "path": "src/components/Tabs.tsx",
+      "bytes": 2560
+    },
+    {
+      "path": "src/components/Tabs.css",
+      "bytes": 660
+    },
+    {
+      "path": "src/components/Toast.tsx",
+      "bytes": 2900
+    },
+    {
+      "path": "src/components/Toast.css",
+      "bytes": 750
+    },
+    {
+      "path": "src/components/Tooltip.tsx",
+      "bytes": 3580
+    },
+    {
+      "path": "src/components/Tooltip.css",
+      "bytes": 930
+    },
+    {
+      "path": "src/components/Avatar.tsx",
+      "bytes": 3240
+    },
+    {
+      "path": "src/components/Avatar.css",
+      "bytes": 840
+    },
+    {
+      "path": "src/api/auth.ts",
+      "bytes": 3640
+    },
+    {
+      "path": "src/api/auth.test.ts",
+      "bytes": 4180
+    },
+    {
+      "path": "src/api/billing.ts",
+      "bytes": 4870,
+      "heat": 4
+    },
+    {
+      "path": "src/api/billing.test.ts",
+      "bytes": 4990,
+      "heat": 2.6
+    },
+    {
+      "path": "src/api/projects.ts",
+      "bytes": 5280
+    },
+    {
+      "path": "src/api/projects.test.ts",
+      "bytes": 5260
+    },
+    {
+      "path": "src/api/search.ts",
+      "bytes": 4460
+    },
+    {
+      "path": "src/api/search.test.ts",
+      "bytes": 4720
+    },
+    {
+      "path": "src/api/sessions.ts",
+      "bytes": 5280
+    },
+    {
+      "path": "src/api/sessions.test.ts",
+      "bytes": 5260
+    },
+    {
+      "path": "src/api/users.ts",
+      "bytes": 4050
+    },
+    {
+      "path": "src/api/users.test.ts",
+      "bytes": 4450
+    },
+    {
+      "path": "src/api/webhooks.ts",
+      "bytes": 5280
+    },
+    {
+      "path": "src/api/webhooks.test.ts",
+      "bytes": 5260
+    },
+    {
+      "path": "src/hooks/useAuth.ts",
+      "bytes": 1540
+    },
+    {
+      "path": "src/hooks/useDebounce.ts",
+      "bytes": 2020
+    },
+    {
+      "path": "src/hooks/useFetch.ts",
+      "bytes": 1660
+    },
+    {
+      "path": "src/hooks/useForm.ts",
+      "bytes": 1540
+    },
+    {
+      "path": "src/hooks/useLocalStorage.ts",
+      "bytes": 2500
+    },
+    {
+      "path": "src/hooks/useTheme.ts",
+      "bytes": 1660
+    },
+    {
+      "path": "src/utils/array.ts",
+      "bytes": 1950
+    },
+    {
+      "path": "src/utils/color.ts",
+      "bytes": 1950
+    },
+    {
+      "path": "src/utils/date.ts",
+      "bytes": 1740
+    },
+    {
+      "path": "src/utils/format.ts",
+      "bytes": 2160
+    },
+    {
+      "path": "src/utils/http.ts",
+      "bytes": 1740
+    },
+    {
+      "path": "src/utils/math.ts",
+      "bytes": 1740
+    },
+    {
+      "path": "src/utils/string.ts",
+      "bytes": 2160
+    },
+    {
+      "path": "src/utils/validation.ts",
+      "bytes": 3000
+    },
+    {
+      "path": "src/state/store.ts",
+      "bytes": 2300
+    },
+    {
+      "path": "src/state/reducers/auth.ts",
+      "bytes": 3580
+    },
+    {
+      "path": "src/state/reducers/projects.ts",
+      "bytes": 4220,
+      "heat": 0.9
+    },
+    {
+      "path": "src/state/reducers/ui.ts",
+      "bytes": 3260
+    },
+    {
+      "path": "src/state/selectors.ts",
+      "bytes": 2940
+    },
+    {
+      "path": "src/state/middleware/logger.ts",
+      "bytes": 4220
+    },
+    {
+      "path": "src/index.tsx",
+      "bytes": 800,
+      "heat": 1.5
+    },
+    {
+      "path": "src/routes.tsx",
+      "bytes": 2600,
+      "heat": 0.6
+    },
+    {
+      "path": "src/pages/home.tsx",
+      "bytes": 4600
+    },
+    {
+      "path": "src/pages/login.tsx",
+      "bytes": 4900
+    },
+    {
+      "path": "src/pages/settings.tsx",
+      "bytes": 5800
+    },
+    {
+      "path": "src/pages/dashboard.tsx",
+      "bytes": 6100
+    },
+    {
+      "path": "src/pages/project.tsx",
+      "bytes": 5500
+    },
+    {
+      "path": "src/pages/billing.tsx",
+      "bytes": 5500,
+      "heat": 3.2
+    },
+    {
+      "path": "tests/e2e/login.spec.ts",
+      "bytes": 6100
+    },
+    {
+      "path": "tests/e2e/checkout.spec.ts",
+      "bytes": 7240
+    },
+    {
+      "path": "tests/e2e/onboarding.spec.ts",
+      "bytes": 8000
+    },
+    {
+      "path": "tests/e2e/search.spec.ts",
+      "bytes": 6480
+    },
+    {
+      "path": "tests/unit/components/Button.test.ts",
+      "bytes": 5180
+    },
+    {
+      "path": "tests/unit/components/Form.test.ts",
+      "bytes": 4900
+    },
+    {
+      "path": "tests/unit/components/Table.test.ts",
+      "bytes": 5040
+    },
+    {
+      "path": "tests/unit/hooks/useForm.test.ts",
+      "bytes": 4620
+    },
+    {
+      "path": "tests/unit/utils/date.test.ts",
+      "bytes": 4200
+    },
+    {
+      "path": "tests/unit/utils/validation.test.ts",
+      "bytes": 5040
+    },
+    {
+      "path": "docs/architecture.md",
+      "bytes": 12400
+    },
+    {
+      "path": "docs/contributing.md",
+      "bytes": 6300
+    },
+    {
+      "path": "docs/adr/001-state-management.md",
+      "bytes": 3800
+    },
+    {
+      "path": "docs/adr/002-routing.md",
+      "bytes": 2900
+    },
+    {
+      "path": "public/index.html",
+      "bytes": 900
+    },
+    {
+      "path": "public/favicon.svg",
+      "bytes": 1600
+    },
+    {
+      "path": "scripts/build.mjs",
+      "bytes": 1700
+    },
+    {
+      "path": "scripts/deploy.sh",
+      "bytes": 950
+    }
+  ]
+}

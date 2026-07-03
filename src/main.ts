@@ -30,6 +30,12 @@ import { SnowfallParkPattern } from './patterns/SnowfallParkPattern.js';
 import { MetaballPattern } from './patterns/MetaballPattern.js';
 import { PhotoPattern } from './patterns/PhotoPattern.js';
 import { LayeredPattern } from './patterns/LayeredPattern.js';
+import { WorkspaceModel } from './patterns/workspace/WorkspaceModel.js';
+import {
+  WorkspaceVizPattern,
+  type WorkspaceVizConfig,
+} from './patterns/workspace/WorkspaceVizPattern.js';
+import { parseWorkspaceFixture } from './patterns/workspace/fixture.js';
 import { Pattern, CliOptions, QualityPreset, ConfigSchema, Theme } from './types/index.js';
 import { ConfigLoader } from './config/ConfigLoader.js';
 import { defaultConfig } from './config/defaults.js';
@@ -64,7 +70,8 @@ const term = terminalKit.terminal;
 type ParsedCli =
   | { mode: 'run'; options: CliOptions }
   | { mode: 'share'; options: CliOptions }
-  | { mode: 'play'; options: CliOptions; code: string };
+  | { mode: 'play'; options: CliOptions; code: string }
+  | { mode: 'watch'; options: CliOptions; watchPath?: string; fixture?: string };
 
 /**
  * Parse command line arguments
@@ -125,7 +132,12 @@ function parseCliArguments(): ParsedCli {
   // mode type to its initial value — the .action callbacks mutate it
   // after assignment, but TS's control-flow analysis can't prove the
   // closures fired, so we'd otherwise lose the union.
-  const subcommand: { mode: 'run' | 'share' | 'play'; code?: string } = { mode: 'run' };
+  const subcommand: {
+    mode: 'run' | 'share' | 'play' | 'watch';
+    code?: string;
+    watchPath?: string;
+    fixture?: string;
+  } = { mode: 'run' };
 
   program
     .command('share')
@@ -140,6 +152,19 @@ function parseCliArguments(): ParsedCli {
     .action((code: string) => {
       subcommand.mode = 'play';
       subcommand.code = code;
+    });
+
+  // workspace-viz Phase A: `splash watch --fixture <file>` renders a
+  // static workspace tree from a schema-versioned JSON snapshot. Live
+  // filesystem watching (the [path] argument) lands in Phase B.
+  program
+    .command('watch [path]')
+    .description('Visualize a working directory as an ambient animated scene')
+    .option('--fixture <file>', 'Render a workspace snapshot fixture (JSON) instead of watching')
+    .action((watchPath: string | undefined, cmdOpts: { fixture?: string }) => {
+      subcommand.mode = 'watch';
+      subcommand.watchPath = watchPath;
+      subcommand.fixture = cmdOpts.fixture;
     });
 
   program.parse();
@@ -197,6 +222,14 @@ function parseCliArguments(): ParsedCli {
     return { mode: 'play', options: opts, code: subcommand.code };
   }
   if (subcommand.mode === 'share') return { mode: 'share', options: opts };
+  if (subcommand.mode === 'watch') {
+    return {
+      mode: 'watch',
+      options: opts,
+      watchPath: subcommand.watchPath,
+      fixture: subcommand.fixture,
+    };
+  }
   return { mode: 'run', options: opts };
 }
 
@@ -378,6 +411,34 @@ async function main() {
     const themeNames = ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'];
     config.defaultPattern = decodedName;
     config.theme = themeNames[playState.themeId] ?? config.theme;
+  }
+
+  // workspace-viz Phase A: `splash watch --fixture <file>` builds the
+  // persistent WorkspaceModel from a snapshot. The model is created HERE
+  // (owned by main.ts, like photoPattern) so theme rebuilds and pattern
+  // switches construct fresh disposable views over the same session state.
+  let workspaceModel: WorkspaceModel | null = null;
+  if (parsed.mode === 'watch') {
+    if (!parsed.fixture) {
+      console.error(
+        'Error: `splash watch` currently requires --fixture <file>.\n' +
+          'Live filesystem watching lands in a later release; until then:\n' +
+          '  splash watch --fixture tests/fixtures/tree-medium.json'
+      );
+      process.exit(1);
+    }
+    try {
+      const fixture = parseWorkspaceFixture(JSON.parse(readFileSync(parsed.fixture, 'utf-8')));
+      workspaceModel = new WorkspaceModel({
+        heatHalfLifeMs: config.patterns?.workspaceViz?.heatHalfLifeMs,
+      });
+      workspaceModel.loadFixture(fixture);
+    } catch (err) {
+      console.error(
+        `Error: failed to load fixture "${parsed.fixture}": ${err instanceof Error ? err.message : String(err)}`
+      );
+      process.exit(1);
+    }
   }
 
   // Check TTY *after* play-code validation so malformed codes get a
@@ -616,16 +677,29 @@ async function main() {
     seedOverride?: { patternIdx: number; seed: number }
   ): { patterns: Pattern[]; seeds: number[] } {
     const { patterns: list, seeds } = createPatternsFromConfig(cfg, theme, seedOverride);
-    if (!photoPattern) return { patterns: list, seeds };
-    list.push(photoPattern);
-    seeds.push(0); // photo slot is not encodable in share codes
-    if (layeredOverlayName) {
-      const overlayIdx = patternNames.indexOf(layeredOverlayName);
-      if (overlayIdx >= 0) {
-        const overlay = makeLayeredOverlay(layeredOverlayName, cfg, theme, list[overlayIdx]);
-        list.push(new LayeredPattern(photoPattern, overlay));
-        seeds.push(0); // layered slot is not encodable either
+    if (photoPattern) {
+      list.push(photoPattern);
+      seeds.push(0); // photo slot is not encodable in share codes
+      if (layeredOverlayName) {
+        const overlayIdx = patternNames.indexOf(layeredOverlayName);
+        if (overlayIdx >= 0) {
+          const overlay = makeLayeredOverlay(layeredOverlayName, cfg, theme, list[overlayIdx]);
+          list.push(new LayeredPattern(photoPattern, overlay));
+          seeds.push(0); // layered slot is not encodable either
+        }
       }
+    }
+    if (workspaceModel) {
+      // A fresh disposable view over the persistent model on every
+      // rebuild — the lifecycle contract from the workspace-viz proposal.
+      const wv = cfg.patterns?.workspaceViz;
+      const viewConfig: Partial<WorkspaceVizConfig> = {};
+      if (wv?.nodeBudget !== undefined) viewConfig.nodeBudget = wv.nodeBudget;
+      if (wv?.showLabels !== undefined) viewConfig.showLabels = wv.showLabels;
+      list.push(
+        new WorkspaceVizPattern(workspaceModel, theme, new Mulberry32(randomSeed()), viewConfig)
+      );
+      seeds.push(0); // workspace slot is not encodable in share codes
     }
     return { patterns: list, seeds };
   }
@@ -702,6 +776,14 @@ async function main() {
     ({ patterns, seeds: patternSeeds } = buildPatterns(config, currentTheme));
   }
 
+  // workspace-viz Phase A: append the workspace slot (present only in
+  // watch mode — plain `splash` loads no workspace code path).
+  if (workspaceModel) {
+    patternNames.push('workspace');
+    patternDisplayNames.workspace = 'Workspace';
+    ({ patterns, seeds: patternSeeds } = buildPatterns(config, currentTheme));
+  }
+
   // Determine starting pattern from config
   let currentPatternIndex = 0;
   if (config.defaultPattern) {
@@ -718,6 +800,14 @@ async function main() {
     const targetIdx = patternNames.indexOf(targetName);
     if (targetIdx >= 0) {
       currentPatternIndex = targetIdx;
+    }
+  }
+
+  // `splash watch` starts on the workspace slot — that's the whole point.
+  if (workspaceModel) {
+    const workspaceIdx = patternNames.indexOf('workspace');
+    if (workspaceIdx >= 0) {
+      currentPatternIndex = workspaceIdx;
     }
   }
 

@@ -1,8 +1,8 @@
 # Workspace Visualization — `splash watch`
 
 **Created**: July 2, 2026
-**Updated**: July 2, 2026 (second pass: adversarial gap review — lifecycle, replay clock, git layouts, feed scoping resolved)
-**Status**: Draft — Proposal, gap-checked (scoped: ~3,200 LOC, ~200 tests, 6–7.5 weeks; MVP cut at A–C ≈ 4–5 weeks)
+**Updated**: July 3, 2026 (Phase A implementation started — source landed on main)
+**Status**: **In progress — Phase A** (model + static render). Source shipped: `src/patterns/workspace/` (WorkspaceModel, RadialLayout, Camera, WorkspaceVizPattern, fixture parser) + `splash watch --fixture` CLI + `tests/fixtures/tree-{small,medium}.json`. Pending for Phase A exit: unit test suites (~55) and the 80×24 beauty pass (the kill/pivot gate). Scoping unchanged (~3,200 LOC, ~200 tests, 6–7.5 weeks; MVP cut at A–C ≈ 4–5 weeks)
 
 ---
 

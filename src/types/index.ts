@@ -266,6 +266,33 @@ export interface SnowPatternConfig {
   accumulation?: boolean;
 }
 
+/**
+ * Workspace visualization (`splash watch`) configuration. JSON-persistable
+ * per the house convention, so it lives here and wires into
+ * `ConfigSchema.patterns`. The watch *path* is runtime-only (CLI arg) and
+ * never persisted — same reasoning as `PhotoPatternConfig.source`.
+ *
+ * Phase A consumes `heatHalfLifeMs`, `nodeBudget`, and `showLabels`; the
+ * remaining fields are reserved for the watcher/attribution services in
+ * later phases (schema locked up front per the proposal).
+ */
+export interface WorkspaceVizPatternConfig {
+  /** Heat half-life in ms (default 30000). */
+  heatHalfLifeMs?: number;
+  /** Visible-node budget upper bound (default 150; also capped by cells/12). */
+  nodeBudget?: number;
+  /** Rendered events/s cap — consumed by the watcher service (Phase B). */
+  eventRateCap?: number;
+  /** Actor-touch correlation window in ms (Phase D). */
+  attributionWindowMs?: number;
+  /** Label policy; v1 supports 'none' | 'hot'. */
+  showLabels?: 'none' | 'hot';
+  /** Extension → color overrides (reserved). */
+  extColors?: Record<string, string>;
+  /** Extra watcher ignore globs (Phase B). */
+  ignore?: string[];
+}
+
 // Vector2 for 2D math operations
 export interface Vector2 {
   x: number;
@@ -372,5 +399,6 @@ export interface ConfigSchema {
     lavaLamp?: LavaLampPatternConfig;
     smoke?: SmokePatternConfig;
     snow?: SnowPatternConfig;
+    workspaceViz?: WorkspaceVizPatternConfig;
   };
 }

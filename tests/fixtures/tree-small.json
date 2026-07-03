@@ -1,0 +1,21 @@
+{
+  "kind": "splash-workspace-fixture",
+  "schema": 1,
+  "name": "tree-small",
+  "files": [
+    { "path": "README.md", "bytes": 2400 },
+    { "path": "package.json", "bytes": 980 },
+    { "path": "src/index.ts", "bytes": 4200, "heat": 2.0 },
+    { "path": "src/cli.ts", "bytes": 3100, "heat": 0.8 },
+    { "path": "src/lib/parser.ts", "bytes": 5600, "heat": 3.5 },
+    { "path": "src/lib/emitter.ts", "bytes": 2900 },
+    { "path": "src/lib/tokens.ts", "bytes": 1400 },
+    { "path": "src/utils/log.ts", "bytes": 800 },
+    { "path": "src/utils/fs.ts", "bytes": 1200 },
+    { "path": "tests/parser.test.ts", "bytes": 6800, "heat": 1.2 },
+    { "path": "tests/emitter.test.ts", "bytes": 3300 },
+    { "path": "docs/usage.md", "bytes": 5100 },
+    { "path": "docs/api.md", "bytes": 7200 },
+    { "path": ".github/workflows/ci.yml", "bytes": 900 }
+  ]
+}

@@ -148,6 +148,13 @@ export const defaultConfig: ConfigSchema = {
       mouseWindForce: 2.0,
       accumulation: true,
     },
+    workspaceViz: {
+      heatHalfLifeMs: 30000,
+      nodeBudget: 150,
+      eventRateCap: 60,
+      attributionWindowMs: 2000,
+      showLabels: 'hot' as const,
+    },
   },
 };
 
