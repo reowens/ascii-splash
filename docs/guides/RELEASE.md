@@ -1,3 +1,8 @@
+---
+type: doc
+status: reference
+---
+
 # Release Process
 
 This document describes how to create and publish a new release of ascii-splash.

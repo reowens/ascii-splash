@@ -1,3 +1,8 @@
+---
+type: doc
+status: active
+---
+
 # Project Status - ascii-splash
 
 **Last Updated:** May 9, 2026

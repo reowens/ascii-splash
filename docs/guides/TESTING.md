@@ -1,3 +1,8 @@
+---
+type: doc
+status: reference
+---
+
 # Testing Plan for ascii-splash
 
 ## Overview

@@ -1,3 +1,8 @@
+---
+type: doc
+status: reference
+---
+
 # Contributing to ascii-splash
 
 Welcome! This guide explains how to contribute to ascii-splash, whether you're adding new patterns, improving the engine, or enhancing existing features.
