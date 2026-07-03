@@ -1,3 +1,8 @@
+---
+type: doc
+status: reference
+---
+
 # Documentation Index
 
 > **📦 Released: v0.3.1 — Next-Generation Terminal Graphics, Published to npm** ✅

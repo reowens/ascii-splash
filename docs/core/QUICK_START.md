@@ -1,3 +1,8 @@
+---
+type: doc
+status: reference
+---
+
 # Developer Quick Start
 
 Get ascii-splash running locally in 5 minutes.

@@ -1,3 +1,8 @@
+---
+type: doc
+status: reference
+---
+
 # ascii-splash Architecture Guide
 
 **For Developers**: Complete technical architecture and implementation details.

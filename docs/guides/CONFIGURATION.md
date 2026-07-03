@@ -1,3 +1,8 @@
+---
+type: doc
+status: reference
+---
+
 # Configuration Guide
 
 Configure ascii-splash through CLI arguments, configuration files, or defaults.
