@@ -218,3 +218,4 @@ benchmarks/results/
 .claude/settings.local.json
 .opencode/node_modules/
 .osgrep
+.dotmd/
