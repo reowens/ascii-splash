@@ -446,6 +446,15 @@ npm run test:coverage # Coverage report
 
 ---
 
+## Git Workflow (AI Assistants — MANDATORY)
+
+- **Never create pull requests. Never suggest creating pull requests.**
+- When asked to commit/push, commit directly to `main` and push `main`.
+- Only use a branch or PR if the user explicitly asks for one in that
+  session.
+
+---
+
 ## Symlinks (Developer Notes)
 
 **AGENTS.md** and **WARP.md** are symlinks to this file. This allows:
