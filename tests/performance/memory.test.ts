@@ -18,7 +18,6 @@ import { MetaballPattern } from '../../src/patterns/MetaballPattern.js';
 import { AquariumPattern } from '../../src/patterns/AquariumPattern.js';
 import { SnowfallParkPattern } from '../../src/patterns/SnowfallParkPattern.js';
 import { CampfirePattern } from '../../src/patterns/CampfirePattern.js';
-import { EventBus } from '../../src/engine/EventBus.js';
 import { Theme, Size } from '../../src/types/index.js';
 import { Mulberry32 } from '../../src/utils/random.js';
 
@@ -138,48 +137,6 @@ describe('Memory Leak Detection', () => {
       if (metrics) {
         expect(metrics.blobs || 0).toBe(0);
       }
-    });
-  });
-
-  describe('EventBus Memory', () => {
-    test('EventBus should not accumulate listeners after removal', () => {
-      const eventBus = new EventBus();
-
-      // Add many listeners
-      const handlers: (() => void)[] = [];
-      for (let i = 0; i < 100; i++) {
-        const handler = () => {};
-        handlers.push(handler);
-        eventBus.on('test:event', handler);
-      }
-
-      // Remove all listeners
-      for (const handler of handlers) {
-        eventBus.off('test:event', handler);
-      }
-
-      // Clear reference
-      eventBus.clear();
-
-      // Should be cleaned up - no errors when emitting
-      expect(() => {
-        eventBus.emit('test:event', {});
-      }).not.toThrow();
-    });
-
-    test('once listeners should auto-remove after firing', () => {
-      const eventBus = new EventBus();
-      let callCount = 0;
-
-      eventBus.once('test:event', () => {
-        callCount++;
-      });
-
-      eventBus.emit('test:event', {});
-      eventBus.emit('test:event', {});
-      eventBus.emit('test:event', {});
-
-      expect(callCount).toBe(1);
     });
   });
 

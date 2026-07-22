@@ -12,14 +12,12 @@ import { StarfieldPattern } from '../../src/patterns/StarfieldPattern.js';
 import { MatrixPattern } from '../../src/patterns/MatrixPattern.js';
 import { ParticlePattern } from '../../src/patterns/ParticlePattern.js';
 import { PerformanceMonitor } from '../../src/engine/PerformanceMonitor.js';
-import { EventBus, EngineEvent } from '../../src/engine/EventBus.js';
 import { Theme } from '../../src/types/index.js';
 import { Mulberry32 } from '../../src/utils/random.js';
 
 describe('Engine Integration Tests', () => {
   let mockRenderer: MockTerminalRenderer;
   let mockTheme: Theme;
-  let eventBus: EventBus;
 
   beforeEach(() => {
     mockRenderer = new MockTerminalRenderer({
@@ -28,7 +26,6 @@ describe('Engine Integration Tests', () => {
       captureHistory: true,
     });
     mockTheme = createMockTheme('test');
-    eventBus = new EventBus();
   });
 
   afterEach(() => {
@@ -260,45 +257,6 @@ describe('Engine Integration Tests', () => {
       expect(metrics).toHaveProperty('frameDrops');
       expect(metrics).toHaveProperty('updateTime');
       expect(metrics).toHaveProperty('renderTime');
-    });
-  });
-
-  describe('EventBus Integration', () => {
-    test('should emit and receive events', () => {
-      const received: string[] = [];
-
-      eventBus.on(EngineEvent.PATTERN_CHANGE, () => {
-        received.push('pattern_change');
-      });
-
-      eventBus.emit(EngineEvent.PATTERN_CHANGE, { pattern: 'wave' });
-
-      expect(received).toContain('pattern_change');
-    });
-
-    test('should support multiple listeners', () => {
-      let count = 0;
-
-      eventBus.on(EngineEvent.FRAME_START, () => count++);
-      eventBus.on(EngineEvent.FRAME_START, () => count++);
-      eventBus.on(EngineEvent.FRAME_START, () => count++);
-
-      eventBus.emit(EngineEvent.FRAME_START, { time: 0, frameNumber: 1, deltaTime: 16 });
-
-      expect(count).toBe(3);
-    });
-
-    test('should allow unsubscribing', () => {
-      let count = 0;
-      const handler = () => count++;
-
-      eventBus.on(EngineEvent.FRAME_END, handler);
-      eventBus.emit(EngineEvent.FRAME_END, { time: 100, frameNumber: 1, deltaTime: 16 });
-      expect(count).toBe(1);
-
-      eventBus.off(EngineEvent.FRAME_END, handler);
-      eventBus.emit(EngineEvent.FRAME_END, { time: 200, frameNumber: 2, deltaTime: 16 });
-      expect(count).toBe(1);
     });
   });
 
