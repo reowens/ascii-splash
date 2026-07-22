@@ -45,6 +45,10 @@ jobs:
             exit 1
           fi
 
+      # Trusted publishing (OIDC) requires npm >= 11.5.1; Node 20 bundles npm 10.
+      - name: Update npm for trusted publishing
+        run: npm install -g npm@^11.5.1
+
       - name: Install dependencies
         run: npm ci
 
@@ -89,10 +93,10 @@ jobs:
           fi
           echo "Tarball audit passed — no unexpected files."
 
+      # Auth comes from npm trusted publishing (GitHub OIDC) — no token secret.
+      # Provenance is generated automatically under trusted publishing.
       - name: Publish to npm
-        run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
 
       - name: Extract changelog for this version
         id: changelog
