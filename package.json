@@ -22,12 +22,13 @@
     "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage",
     "test:integration": "NODE_OPTIONS='--experimental-vm-modules' jest tests/integration/",
     "test:perf": "NODE_OPTIONS='--experimental-vm-modules' jest tests/performance/",
+    "audit:runtime": "npm audit --omit=dev",
     "lint": "eslint src/ tests/",
     "lint:fix": "eslint src/ tests/ --fix",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
     "prepare": "husky",
-    "prepublishOnly": "npm run build && npm test",
+    "prepublishOnly": "npm run audit:runtime && npm run build && npm test",
     "typecheck": "tsc --noEmit",
     "preversion": "npm test && npm run typecheck",
     "postversion": "git push origin main && git push origin v$npm_package_version && sleep 5 && gh run watch $(gh run list --workflow=release.yml --branch v$npm_package_version --limit 1 --json databaseId --jq '.[0].databaseId') --exit-status && sleep 30 && npm cache clean --force && npm install -g ascii-splash@$npm_package_version"
@@ -84,8 +85,8 @@
   },
   "dependencies": {
     "commander": "^14.0.2",
-    "conf": "^15.0.2",
-    "sharp": "^0.34.5",
+    "conf": "^15.1.0",
+    "sharp": "^0.35.3",
     "simplex-noise": "^4.0.3",
     "terminal-kit": "^3.1.2"
   },
