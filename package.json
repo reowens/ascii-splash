@@ -91,7 +91,7 @@
     "terminal-kit": "^3.1.2"
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.3.1",
+    "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^20.3.1",
     "@eslint/js": "^9.17.0",
     "@types/jest": "^30.0.0",
