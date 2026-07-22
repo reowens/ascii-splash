@@ -1,20 +1,38 @@
-import { Cell, Size } from '../types/index.js';
+import { Cell, Color, Size } from '../types/index.js';
+
+export interface CellChange {
+  x: number;
+  y: number;
+  cell: Cell;
+}
+
+function colorsEqual(a: Color | undefined, b: Color | undefined): boolean {
+  if (a === undefined || b === undefined) return a === b;
+  return a.r === b.r && a.g === b.g && a.b === b.b;
+}
+
+/** Exact terminal-cell equality, including defined/default color identity. */
+export function cellsEqual(a: Cell, b: Cell): boolean {
+  return a.char === b.char && colorsEqual(a.color, b.color) && colorsEqual(a.bg, b.bg);
+}
+
+function cloneCell(cell: Cell): Cell {
+  const clone: Cell = { char: cell.char };
+  if (cell.color !== undefined) clone.color = { ...cell.color };
+  if (cell.bg !== undefined) clone.bg = { ...cell.bg };
+  return clone;
+}
 
 export class Buffer {
   private buffer: Cell[][];
+  /** Last frame sent to the terminal. */
   private prevBuffer: Cell[][];
   private size: Size;
-
-  // Overlay system: separate sparse buffer for persistent overlays
-  private overlayBuffer: Map<string, Cell>; // key: "x,y"
-  private overlayDirtyRows: Set<number>;
 
   constructor(size: Size) {
     this.size = size;
     this.buffer = this.createEmptyBuffer(size);
     this.prevBuffer = this.createEmptyBuffer(size);
-    this.overlayBuffer = new Map();
-    this.overlayDirtyRows = new Set();
   }
 
   private createEmptyBuffer(size: Size): Cell[][] {
@@ -32,8 +50,6 @@ export class Buffer {
     this.size = size;
     this.buffer = this.createEmptyBuffer(size);
     this.prevBuffer = this.createEmptyBuffer(size);
-    this.overlayBuffer.clear();
-    this.overlayDirtyRows.clear();
   }
 
   clear(): void {
@@ -45,118 +61,37 @@ export class Buffer {
   }
 
   setCell(x: number, y: number, cell: Cell): void {
-    if (x >= 0 && x < this.size.width && y >= 0 && y < this.size.height) {
-      this.buffer[y][x] = cell;
-    }
+    if (this.inBounds(x, y)) this.buffer[y][x] = cloneCell(cell);
   }
 
   getCell(x: number, y: number): Cell | undefined {
-    if (x >= 0 && x < this.size.width && y >= 0 && y < this.size.height) {
-      return this.buffer[y][x];
-    }
-    return undefined;
+    return this.inBounds(x, y) ? cloneCell(this.buffer[y][x]) : undefined;
   }
 
+  /** Mutable base-frame canvas used by Pattern and UI renderers. */
   getBuffer(): Cell[][] {
     return this.buffer;
   }
 
-  getChanges(): { x: number; y: number; cell: Cell }[] {
-    const changes: { x: number; y: number; cell: Cell }[] = [];
-
-    // Track which rows need to be checked (animation changes + overlay dirty rows)
-    const rowsToCheck = new Set<number>();
-
-    // First pass: detect animation buffer changes
+  /** Compare the current frame against the last terminal frame. */
+  getChanges(): CellChange[] {
+    const changes: CellChange[] = [];
     for (let y = 0; y < this.size.height; y++) {
       for (let x = 0; x < this.size.width; x++) {
-        const curr = this.buffer[y][x];
-        const prev = this.prevBuffer[y][x];
-
-        const currR = curr.color?.r ?? 0;
-        const currG = curr.color?.g ?? 0;
-        const currB = curr.color?.b ?? 0;
-        const prevR = prev.color?.r ?? 0;
-        const prevG = prev.color?.g ?? 0;
-        const prevB = prev.color?.b ?? 0;
-
-        // Use -1 sentinel so undefined → undefined transitions do not
-        // register as changes, but undefined → defined (and vice versa) do.
-        const currBgR = curr.bg?.r ?? -1;
-        const currBgG = curr.bg?.g ?? -1;
-        const currBgB = curr.bg?.b ?? -1;
-        const prevBgR = prev.bg?.r ?? -1;
-        const prevBgG = prev.bg?.g ?? -1;
-        const prevBgB = prev.bg?.b ?? -1;
-
-        if (
-          curr.char !== prev.char ||
-          currR !== prevR ||
-          currG !== prevG ||
-          currB !== prevB ||
-          currBgR !== prevBgR ||
-          currBgG !== prevBgG ||
-          currBgB !== prevBgB
-        ) {
-          rowsToCheck.add(y);
+        const cell = this.buffer[y][x];
+        if (!cellsEqual(cell, this.prevBuffer[y][x])) {
+          changes.push({ x, y, cell: cloneCell(cell) });
         }
       }
     }
-
-    // Add overlay dirty rows to rows to check
-    this.overlayDirtyRows.forEach(row => rowsToCheck.add(row));
-
-    // Second pass: generate changes with overlay compositing
-    for (const y of rowsToCheck) {
-      for (let x = 0; x < this.size.width; x++) {
-        const animCell = this.buffer[y][x];
-        const key = `${String(x)},${String(y)}`;
-        const overlayCell = this.overlayBuffer.get(key);
-
-        // If overlay exists at this position, use it; otherwise use animation cell
-        const finalCell = overlayCell || animCell;
-
-        // Check if this differs from previous buffer
-        const prev = this.prevBuffer[y][x];
-        const finalR = finalCell.color?.r ?? 0;
-        const finalG = finalCell.color?.g ?? 0;
-        const finalB = finalCell.color?.b ?? 0;
-        const prevR = prev.color?.r ?? 0;
-        const prevG = prev.color?.g ?? 0;
-        const prevB = prev.color?.b ?? 0;
-
-        const finalBgR = finalCell.bg?.r ?? -1;
-        const finalBgG = finalCell.bg?.g ?? -1;
-        const finalBgB = finalCell.bg?.b ?? -1;
-        const prevBgR = prev.bg?.r ?? -1;
-        const prevBgG = prev.bg?.g ?? -1;
-        const prevBgB = prev.bg?.b ?? -1;
-
-        if (
-          finalCell.char !== prev.char ||
-          finalR !== prevR ||
-          finalG !== prevG ||
-          finalB !== prevB ||
-          finalBgR !== prevBgR ||
-          finalBgG !== prevBgG ||
-          finalBgB !== prevBgB
-        ) {
-          changes.push({ x, y, cell: finalCell });
-        }
-      }
-    }
-
-    // Clear overlay dirty rows after processing
-    this.overlayDirtyRows.clear();
-
     return changes;
   }
 
+  /** Snapshot the current frame as the terminal comparison baseline. */
   swap(): void {
-    // Copy current buffer to previous buffer
     for (let y = 0; y < this.size.height; y++) {
       for (let x = 0; x < this.size.width; x++) {
-        this.prevBuffer[y][x] = { ...this.buffer[y][x] };
+        this.prevBuffer[y][x] = cloneCell(this.buffer[y][x]);
       }
     }
   }
@@ -165,76 +100,7 @@ export class Buffer {
     return this.size;
   }
 
-  // Overlay management methods
-
-  /**
-   * Set an overlay cell at the specified position.
-   * Overlays persist across frames until explicitly cleared.
-   */
-  setOverlay(x: number, y: number, cell: Cell): void {
-    if (x >= 0 && x < this.size.width && y >= 0 && y < this.size.height) {
-      const key = `${String(x)},${String(y)}`;
-      this.overlayBuffer.set(key, cell);
-      this.overlayDirtyRows.add(y);
-    }
-  }
-
-  /**
-   * Set overlay text at the specified position with optional color.
-   */
-  setOverlayText(
-    x: number,
-    y: number,
-    text: string,
-    color?: { r: number; g: number; b: number }
-  ): void {
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i];
-      const cell: Cell = { char, color };
-      this.setOverlay(x + i, y, cell);
-    }
-  }
-
-  /**
-   * Clear overlay at a specific position.
-   */
-  clearOverlayCell(x: number, y: number): void {
-    const key = `${String(x)},${String(y)}`;
-    if (this.overlayBuffer.has(key)) {
-      this.overlayBuffer.delete(key);
-      this.overlayDirtyRows.add(y);
-    }
-  }
-
-  /**
-   * Clear all overlays in a specific row.
-   */
-  clearOverlayRow(y: number): void {
-    if (y < 0 || y >= this.size.height) return;
-
-    let hasOverlays = false;
-    for (let x = 0; x < this.size.width; x++) {
-      const key = `${String(x)},${String(y)}`;
-      if (this.overlayBuffer.has(key)) {
-        this.overlayBuffer.delete(key);
-        hasOverlays = true;
-      }
-    }
-
-    if (hasOverlays) {
-      this.overlayDirtyRows.add(y);
-    }
-  }
-
-  /**
-   * Clear all overlays.
-   */
-  clearAllOverlays(): void {
-    // Mark all overlay rows as dirty before clearing
-    this.overlayBuffer.forEach((_, key) => {
-      const y = parseInt(key.split(',')[1]);
-      this.overlayDirtyRows.add(y);
-    });
-    this.overlayBuffer.clear();
+  private inBounds(x: number, y: number): boolean {
+    return x >= 0 && x < this.size.width && y >= 0 && y < this.size.height;
   }
 }
