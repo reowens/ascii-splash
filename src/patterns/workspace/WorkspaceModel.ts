@@ -3,14 +3,14 @@
  *
  * Owns the file tree, per-node heat, and the camera. Created once by the
  * watch bootstrap in main.ts and shared across every WorkspaceVizPattern
- * instance: `buildPatterns()` reconstructs pattern instances on theme or
- * quality change, and `AnimationEngine.setPattern()` resets patterns on
+ * instance: PatternCatalog reconstructs pattern instances on theme changes,
+ * and `AnimationEngine.setPattern()` resets patterns on
  * every switch — the model outlives all of that (same lifecycle as the
  * photoPattern re-attach precedent).
  *
  * Two invariants keep the model pure and replay-safe:
  * - No wall-clock reads. All methods take an explicit time; the model maps
- *   engine time to a session-relative clock via {@link modelTime}, seeded
+ *   pause-aware application time to a session-relative clock via {@link modelTime}, seeded
  *   by the first timestamp it sees.
  * - Heat decay is lazy. Each node stores (value, timestamp); reads decay
  *   on demand. Subtree aggregates use the same decayed-counter shape,
@@ -85,17 +85,21 @@ export class WorkspaceModel {
   private nextId = 0;
   /** Bumped on any add/remove/rename — lets views cheaply detect relayout needs. */
   private version = 0;
-  /** Engine time of the first modelTime() call; anchors the session clock. */
+  /** Application time of the first modelTime() call; anchors the session clock. */
   private epoch: number | null = null;
 
   constructor(config?: WorkspaceModelConfig) {
-    this.heatHalfLifeMs = config?.heatHalfLifeMs ?? DEFAULT_HEAT_HALF_LIFE_MS;
+    const requestedHalfLife = config?.heatHalfLifeMs;
+    this.heatHalfLifeMs =
+      requestedHalfLife !== undefined && Number.isFinite(requestedHalfLife) && requestedHalfLife > 0
+        ? Math.min(requestedHalfLife, 86400000)
+        : DEFAULT_HEAT_HALF_LIFE_MS;
     this.root = this.makeNode('', '/', 'dir', null);
     this.nodes.set('', this.root);
   }
 
   /**
-   * Map engine render time (absolute ms) to session-relative model time.
+   * Map pause-aware application time to session-relative model time.
    * The first timestamp seen becomes 0 — deterministic given the time
    * stream, so replay and fake-clock tests behave identically.
    */

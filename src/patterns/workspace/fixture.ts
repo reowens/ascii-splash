@@ -25,7 +25,9 @@ export const WORKSPACE_FIXTURE_SCHEMA_VERSION = 1;
 export const WORKSPACE_FIXTURE_KIND = 'splash-workspace-fixture';
 
 /** Hard cap from the proposal's performance budget (100k indexed files). */
-const MAX_FIXTURE_FILES = 100000;
+export const MAX_FIXTURE_FILES = 100000;
+export const MAX_WORKSPACE_PATH_LENGTH = 4096;
+export const MAX_WORKSPACE_PATH_DEPTH = 128;
 
 export interface WorkspaceFixtureFile {
   /** Repo-relative POSIX path (`src/main.ts`). */
@@ -59,13 +61,20 @@ function fail(message: string): never {
  */
 function validatePath(path: string, index: number): void {
   if (path.length === 0) fail(`files[${String(index)}]: path is empty`);
+  if (path.length > MAX_WORKSPACE_PATH_LENGTH) {
+    fail(`files[${String(index)}]: path exceeds ${String(MAX_WORKSPACE_PATH_LENGTH)} characters`);
+  }
   if (path.includes('\\')) {
     fail(`files[${String(index)}]: path "${path}" must use POSIX separators`);
   }
-  if (path.startsWith('/')) {
+  if (path.startsWith('/') || /^[A-Za-z]:\//.test(path)) {
     fail(`files[${String(index)}]: path "${path}" must be relative`);
   }
-  for (const segment of path.split('/')) {
+  const segments = path.split('/');
+  if (segments.length > MAX_WORKSPACE_PATH_DEPTH) {
+    fail(`files[${String(index)}]: path exceeds ${String(MAX_WORKSPACE_PATH_DEPTH)} segments`);
+  }
+  for (const segment of segments) {
     if (segment === '' || segment === '.' || segment === '..') {
       fail(`files[${String(index)}]: path "${path}" contains an invalid segment`);
     }

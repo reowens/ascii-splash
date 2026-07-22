@@ -3,7 +3,7 @@
  * working directory (Gource, but in the terminal).
  *
  * This class is a **disposable view** over a persistent WorkspaceModel.
- * buildPatterns() constructs a fresh instance on every theme/quality
+ * PatternCatalog constructs a fresh instance on every theme
  * rebuild, and the engine calls reset() on every pattern switch — so
  * nothing that matters lives here. The model owns the tree, heat, and
  * camera; this class owns only view transients (eased positions, twinkle
@@ -13,7 +13,7 @@
  * time arrives via render(), randomness via the injected Random.
  */
 
-import { Pattern, Cell, Size, Point, Theme, Color } from '../../types/index.js';
+import { Pattern, Cell, Size, Point, Theme, Color, FrameTime } from '../../types/index.js';
 import { Random } from '../../utils/random.js';
 import { bresenhamLine } from '../../utils/drawing.js';
 import { clamp } from '../../utils/math.js';
@@ -136,12 +136,22 @@ export class WorkspaceVizPattern implements Pattern {
     this.config = { ...WorkspaceVizPattern.PRESETS[0].config, ...config };
   }
 
-  render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void {
+  render(
+    buffer: Cell[][],
+    time: number,
+    size: Size,
+    mousePos?: Point,
+    frameTime?: FrameTime
+  ): void {
     const { width, height } = size;
     this.mousePos = mousePos;
 
-    const now = this.model.modelTime(time);
-    const deltaTime = this.lastTime === 0 ? 16 : Math.min(time - this.lastTime, 250);
+    const appTime = frameTime?.appTime ?? time;
+    const now = this.model.modelTime(appTime);
+    const deltaTime = Math.min(
+      frameTime?.deltaTime ?? (this.lastTime === 0 ? 16 : time - this.lastTime),
+      250
+    );
     this.lastTime = time;
     this.lastNow = now;
 
@@ -164,7 +174,7 @@ export class WorkspaceVizPattern implements Pattern {
     }
 
     this.renderEdges(buffer, size);
-    const labelCandidates = this.renderNodes(buffer, time, now, size);
+    const labelCandidates = this.renderNodes(buffer, now, now, size);
     if (this.config.showLabels === 'hot') {
       this.renderLabels(buffer, size, labelCandidates);
     }
@@ -230,6 +240,8 @@ export class WorkspaceVizPattern implements Pattern {
       visibleNodes: visible,
       hotNodes: hot,
       zoomMilli: Math.round(camera.zoom * 1000),
+      focusedNodeId: this.focusPath ? (this.model.getNode(this.focusPath)?.id ?? -1) : -1,
+      focusDepth: this.focusPath ? (this.model.getNode(this.focusPath)?.depth ?? 0) : 0,
     };
   }
 
@@ -247,18 +259,40 @@ export class WorkspaceVizPattern implements Pattern {
     this.lastLodVersion = this.model.structureVersion();
     this.lastBudget = budget;
 
-    // Track the hottest visible node: the focus preset feeds it back into
-    // the next LOD pass so the active region resolves down to leaves.
-    let hottestPath: string | undefined;
-    let hottestHeat = 0.05;
+    // Prefer a hot visible file. If LOD has collapsed the leaves, use the
+    // hottest normalized non-root directory so the next pass expands toward
+    // activity rather than repeatedly selecting the aggregate root.
+    let hottestFile: { path: string; heat: number } | undefined;
+    let hottestDir: { path: string; heat: number; depth: number } | undefined;
     this.forEachVisible(this.visibleRoot, v => {
-      const heat = this.model.subtreeHeatOf(v.node, now);
-      if (heat > hottestHeat) {
-        hottestHeat = heat;
-        hottestPath = v.node.path;
+      const node = v.node;
+      if (node.parent === null) return;
+      if (node.kind === 'file') {
+        const heat = this.model.heatOf(node, now);
+        if (
+          heat > 0.05 &&
+          (!hottestFile ||
+            heat > hottestFile.heat ||
+            (heat === hottestFile.heat && node.path < hottestFile.path))
+        ) {
+          hottestFile = { path: node.path, heat };
+        }
+        return;
+      }
+      const heat = this.model.subtreeHeatOf(node, now) / Math.max(1, node.subtreeFiles);
+      if (
+        heat > 0.05 &&
+        (!hottestDir ||
+          heat > hottestDir.heat ||
+          (heat === hottestDir.heat && node.depth > hottestDir.depth) ||
+          (heat === hottestDir.heat &&
+            node.depth === hottestDir.depth &&
+            node.path < hottestDir.path))
+      ) {
+        hottestDir = { path: node.path, heat, depth: node.depth };
       }
     });
-    this.focusPath = this.config.zoomBias > 1 ? hottestPath : undefined;
+    this.focusPath = this.config.zoomBias > 1 ? (hottestFile?.path ?? hottestDir?.path) : undefined;
 
     // Drop easing state for nodes that left the visible set.
     const alive = this.layoutResult.points;
