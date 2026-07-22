@@ -1,4 +1,4 @@
-import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
+import { Pattern, Cell, Size, Point, Theme, FrameTime } from '../types/index.js';
 import { PhotoPattern } from './PhotoPattern.js';
 
 /**
@@ -6,9 +6,9 @@ import { PhotoPattern } from './PhotoPattern.js';
  * procedural overlay {@link Pattern} (v0.4.0 Phase 3 — "scene composition").
  *
  * Render order is fixed: photo first, then overlay on top. The overlay uses
- * the existing space-character transparency convention
- * (`SpriteManager.ts:138`) — overlays that paint every cell (Plasma, Wave)
- * must opt-in via `transparentBg` to leave the photo visible.
+ * the existing space-character transparency convention: overlays that paint
+ * every cell (Plasma, Wave) must opt in via `transparentBg` to leave the photo
+ * visible.
  *
  * The buffer is cleared each frame by `AnimationEngine.update()`, so both
  * layers paint from a clean slate. PhotoPattern caches its decoded + resized
@@ -16,8 +16,7 @@ import { PhotoPattern } from './PhotoPattern.js';
  * per-frame cost is the half-block / braille encode plus the overlay's
  * normal render, which is what the v0.4 perf budget already targets.
  *
- * `name` mirrors the overlay's name so the status bar and patternNames
- * lookup behave identically to the standalone procedural pattern. Lifecycle
+ * Runtime display metadata comes from PatternCatalog. Lifecycle
  * hooks (preset, reset, mouse, theme, fps, activate/deactivate) delegate to
  * the overlay; the photo gets `onResize` so its cached resize tracks the
  * terminal. The photo's preset is fixed at construction — to change it,
@@ -25,8 +24,7 @@ import { PhotoPattern } from './PhotoPattern.js';
  * patterns list) and apply a preset there.
  */
 export class LayeredPattern implements Pattern {
-  /** Stable identifier — main.ts wires `patternNames` / `patternDisplayNames`
-   * with `'layered'` so the status bar reads "Photo + <Overlay>". */
+  /** Stable identifier used by the runtime catalog. */
   readonly name = 'layered';
 
   constructor(
@@ -34,9 +32,15 @@ export class LayeredPattern implements Pattern {
     private readonly overlay: Pattern
   ) {}
 
-  render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void {
+  render(
+    buffer: Cell[][],
+    time: number,
+    size: Size,
+    mousePos?: Point,
+    frameTime?: FrameTime
+  ): void {
     this.photo.render(buffer, time, size);
-    this.overlay.render(buffer, time, size, mousePos);
+    this.overlay.render(buffer, time, size, mousePos, frameTime);
   }
 
   reset(): void {

@@ -58,16 +58,39 @@ export function candidatesFor(platform: NodeJS.Platform): ClipboardCommand[] {
  * Try one clipboard command. Resolves on exit code 0; rejects on any
  * spawn error (e.g. `ENOENT` for a missing binary) or non-zero exit.
  */
-function runOnce(cmd: ClipboardCommand, text: string, spawnFn: SpawnFn): Promise<void> {
+function runOnce(
+  cmd: ClipboardCommand,
+  text: string,
+  spawnFn: SpawnFn,
+  timeoutMs: number
+): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     const proc = spawnFn(cmd[0], cmd.slice(1), {
       stdio: ['pipe', 'ignore', 'ignore'],
     });
-    proc.on('error', reject);
-    proc.on('close', code => {
-      if (code === 0) resolve();
-      else reject(new Error(`${cmd[0]} exited with code ${String(code)}`));
-    });
+    let settled = false;
+    const finish = (error?: Error): void => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      proc.removeListener('error', onError);
+      proc.removeListener('close', onClose);
+      if (error) reject(error);
+      else resolve();
+    };
+    const onError = (error: Error): void => {
+      finish(error);
+    };
+    const onClose = (code: number | null): void => {
+      if (code === 0) finish();
+      else finish(new Error(`${cmd[0]} exited with code ${String(code)}`));
+    };
+    const timeout = setTimeout(() => {
+      proc.kill('SIGTERM');
+      finish(new Error(`${cmd[0]} timed out after ${String(timeoutMs)}ms`));
+    }, timeoutMs);
+    proc.on('error', onError);
+    proc.on('close', onClose);
     proc.stdin?.end(text);
   });
 }
@@ -77,11 +100,16 @@ function runOnce(cmd: ClipboardCommand, text: string, spawnFn: SpawnFn): Promise
  * tool in order. Throws {@link ClipboardError} if none succeed.
  *
  * @param text - String to copy
- * @param opts - Optional `{platform, spawnFn}` overrides for testing
+ * @param opts - Optional platform, process, command, and timeout overrides
  */
 export async function copyToClipboard(
   text: string,
-  opts: { platform?: NodeJS.Platform; spawnFn?: SpawnFn; commands?: ClipboardCommand[] } = {}
+  opts: {
+    platform?: NodeJS.Platform;
+    spawnFn?: SpawnFn;
+    commands?: ClipboardCommand[];
+    timeoutMs?: number;
+  } = {}
 ): Promise<void> {
   const platform = opts.platform ?? process.platform;
   // Cast the real `spawn` to our narrower signature — its overload set
@@ -89,11 +117,12 @@ export async function copyToClipboard(
   // assignability across the generic alias.
   const spawnFn: SpawnFn = opts.spawnFn ?? (spawn as unknown as SpawnFn);
   const cmds = opts.commands ?? candidatesFor(platform);
+  const timeoutMs = opts.timeoutMs ?? 1000;
 
   const errors: string[] = [];
   for (const cmd of cmds) {
     try {
-      await runOnce(cmd, text, spawnFn);
+      await runOnce(cmd, text, spawnFn, timeoutMs);
       return;
     } catch (err) {
       errors.push(`${cmd[0]}: ${err instanceof Error ? err.message : String(err)}`);

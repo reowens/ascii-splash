@@ -8,7 +8,13 @@
  */
 
 import sharp from 'sharp';
-import { PhotoPattern, fitWithAspect } from '../../../src/patterns/PhotoPattern.js';
+import { jest } from '@jest/globals';
+import {
+  PhotoPattern,
+  fitWithAspect,
+  type PhotoImageBackend,
+  type PhotoImageData,
+} from '../../../src/patterns/PhotoPattern.js';
 import { UPPER_HALF_BLOCK, LOWER_HALF_BLOCK } from '../../../src/renderer/HalfBlockRenderer.js';
 import { Cell } from '../../../src/types/index.js';
 import { createMockBuffer, createMockSize, createMockTheme } from '../../utils/mocks.js';
@@ -31,6 +37,26 @@ async function makeGradientPng(width: number, height: number): Promise<Buffer> {
   return sharp(raw, { raw: { width, height, channels: 4 } })
     .png()
     .toBuffer();
+}
+
+function rawImage(width: number, height: number, value = 128): PhotoImageData {
+  const data = Buffer.alloc(width * height * 4);
+  for (let i = 0; i < width * height; i++) {
+    data[i * 4] = value;
+    data[i * 4 + 1] = value;
+    data[i * 4 + 2] = value;
+    data[i * 4 + 3] = 255;
+  }
+  return { data, width, height };
+}
+
+function testBackend(source = rawImage(16, 16)): PhotoImageBackend & {
+  resize: jest.MockedFunction<PhotoImageBackend['resize']>;
+} {
+  return {
+    decode: async () => source,
+    resize: jest.fn(async (_input, width, height) => rawImage(width, height)),
+  };
 }
 
 describe('PhotoPattern', () => {
@@ -141,6 +167,39 @@ describe('PhotoPattern', () => {
       pattern.render(buffer, 0, size);
       expect(JSON.stringify(buffer)).toBe(before);
     });
+
+    test('builds rendered cells once and only blits on warm frames', async () => {
+      const png = await makeGradientPng(64, 64);
+      const pattern = new PhotoPattern(theme, { source: png, preset: 'symbol' });
+      const size = createMockSize(20, 8);
+      await pattern.load();
+      await pattern.prepareForSize(size);
+
+      const first = createMockBuffer(size.width, size.height);
+      pattern.render(first, 0, size);
+      expect(pattern.getMetrics().cacheBuilds).toBe(1);
+
+      const second = createMockBuffer(size.width, size.height);
+      pattern.render(second, 16, size);
+      expect(pattern.getMetrics().cacheBuilds).toBe(1);
+      expect(second).toEqual(first);
+      expect(pattern.getMetrics().cachedCells).toBe(size.width * size.height);
+    });
+
+    test('invalidates rendered cells for same-mode preset changes', async () => {
+      const backend = testBackend();
+      const pattern = new PhotoPattern(theme, { source: Buffer.alloc(1), imageBackend: backend });
+      const size = createMockSize(8, 4);
+      await pattern.load();
+      await pattern.prepareForSize(size);
+      pattern.render(createMockBuffer(size.width, size.height), 0, size);
+      expect(pattern.getMetrics().cacheBuilds).toBe(1);
+
+      pattern.applyPreset(3);
+      pattern.render(createMockBuffer(size.width, size.height), 16, size);
+      expect(pattern.getMetrics().cacheBuilds).toBe(2);
+      expect(backend.resize).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('applyPreset()', () => {
@@ -209,6 +268,96 @@ describe('PhotoPattern', () => {
       expect(m1.cachedHeight).toBe(m2.cachedHeight);
       expect(m2.cachedWidth).toBe(4);
       expect(m2.cachedHeight).toBe(4);
+    });
+
+    test('newest resize request wins when older work finishes last', async () => {
+      const pending: Array<{
+        width: number;
+        height: number;
+        resolve: (image: PhotoImageData) => void;
+      }> = [];
+      const backend = testBackend();
+      backend.resize.mockImplementation(
+        async (_source, width, height) =>
+          new Promise(resolve => pending.push({ width, height, resolve }))
+      );
+      const pattern = new PhotoPattern(theme, { source: Buffer.alloc(1), imageBackend: backend });
+      await pattern.load();
+
+      const older = pattern.prepareForSize(createMockSize(8, 4));
+      const newer = pattern.prepareForSize(createMockSize(4, 2));
+      pending[1].resolve(rawImage(pending[1].width, pending[1].height, 200));
+      await newer;
+      pending[0].resolve(rawImage(pending[0].width, pending[0].height, 10));
+      await older;
+
+      expect(pattern.getMetrics()).toMatchObject({ cachedWidth: 4, cachedHeight: 4 });
+    });
+
+    test('newest mode request wins during a rapid preset change', async () => {
+      const pending: Array<{
+        width: number;
+        height: number;
+        resolve: (image: PhotoImageData) => void;
+      }> = [];
+      const backend = testBackend();
+      backend.resize.mockImplementation(
+        async (_source, width, height) =>
+          new Promise(resolve => pending.push({ width, height, resolve }))
+      );
+      const pattern = new PhotoPattern(theme, { source: Buffer.alloc(1), imageBackend: backend });
+      await pattern.load();
+      const size = createMockSize(4, 4);
+
+      const halfblock = pattern.prepareForSize(size);
+      pattern.applyPreset(13);
+      const symbol = pattern.prepareForSize(size);
+      pending[1].resolve(rawImage(pending[1].width, pending[1].height, 200));
+      await symbol;
+      pending[0].resolve(rawImage(pending[0].width, pending[0].height, 10));
+      await halfblock;
+
+      expect(pattern.getMetrics()).toMatchObject({ mode: 2, cachedWidth: 16, cachedHeight: 16 });
+    });
+
+    test('keeps the last valid frame after a scheduled resize rejection', async () => {
+      const backend = testBackend();
+      const pattern = new PhotoPattern(theme, { source: Buffer.alloc(1), imageBackend: backend });
+      const initialSize = createMockSize(8, 4);
+      await pattern.load();
+      await pattern.prepareForSize(initialSize);
+      pattern.render(createMockBuffer(initialSize.width, initialSize.height), 0, initialSize);
+      backend.resize.mockRejectedValueOnce(new Error('resize failed'));
+
+      const unhandled = jest.fn();
+      process.on('unhandledRejection', unhandled);
+      const smaller = createMockSize(4, 2);
+      const buffer = createMockBuffer(smaller.width, smaller.height);
+      pattern.render(buffer, 16, smaller);
+      await new Promise(resolve => setImmediate(resolve));
+      pattern.render(buffer, 32, smaller);
+      process.off('unhandledRejection', unhandled);
+
+      expect(pattern.getMetrics().hasError).toBe(1);
+      expect(buffer.flat().some(cell => cell.char !== ' ' || cell.color || cell.bg)).toBe(true);
+      expect(unhandled).not.toHaveBeenCalled();
+      expect(backend.resize).toHaveBeenCalledTimes(2);
+    });
+
+    test('contains onResize rejection and clears the error after a later success', async () => {
+      const backend = testBackend();
+      const pattern = new PhotoPattern(theme, { source: Buffer.alloc(1), imageBackend: backend });
+      await pattern.load();
+      await pattern.prepareForSize(createMockSize(8, 4));
+      backend.resize.mockRejectedValueOnce(new Error('background failure'));
+
+      pattern.onResize(createMockSize(4, 2));
+      await new Promise(resolve => setImmediate(resolve));
+      expect(pattern.getMetrics().hasError).toBe(1);
+
+      pattern.onResize(createMockSize(2, 1));
+      await new Promise(resolve => setImmediate(resolve));
+      expect(pattern.getMetrics()).toMatchObject({ hasError: 0, cachedWidth: 2, cachedHeight: 2 });
     });
   });
 
@@ -472,7 +621,7 @@ describe('PhotoPattern', () => {
       expect(symbolMetrics.cachedHeight).toBe(32);
     });
 
-    test('mode change halfblock → symbol invalidates the resize cache', async () => {
+    test('mode change invalidates rendered cells but retains the last valid resize', async () => {
       const png = await makeGradientPng(16, 16);
       const pattern = new PhotoPattern(theme, { source: png });
       await pattern.load();
@@ -480,10 +629,13 @@ describe('PhotoPattern', () => {
       const size = createMockSize(4, 4);
       pattern.applyPreset(1); // halfblock
       await pattern.prepareForSize(size);
-      expect(pattern.getMetrics().cachedWidth).toBeGreaterThan(0);
+      pattern.render(createMockBuffer(size.width, size.height), 0, size);
+      const priorWidth = pattern.getMetrics().cachedWidth;
+      expect(pattern.getMetrics().cachedCells).toBeGreaterThan(0);
 
-      pattern.applyPreset(13); // symbol — different canvas size; cache must invalidate
-      expect(pattern.getMetrics().cachedWidth).toBe(0);
+      pattern.applyPreset(13);
+      expect(pattern.getMetrics().cachedWidth).toBe(priorWidth);
+      expect(pattern.getMetrics().cachedCells).toBe(0);
     });
 
     test('symbol-ascii preset only emits ASCII characters', async () => {

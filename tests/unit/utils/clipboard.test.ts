@@ -14,7 +14,10 @@ import {
  */
 class MockChild extends EventEmitter {
   stdin: Writable;
-  constructor(public behavior: 'success' | 'enoent' | 'nonzero') {
+  killed = false;
+  killSignal?: NodeJS.Signals | number;
+
+  constructor(public behavior: 'success' | 'enoent' | 'nonzero' | 'hang') {
     super();
     const chunks: Buffer[] = [];
     this.stdin = new Writable({
@@ -32,25 +35,35 @@ class MockChild extends EventEmitter {
         this.emit('error', err);
       } else if (behavior === 'nonzero') {
         this.emit('close', 1);
-      } else {
+      } else if (behavior === 'success') {
         this.emit('close', 0);
       }
     });
   }
+
+  kill(signal?: NodeJS.Signals | number): boolean {
+    this.killed = true;
+    this.killSignal = signal;
+    return true;
+  }
 }
 
-function mockSpawn(plan: ('success' | 'enoent' | 'nonzero')[]): {
+function mockSpawn(plan: ('success' | 'enoent' | 'nonzero' | 'hang')[]): {
   spawnFn: SpawnFn;
   calls: { cmd: string; args: readonly string[] }[];
+  children: MockChild[];
 } {
   const calls: { cmd: string; args: readonly string[] }[] = [];
+  const children: MockChild[] = [];
   let i = 0;
   const spawnFn: SpawnFn = (cmd, args) => {
     calls.push({ cmd, args });
     const behavior = plan[i++] ?? 'success';
-    return new MockChild(behavior) as unknown as ReturnType<SpawnFn>;
+    const child = new MockChild(behavior);
+    children.push(child);
+    return child as unknown as ReturnType<SpawnFn>;
   };
-  return { spawnFn, calls };
+  return { spawnFn, calls, children };
 }
 
 describe('candidatesFor()', () => {
@@ -125,5 +138,25 @@ describe('copyToClipboard()', () => {
     const { spawnFn, calls } = mockSpawn(['success']);
     await copyToClipboard('hello', { platform: 'darwin', spawnFn });
     expect(calls[0].cmd).toBe('pbcopy');
+  });
+
+  it('kills a hanging command and attempts the next candidate', async () => {
+    const { spawnFn, calls, children } = mockSpawn(['hang', 'success']);
+    const cmds: ClipboardCommand[] = [['wl-copy'], ['xclip']];
+
+    await copyToClipboard('hello', { commands: cmds, spawnFn, timeoutMs: 5 });
+
+    expect(calls.map(call => call.cmd)).toEqual(['wl-copy', 'xclip']);
+    expect(children[0].killed).toBe(true);
+    expect(children[0].killSignal).toBe('SIGTERM');
+    expect(children[0].listenerCount('close')).toBe(0);
+    expect(children[0].listenerCount('error')).toBe(0);
+  });
+
+  it('does not leave a timeout that kills a successfully closed process', async () => {
+    const { spawnFn, children } = mockSpawn(['success']);
+    await copyToClipboard('hello', { commands: [['pbcopy']], spawnFn, timeoutMs: 5 });
+    await new Promise(resolve => setTimeout(resolve, 10));
+    expect(children[0].killed).toBe(false);
   });
 });

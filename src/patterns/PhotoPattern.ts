@@ -42,7 +42,39 @@ export interface PhotoPatternConfig {
   /** File path or in-memory image bytes (anything sharp can decode). */
   source: string | Buffer | Uint8Array;
   preset?: PhotoPreset;
+  /** Injectable image backend for failure/race tests. Defaults to sharp. */
+  imageBackend?: PhotoImageBackend;
 }
+
+export interface PhotoImageData {
+  data: Buffer;
+  width: number;
+  height: number;
+}
+
+export interface PhotoImageBackend {
+  decode(source: string | Buffer | Uint8Array): Promise<PhotoImageData>;
+  resize(source: PhotoImageData, width: number, height: number): Promise<PhotoImageData>;
+}
+
+const sharpImageBackend: PhotoImageBackend = {
+  async decode(source) {
+    const result = await sharp(source as Buffer | string)
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    return { data: result.data, width: result.info.width, height: result.info.height };
+  },
+  async resize(source, width, height) {
+    const result = await sharp(source.data, {
+      raw: { width: source.width, height: source.height, channels: 4 },
+    })
+      .resize(width, height, { fit: 'fill' })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    return { data: result.data, width: result.info.width, height: result.info.height };
+  },
+};
 
 export interface PhotoPresetEntry {
   id: number;
@@ -242,17 +274,30 @@ export class PhotoPattern implements Pattern {
   name = 'photo';
 
   private readonly source: string | Buffer | Uint8Array;
+  private readonly imageBackend: PhotoImageBackend;
   private currentPresetEntry: PhotoPresetEntry;
 
-  private rawImage: { data: Buffer; width: number; height: number } | null = null;
-
-  private resized: { data: Buffer; width: number; height: number } | null = null;
-  private lastResizeRequest: { width: number; height: number } = { width: 0, height: 0 };
-  private resizeInFlight = false;
+  private rawImage: PhotoImageData | null = null;
+  private resized: PhotoImageData | null = null;
+  private renderedCache: {
+    cells: Cell[][];
+    width: number;
+    height: number;
+    resizedGeneration: number;
+    presetId: number;
+  } | null = null;
+  private preparedSize: Size | null = null;
+  private sourceGeneration = 0;
+  private resizedGeneration = 0;
+  private latestResizeRequest = 0;
+  private pendingResizes = 0;
+  private lastScheduledKey: string | null = null;
+  private cacheBuilds = 0;
   private loadError: Error | null = null;
 
   constructor(_theme: Theme, config: PhotoPatternConfig) {
     this.source = config.source;
+    this.imageBackend = config.imageBackend ?? sharpImageBackend;
     this.currentPresetEntry =
       PRESETS.find(p => p.preset === (config.preset ?? 'default')) ?? PRESETS[0];
   }
@@ -263,16 +308,14 @@ export class PhotoPattern implements Pattern {
    */
   async load(): Promise<void> {
     try {
-      const result = await sharp(this.source as Buffer | string)
-        .ensureAlpha()
-        .raw()
-        .toBuffer({ resolveWithObject: true });
-      this.rawImage = {
-        data: result.data,
-        width: result.info.width,
-        height: result.info.height,
-      };
+      const result = await this.imageBackend.decode(this.source);
+      this.latestResizeRequest++;
+      this.sourceGeneration++;
+      this.rawImage = result;
       this.resized = null;
+      this.renderedCache = null;
+      this.preparedSize = null;
+      this.lastScheduledKey = null;
       this.loadError = null;
     } catch (err) {
       this.loadError = err instanceof Error ? err : new Error(String(err));
@@ -285,7 +328,8 @@ export class PhotoPattern implements Pattern {
    * by the active mode (halfblock = `width × height·2`; braille =
    * `width·2 × height·4`), preserving the source aspect ratio.
    *
-   * Coalesces concurrent calls — only the most recent target size wins.
+   * Concurrent calls are generation-guarded — only the newest request may
+   * replace the last successful resized image.
    */
   async prepareForSize(size: Size): Promise<void> {
     if (!this.rawImage) {
@@ -302,43 +346,41 @@ export class PhotoPattern implements Pattern {
     );
     if (fit.width <= 0 || fit.height <= 0) return;
 
+    const requestId = ++this.latestResizeRequest;
+    const sourceGeneration = this.sourceGeneration;
+    const requestedSize = { ...size };
+    this.lastScheduledKey = this.resizeKey(size);
+
     if (this.resized?.width === fit.width && this.resized.height === fit.height) {
+      if (
+        this.preparedSize?.width !== requestedSize.width ||
+        this.preparedSize.height !== requestedSize.height
+      ) {
+        this.renderedCache = null;
+      }
+      this.preparedSize = requestedSize;
+      this.loadError = null;
       return;
     }
 
-    this.lastResizeRequest = { width: fit.width, height: fit.height };
-    if (this.resizeInFlight) return;
-
-    this.resizeInFlight = true;
+    this.pendingResizes++;
     try {
-      while (true) {
-        const req = this.lastResizeRequest;
-        const out = await sharp(this.rawImage.data, {
-          raw: {
-            width: this.rawImage.width,
-            height: this.rawImage.height,
-            channels: 4,
-          },
-        })
-          .resize(req.width, req.height, { fit: 'fill' })
-          .raw()
-          .toBuffer({ resolveWithObject: true });
-
-        this.resized = {
-          data: out.data,
-          width: out.info.width,
-          height: out.info.height,
-        };
-
-        if (
-          this.lastResizeRequest.width === req.width &&
-          this.lastResizeRequest.height === req.height
-        ) {
-          break;
-        }
+      const out = await this.imageBackend.resize(this.rawImage, fit.width, fit.height);
+      if (requestId !== this.latestResizeRequest || sourceGeneration !== this.sourceGeneration) {
+        return;
       }
+      this.resized = out;
+      this.resizedGeneration++;
+      this.renderedCache = null;
+      this.preparedSize = requestedSize;
+      this.loadError = null;
+    } catch (err) {
+      if (requestId === this.latestResizeRequest && sourceGeneration === this.sourceGeneration) {
+        this.loadError = err instanceof Error ? err : new Error(String(err));
+      }
+      throw err;
     } finally {
-      this.resizeInFlight = false;
+      this.pendingResizes--;
     }
   }
 
@@ -352,13 +394,51 @@ export class PhotoPattern implements Pattern {
       canvas.canvasW,
       canvas.canvasH
     );
-    if (this.resized?.width !== fit.width || this.resized.height !== fit.height) {
-      // Kick off async resize; render whatever is cached (or nothing) this frame.
-      void this.prepareForSize(size);
+    if (
+      this.resized?.width !== fit.width ||
+      this.resized.height !== fit.height ||
+      this.preparedSize?.width !== size.width ||
+      this.preparedSize.height !== size.height
+    ) {
+      this.schedulePrepareForSize(size);
     }
 
-    if (!this.resized) return;
+    if (
+      this.renderedCache &&
+      (this.renderedCache.resizedGeneration !== this.resizedGeneration ||
+        this.renderedCache.presetId !== this.currentPresetEntry.id)
+    ) {
+      this.renderedCache = null;
+    }
+    if (!this.renderedCache && this.resized) this.buildRenderedCache(size);
+    this.blitRenderedCache(buffer);
+  }
 
+  onResize(size: Size): void {
+    if (this.rawImage) {
+      this.schedulePrepareForSize(size);
+    }
+  }
+
+  private resizeKey(size: Size): string {
+    return `${String(this.sourceGeneration)}:${String(this.currentPresetEntry.id)}:${String(size.width)}x${String(size.height)}`;
+  }
+
+  private schedulePrepareForSize(size: Size): void {
+    const key = this.resizeKey(size);
+    if (key === this.lastScheduledKey) return;
+    this.lastScheduledKey = key;
+    void this.prepareForSize(size).catch(() => {
+      // prepareForSize records the newest failure. Keeping this terminal catch
+      // prevents background resize work from becoming an unhandled rejection.
+    });
+  }
+
+  private buildRenderedCache(size: Size): void {
+    if (!this.resized || size.width <= 0 || size.height <= 0) return;
+    const cells: Cell[][] = Array.from({ length: size.height }, () =>
+      Array.from({ length: size.width }, () => ({ char: ' ' }))
+    );
     const work = applyPipeline(
       this.resized.data,
       this.resized.width,
@@ -368,7 +448,7 @@ export class PhotoPattern implements Pattern {
 
     if (this.currentPresetEntry.mode === 'braille') {
       renderBraille(
-        buffer,
+        cells,
         work,
         this.resized.width,
         this.resized.height,
@@ -376,7 +456,7 @@ export class PhotoPattern implements Pattern {
       );
     } else if (this.currentPresetEntry.mode === 'symbol') {
       renderSymbol(
-        buffer,
+        cells,
         work,
         this.resized.width,
         this.resized.height,
@@ -384,18 +464,38 @@ export class PhotoPattern implements Pattern {
       );
     } else {
       renderHalfBlock(
-        buffer,
+        cells,
         work,
         this.resized.width,
         this.resized.height,
         this.currentPresetEntry.halfBlock ?? {}
       );
     }
+
+    for (const row of cells) {
+      for (const cell of row) {
+        if (cell.color) Object.freeze(cell.color);
+        if (cell.bg) Object.freeze(cell.bg);
+        Object.freeze(cell);
+      }
+      Object.freeze(row);
+    }
+    this.renderedCache = {
+      cells,
+      width: size.width,
+      height: size.height,
+      resizedGeneration: this.resizedGeneration,
+      presetId: this.currentPresetEntry.id,
+    };
+    this.cacheBuilds++;
   }
 
-  onResize(size: Size): void {
-    if (this.rawImage) {
-      void this.prepareForSize(size);
+  private blitRenderedCache(buffer: Cell[][]): void {
+    if (!this.renderedCache) return;
+    const height = Math.min(buffer.length, this.renderedCache.height);
+    for (let y = 0; y < height; y++) {
+      const width = Math.min(buffer[y]?.length ?? 0, this.renderedCache.width);
+      for (let x = 0; x < width; x++) buffer[y][x] = this.renderedCache.cells[y][x];
     }
   }
 
@@ -407,13 +507,9 @@ export class PhotoPattern implements Pattern {
   applyPreset(presetId: number): boolean {
     const preset = PRESETS.find(p => p.id === presetId);
     if (!preset) return false;
-    const modeChanged = preset.mode !== this.currentPresetEntry.mode;
     this.currentPresetEntry = preset;
-    // Mode change implies a different target canvas size; invalidate cache so
-    // render() kicks off the appropriate resize on its next frame.
-    if (modeChanged) {
-      this.resized = null;
-    }
+    this.renderedCache = null;
+    this.lastScheduledKey = null;
     return true;
   }
 
@@ -437,6 +533,9 @@ export class PhotoPattern implements Pattern {
       sourceHeight: this.rawImage?.height ?? 0,
       cachedWidth: this.resized?.width ?? 0,
       cachedHeight: this.resized?.height ?? 0,
+      cachedCells: this.renderedCache ? this.renderedCache.width * this.renderedCache.height : 0,
+      cacheBuilds: this.cacheBuilds,
+      resizePending: this.pendingResizes,
       preset: this.currentPresetEntry.id,
       mode: modeMetric(this.currentPresetEntry.mode),
       hasError: this.loadError ? 1 : 0,

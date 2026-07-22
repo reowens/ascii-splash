@@ -294,6 +294,7 @@ describe('LayeredPattern', () => {
       // positions left behind).
       expect(firstChanges).toBeGreaterThan((size.width * size.height) / 2);
       expect(secondChanges).toBeLessThan(firstChanges / 4);
+      expect(photo.getMetrics().cacheBuilds).toBe(1);
     });
 
     test('dense overlay with transparentBg still keeps photo cells stable across frames', async () => {
