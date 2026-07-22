@@ -1,8 +1,11 @@
 # Workspace Visualization — `splash watch`
 
 **Created**: July 2, 2026
-**Updated**: July 3, 2026 (Phase A implementation started — source landed on main)
-**Status**: **In progress — Phase A** (model + static render). Source shipped: `src/patterns/workspace/` (WorkspaceModel, RadialLayout, Camera, WorkspaceVizPattern, fixture parser) + `splash watch --fixture` CLI + `tests/fixtures/tree-{small,medium}.json`. Pending for Phase A exit: unit test suites (~55) and the 80×24 beauty pass (the kill/pivot gate). Scoping unchanged (~3,200 LOC, ~200 tests, 6–7.5 weeks; MVP cut at A–C ≈ 4–5 weeks)
+**Updated**: July 11, 2026 (Phase A implementation and automated coverage complete)
+**Status**: **In progress — Phase A visual gate**. The model, radial layout,
+camera, static view, fixture parser, CLI fixture mode, and comprehensive
+unit/lifecycle suites are complete. The remaining Phase A decision is the 80×24
+beauty pass (the kill/pivot gate); Phase B live filesystem work has not started.
 
 ---
 
@@ -25,10 +28,11 @@ Think **Gource, but live, in the terminal, and agent-aware**.
 - **Gource proved the demand** (the most-shared dev visualization ever made)
   but it is OpenGL, offline, and commit-history-driven. A live terminal
   equivalent does not exist.
-- **Splash already has the engine.** SceneGraph _is_ a tree renderer,
-  ParticleSystem does bursts and trails, EventBus does decoupled event flow,
-  TransitionManager does scene changes, and v0.5.0's injected `Random` +
-  deterministic replay makes session recording/playback nearly free.
+- **Splash already has the right core boundaries.** The `Pattern`/`Cell[][]`
+  render contract, `TransitionManager`, persistent workspace model, and v0.5.0
+  injected `Random` support deterministic views and replay. The removed
+  SceneGraph/SpriteManager/ParticleSystem/EventBus experiments were never
+  production foundations for this feature.
 
 ### Non-goals
 
@@ -66,7 +70,7 @@ event stream and renders. This buys three things:
    (event stream, seed, time). Record the stream, replay the session.
    This rides directly on v0.5.0's injected-`Random` work.
 2. **Testability** — tests feed synthetic event fixtures; no real
-   filesystem, no timing flakiness. Same strategy as the 2317 existing tests.
+   filesystem, no timing flakiness. Same strategy as the current test suite.
 3. **The git-history mode for free** — anything that can produce the event
    schema (a `git log` converter, a CI webhook bridge) drives the same
    renderer.
@@ -114,7 +118,7 @@ in `main.ts` and owned there, alongside the services.
            └───────────────┬─────────────┬─────────────┘
                            ▼             ▼
                     ┌────────────┐  ┌───────────┐
-                    │  EventBus  │  │ EventLog  │ (JSONL, for replay)
+                    │ EventSink  │  │ EventLog  │ (JSONL, for replay)
                     └─────┬──────┘  └───────────┘
                           ▼
               ┌───────────────────────┐
@@ -127,16 +131,16 @@ in `main.ts` and owned there, alongside the services.
               │  WorkspaceVizPattern  │  (pure, disposable view: no I/O)
               │  ├─ RadialLayout      │
               │  ├─ ActorManager      │
-              │  └─ SceneGraph layers │
+              │  └─ direct Cell render│
               └───────────────────────┘
 ```
 
 ### Event schema
 
-One schema for all sources. Emitted on the EventBus as
-`EngineEvent.WORKSPACE` (new member of the existing `EngineEvent` enum with a
-typed payload in `EventPayloadMap`, alongside `PATTERN_CUSTOM`), and appended
-as JSON Lines to the session log.
+One schema for all sources. Phase B should feed a small workspace-specific
+`WorkspaceEventSink` owned by the watch bootstrap and append the same events as
+JSON Lines to the session log. It should not introduce a global event bus
+without a measured fan-out requirement.
 
 ```typescript
 interface WorkspaceEvent {
@@ -349,8 +353,8 @@ position in it, so `splash watch` looks right in all 5 themes.
 
 ### Actors
 
-- Firefly entities managed by an `ActorManager` on top of SpriteManager:
-  position, target node, easing flight, trail via ParticleSystem.
+- Firefly entities managed by a workspace-specific `ActorManager`: position,
+  target node, easing flight, and a bounded local trail representation.
 - Idle actors orbit their last-touched region; long-idle actors dim and
   perch. Actor label (single glyph + color) is stable per actor ID.
 
@@ -464,7 +468,7 @@ debug overlay so it's measurable, not aspirational).
   touches the render path.
 - Layout is incremental: only subtrees whose LOD state or membership changed
   relayout; a full relayout is O(visible nodes), not O(repo).
-- Particle caps enforced by the existing ParticleSystem `maxParticles` pool.
+- Effect caps enforced by workspace-owned bounded arrays with explicit limits.
 - Hard caps: 100 k indexed files (beyond that, deepest directories collapse
   permanently and a one-time toast says so — no silent truncation),
   60 events/s rendered.
@@ -528,14 +532,14 @@ watch` is real and delightful), D–E–F as the fast-follow.
 
 ### Calibration baseline (what comparable work cost in this codebase)
 
-| Existing component                                                       | LOC          | Notes                                   |
-| ------------------------------------------------------------------------ | ------------ | --------------------------------------- |
-| Scene patterns (Aquarium / NightSky / Fireworks)                         | 578–704 each | Closest analog to `WorkspaceVizPattern` |
-| Engine services (SceneGraph / SpriteManager / ParticleSystem / EventBus) | 134–315 each | Closest analog to the new services      |
-| PhotoPattern + HalfBlockRenderer (v0.4 Phase 1)                          | ~720         | Landed in ~1 week, +43 tests            |
-| BrailleRenderer + dither + edges (v0.4 Phase 2)                          | ~500+        | ~1 week, +57 tests                      |
-| shareCode + clipboard + CLI wiring (v0.5 7d–7e)                          | ~450         | +CLI subcommands in `main.ts`           |
-| determinism.test.ts (v0.5 7f)                                            | 234          | Template for the replay canaries        |
+| Existing component                               | LOC          | Notes                                   |
+| ------------------------------------------------ | ------------ | --------------------------------------- |
+| Scene patterns (Aquarium / NightSky / Fireworks) | 578–704 each | Closest analog to `WorkspaceVizPattern` |
+| WorkspaceModel / RadialLayout / Camera           | 70–450 each  | Closest analog to Phase A services      |
+| PhotoPattern + HalfBlockRenderer (v0.4 Phase 1)  | ~720         | Landed in ~1 week, +43 tests            |
+| BrailleRenderer + dither + edges (v0.4 Phase 2)  | ~500+        | ~1 week, +57 tests                      |
+| shareCode + clipboard + CLI wiring (v0.5 7d–7e)  | ~450         | +CLI subcommands in `main.ts`           |
+| determinism.test.ts (v0.5 7f)                    | 234          | Template for the replay canaries        |
 
 v0.4 phases averaged **~1 week and +20–60 tests each**. Estimates below use
 that yardstick. `main.ts` is already 1,509 lines; service wiring should go in
@@ -662,7 +666,8 @@ E is the shareable artifact, F is breadth).
       simultaneous transition + stage flurry + file storm
 - [ ] Replay canary: fixed log + seed at recorded size ⇒ byte-identical
       frame hashes
-- [ ] Zero regression: all existing tests (2 317 at time of writing) stay
+- [x] Zero regression: all 2514 tests at the Phase A remediation checkpoint
+      stay
       green
 - [ ] Zero cost when unused: plain `splash` loads no watcher code and shows
       no extra pattern slot
@@ -714,7 +719,6 @@ run:fail`) or a first-party wrapper (`splash run -- npm test`)? Deferred
 - Claude Code hooks — https://docs.anthropic.com/en/docs/claude-code/hooks
 - Local reference packages: `~/development/packages/asciiquarium` (entity
   model), `~/development/packages/ttysvr` (idle activation)
-- Engine pieces this builds on: `src/engine/EventBus.ts`,
-  `src/engine/SceneGraph.ts`, `src/engine/ParticleSystem.ts`,
-  `src/engine/SpriteManager.ts`, `src/renderer/TransitionManager.ts`,
-  `src/utils/random.ts` (v0.5.0 injected PRNG)
+- Engine pieces this builds on: `src/renderer/TransitionManager.ts`,
+  `src/engine/AnimationEngine.ts`, `src/engine/AnimationClock.ts`,
+  `src/patterns/workspace/WorkspaceModel.ts`, and `src/utils/random.ts`

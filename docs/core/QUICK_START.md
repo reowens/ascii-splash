@@ -149,7 +149,6 @@ npm test -- my-first-pattern
 | `src/patterns/`                     | Pattern implementations (23 procedural + optional `PhotoPattern` from v0.4.0+) |
 | `src/config/defaults.ts`            | Default configuration                                                          |
 | `src/engine/AnimationEngine.ts`     | Main loop and pattern lifecycle                                                |
-| `src/engine/SceneGraph.ts`          | Layered rendering (z-ordered `SceneLayer`s)                                    |
 | `src/renderer/Buffer.ts`            | Double-buffered cell grid with dirty-rect tracking                             |
 | `src/renderer/HalfBlockRenderer.ts` | RGBA → `Cell[][]` half-block (`▀`/`▄`) emitter (v0.4.0 Phase 1)                |
 | `src/renderer/BrailleRenderer.ts`   | RGBA → `Cell[][]` braille (U+2800–U+28FF) emitter at 8× resolution (Phase 2)   |

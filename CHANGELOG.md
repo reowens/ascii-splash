@@ -5,11 +5,227 @@ All notable changes to ascii-splash will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — v0.5.0 "Shareable Scenes"
+## [0.6.0] - 2026-07-21 — "Solid Ground"
 
-Branch: `feature/v0.5.0-phase7-share-codes` — all phases complete, awaiting review before tagging. Tracking doc: [docs/planning/v0.5.0-ROADMAP.md](docs/planning/v0.5.0-ROADMAP.md).
+Tracking doc: [docs/planning/2026-07-09-repository-remediation-plan.md](docs/planning/2026-07-09-repository-remediation-plan.md)
+(milestones M0–M8) and [docs/planning/2026-07-09-runtime-controller-design.md](docs/planning/2026-07-09-runtime-controller-design.md).
 
-Every pattern is now seeded by a constructor-injected PRNG so scenes can be reproduced byte-for-byte from a 12-character share code (`splash share` / `splash play <code>`). Includes the deterministic foundation (7a–7c), the encoder/decoder (7d), the CLI surface (7e), and an end-to-end determinism test suite (7f).
+A repository-wide remediation pass that restores a trustworthy green baseline,
+makes v0.5.0's share-code replay genuinely deterministic across real process
+starts, gives the runtime a single authoritative scene-state owner, and adds the
+release-quality gates that were previously reported but not enforced. Also lands
+workspace-viz Phase A (`splash watch --fixture`) with full test coverage and
+removes the unused experimental engine primitives. Final baseline: **2390 tests
+across 70 suites**; coverage 94.56% statements, 87.24% branches, 94.56%
+functions, 95.14% lines.
+
+### Added
+
+- **`RuntimeController`** (`src/engine/RuntimeController.ts`): the single mutable
+  owner of active scene state — current pattern/slot, preset ID, theme index,
+  quality, FPS, the slot collection, and per-slot seeds. Command execution and
+  direct keyboard shortcuts now route through the same controller methods
+  (`switchPattern`, `applyPreset`, `cyclePreset`, `changeTheme`, `applyScene`,
+  `setQuality`, `setFps`, `resetCurrentPattern`), so they can no longer disagree
+  about the active scene. Emits one typed `RuntimeChangeEvent` after each
+  successful mutation; exposes immutable `RuntimeSnapshot` values for
+  status/share/save without leaking mutable `Pattern`/`Theme` objects. Theme
+  rebuilds resolve the active pattern by stable key, preserve seeds and the
+  selected preset, and swap every slot atomically. `presetApplied` distinguishes
+  the config-derived baseline from an explicitly applied preset 1.
+- **`PatternCatalog`** (`src/patterns/PatternCatalog.ts`): the single source of
+  runtime pattern construction and self-describing `PatternSlot` metadata (stable
+  key, display name, kind, seed, shareability, presets, legacy names). Replaces
+  the parallel name/display/seed arrays previously embedded in `main.ts`. The
+  frozen procedural definition registry is asserted to match
+  `PROCEDURAL_PATTERN_IDS` in order at module load and in tests. Optional photo,
+  layered, and workspace slots are appended by the same builder; layered overlays
+  now receive independent `Pattern` instances instead of sharing the standalone
+  slot's object.
+- **`AnimationClock`** (`src/engine/AnimationClock.ts`): an injectable,
+  pause-aware relative clock with separate scene and application lifetimes over a
+  monotonic source. Scene time resets on pattern activation, explicit reset, and
+  preset application; application time stays continuous across scene and theme
+  changes; paused and stopped intervals are excluded from scene time, application
+  time, and frame delta. Patterns now receive scene-relative time (with an
+  optional `FrameTime` context supplying scene/app/delta), making share-code
+  replay reproduce byte-for-byte across sessions that start at different
+  wall-clock origins. `WorkspaceVizPattern` consumes application time so its model
+  epoch, heat, camera, and twinkle phase never move backward across disposable
+  view rebuilds.
+- **Runtime configuration validation** (`src/config/validateConfig.ts`): a
+  boundary sanitizer that validates persisted globals and every persisted pattern
+  field before the deep merge, pattern construction, and share-code fingerprint —
+  finite bounds, count maxima, positive intervals, enums, booleans, terminal-safe
+  characters, workspace arrays/maps, and coupled values (e.g. LavaLamp
+  `minRadius <= maxRadius`). Invalid fields emit deterministic warnings carrying
+  the config path and field path, then fall back per field to defaults; unknown
+  fields are ignored. Backs AUD-011.
+- **`splash watch --fixture <file>`** (workspace-viz Phase A): renders a
+  schema-v1 workspace snapshot fixture as a Gource-style radial visualization.
+  Live filesystem watching remains deferred to Phase B; `splash watch` without
+  `--fixture` prints a one-line message pointing at the fixture form. Ships with
+  `tests/fixtures/tree-small.json` and `tree-medium.json`. (The Phase A source and
+  the `watch --fixture` surface landed in `0a79bb0`; this release adds their
+  comprehensive test suites.)
+- **Import-safe CLI bootstrap** (`src/cli/`): pure CLI option normalization, TTY
+  validation, terminal-resource creation behind a small interface, and idempotent
+  cleanup, extracted so main-level state and startup behavior can be tested
+  without a real terminal. `main.ts` registers renderer cleanup immediately and
+  every failure path converges on cleanup that runs each callback at most once.
+- **Share-code semantic validation**: `validateShareState()` in
+  `src/utils/shareCode.ts` separates structural Crockford/bit decoding from
+  supported-state validation, returning typed `pattern`, `preset`, `theme`, and
+  `configHash` errors against the runtime registry derived from PatternCatalog and
+  the theme registry. `splash play` now rejects unsupported pattern/preset/theme
+  values and config-fingerprint mismatches before TTY/fullscreen setup with
+  one-line actionable diagnostics; Shift+S converts any invariant failure into a
+  UI message instead of throwing. Backs AUD-012.
+- **New test suites and benchmarks**:
+  - Unit: `RuntimeController`, `PatternCatalog`, `AnimationClock`, CLI
+    (`bootstrap`, `keyBindings`), and the full workspace-viz set
+    (`WorkspaceModel`, `RadialLayout`, `Camera`, `fixture`, `WorkspaceVizPattern`).
+    Workspace coverage reaches 94.52% statements / 84.11% branches.
+  - Integration: `share-play`, `config-real` (against real `Conf`), and
+    `cli-smoke` child-process tests covering `--help`, `--version`, `share`,
+    malformed `play`, and malformed `watch --fixture`.
+  - Performance: `tests/performance/photo-cache.test.ts` — cold-rebuild vs.
+    100-warm-frame benchmarks for half-block, braille, symbol-all, and
+    symbol-ASCII at 80×24 and 160×48, plus a layered sparse-overlay benchmark.
+- **CI/release quality gates** (`.github/workflows/`): the Node 20 CI job now runs
+  `npm audit --omit=dev`, build, typecheck, lint, `format:check`, and the coverage
+  suite, and uploads the `lcov.info` produced by that same run (Codecov upload
+  failure is no longer silently ignored); Node 22 retains a compatibility
+  build/test job, plus a weekly scheduled run. The release workflow runs the
+  runtime dependency audit before build/test/publish. Added `.github/dependabot.yml`
+  for weekly npm and GitHub Actions updates.
+
+### Changed
+
+- **`main.ts` is terminal/CLI wiring only**: no mutable pattern array, seed
+  array, or active pattern/preset/theme/quality index remains. Direct navigation,
+  preset cycling, theme/quality/FPS controls, pattern input, mouse, debug, status,
+  save, and share all read or mutate the shared `RuntimeController`; runtime events
+  keep the status bar synchronized for both command and shuffle-timer changes.
+- **`CommandExecutor` is a command-to-controller adapter**: it depends only on a
+  narrow `SceneRuntime` interface (plus optional `ConfigLoader`); the engine,
+  pattern/theme arrays, current indices, theme-change callback, and `updateState()`
+  were removed. Random-all and favorite loads apply as one atomic `applyScene()`
+  transaction. The UX-random `Math.random()` carve-out (`c*`, `c**`, `r`) is
+  retained and still guarded by the determinism suite.
+- **Favorites persist a stable slot key** instead of a class constructor name, so
+  minifying/renaming a pattern class can no longer invalidate a favorite; explicit
+  preset state comes from the controller. Legacy constructor-name favorites remain
+  load-compatible via slot aliases.
+- **Snapshot-based transitions**: `TransitionManager` now accepts a deep frame
+  snapshot and has no `Pattern` dependency — it never calls `Pattern.render()`.
+  `AnimationEngine` captures the raw pattern area immediately after its single
+  render call (before transitions, toasts, help, or status touch the buffer), and
+  blends the captured source into the already-rendered target. Enabling a
+  transition no longer advances the target pattern twice or consumes extra PRNG
+  values, and crossfade preserves terminal-default color definedness instead of
+  coercing missing colors to black. The reserved status row is excluded from
+  snapshots and transition writes. `AnimationEngine`'s fourth constructor argument
+  is now the injected `AnimationClock`.
+- **Exact final-frame dirty tracking in `Buffer`**: a single `cellsEqual()` helper
+  compares character plus foreground and background definedness/RGB, and the buffer
+  now snapshots the final base+overlay composition rather than only the base
+  animation frame. Overlay lookups use sparse per-row numeric maps instead of
+  string-coordinate keys, and cell inputs/results/snapshots clone colors to prevent
+  later caller mutation.
+- **PhotoPattern caches rendered cells**: the final immutable `Cell[][]` is cached
+  per source generation, resize generation, terminal size, and preset. Edge/dither
+  preprocessing and half-block/braille/symbol matching run only on a cold cache
+  build; warm frames perform a bounded reference blit with no per-frame RGB
+  cloning. Successful load, resize, size change, and every visually-significant
+  preset change invalidate the cache; theme changes do not. Layered rendering
+  reuses the same cache while preserving photo transparency and fg/bg semantics.
+- **`ConfigLoader` isolates configuration from defaults**: `createDefaultConfig()`
+  returns a structured clone for both Conf defaults and every load; mutable arrays
+  loaded from Conf are cloned before entering effective config. Defaults are now
+  deeply equal before and after any number of loads, and share fingerprints
+  correctly reflect non-default effective values.
+- **Config save failures are observable**: save operations report failure to the
+  command boundary, so a failed write produces an error result/toast rather than a
+  spurious success message.
+- Updated runtime dependencies to clear every `npm audit` advisory: `conf`
+  15.0.2 → 15.1.0 (pulling `ajv` 8.20.0), `sharp` 0.34.5 → 0.35.3 (inherited
+  libvips CVEs), and transitive `fast-uri` → 3.1.4 (host-confusion advisory).
+  Both `npm audit` and `npm audit --omit=dev` now report zero vulnerabilities,
+  which the new CI/release audit gates enforce.
+- Removed the deprecated duplicate `ts-jest` `globals` configuration from
+  `jest.config.mjs`, retaining the active ESM transform config in one place, and
+  applied the repository Prettier baseline so `npm run format:check` passes.
+- Share-code documentation no longer overstates collision resistance: the 13-bit
+  config fingerprint (8192 values) is described as a best-effort accidental-drift
+  detector, not an integrity check, and byte-for-byte replay is scoped to the same
+  application version, effective config, and frame schedule. Wire format stays v1.
+
+### Fixed
+
+- **Runtime state no longer diverges between direct keys and commands** (AUD-001):
+  a command-driven pattern/preset/theme change and the corresponding mouse target,
+  preset target, transition source, status/debug identity, and Shift+S share state
+  now always agree, including after theme and quality rebuilds.
+- **Share-code replay is deterministic across wall-clock origins** (AUD-003):
+  patterns use scene-relative time, every runtime `Date.now()` read was removed
+  from procedural interaction timing, and `OceanBeachPattern`'s previously unseeded
+  simplex noise was moved onto the injected PRNG. A registry-wide different-origin
+  replay test now compares complete cells (including background) for all 23
+  procedural patterns; pause/resume no longer causes a phase jump.
+- **Static photos no longer rerun the full pipeline every frame** (AUD-004): warm
+  symbol-mode frames dropped from ~15.7 ms to a bounded blit, bringing sustained
+  static-photo CPU back within the idle target.
+- **Async photo resize failures are contained** (AUD-010): background decode/resize
+  work routes through one deduplicating scheduler with a terminal rejection
+  handler; failures set `getMetrics().hasError`, retain the last valid frame, and
+  are not retried every frame — a later success clears the error. A `sharp` resize
+  rejection no longer crashes the application via the global unhandled-rejection
+  handler.
+- **Buffer dirty tracking** (AUD-006): a foreground change from explicit black to
+  terminal-default now emits a dirty cell, and clearing a static overlay restores
+  the underlying cell even when the base cell was unchanged.
+- **Resize during a transition no longer crashes** (AUD-007): a resize in either
+  direction cancels the transition and leaves the exact target frame intact.
+- **Transition lifecycle** (AUD-008): the old visual state is captured before the
+  outgoing pattern is reset, the target renders exactly once per frame, and
+  foreground/background photo cells survive wipe and dissolve.
+- **Workspace Focus preset** (AUD-009): focus selection excludes the root and
+  prefers the hottest visible file by own heat, falling back to a non-root
+  directory by normalized subtree heat, depth, then stable path order — so under a
+  constrained node budget a hot leaf's ancestor chain expands.
+- **Allocation-heavy config is bounded** (AUD-011): `WorkspaceModel` clamps invalid
+  half-lives and `TunnelPattern` defensively caps ring/particle/speed-line counts,
+  so no persisted count directly drives an unbounded allocation loop.
+- **Fake-timer teardown** (AUD-005): `CommandExecutor` shuffle cleanup runs before
+  Jest restores real timers, and real-timer CommandBuffer integration tests cancel
+  active buffers during teardown, clearing the eight failures and the open-handle
+  warning that made the suite red.
+- Native clipboard commands gained a configurable 1-second default timeout;
+  timed-out children receive `SIGTERM` and the next candidate is attempted, and
+  children cannot be settled twice.
+
+### Removed
+
+- Removed the unsupported compiled `SceneGraph`, `SpriteManager`,
+  `ParticleSystem`, and `EventBus` experimental modules, their central-only
+  types, and their characterization tests. These modules were never exported
+  from the package root or used by the active runtime, although unsupported
+  direct imports from `dist/` will no longer resolve. (Classified as legacy
+  experimental abstractions in
+  [docs/status/reports/2026-07-11-architecture-triage.md](docs/status/reports/2026-07-11-architecture-triage.md).)
+- Removed unused persistent-overlay storage and methods from `Buffer` and
+  `TerminalRenderer`; active status, toast, help, transition, and layered-photo
+  rendering continue through the ordinary final frame.
+- Removed EventBus emission from `AnimationEngine`, including `getEventBus()`
+  and the optional constructor parameter. The injected `AnimationClock` is now
+  the fourth constructor argument.
+
+## [0.5.0] - 2026-05-11 — "Shareable Scenes"
+
+Tracking doc: [docs/planning/v0.5.0-ROADMAP.md](docs/planning/v0.5.0-ROADMAP.md).
+
+Every pattern is now seeded by a constructor-injected PRNG so scenes can be reproduced byte-for-byte from a 12-character share code (`splash share` / `splash play <code>`) when the app version and effective config match. Includes the deterministic foundation (7a–7c), the encoder/decoder (7d), the CLI surface (7e), and an end-to-end determinism test suite (7f).
 
 ### Added
 
@@ -22,7 +238,7 @@ Every pattern is now seeded by a constructor-injected PRNG so scenes can be repr
   - Phase 7c batch 3 (`abdac12`): finish `AquariumPattern` (~20 internal sites left from 7b).
   - Phase 7c batch 4 (`123aefa`): `SnowPattern`, `SnowfallParkPattern`, `OceanBeachPattern`, `LightningPattern`, `NightSkyPattern`.
   - Phase 7c batch 5 (`9a32fa2`): `CampfirePattern`, `FireworksPattern`.
-- **Share-code encoder/decoder** (Phase 7d, `c4e4ae7`): `src/utils/shareCode.ts` — 12-character Crockford base32 (no I/L/O/U). 60-bit payload: `[v4][pat5][pre3][thm3][seed32][hash13]`. `ShareCodeError` with typed `kind: 'version' | 'length' | 'alphabet' | 'configHash'` for friendly diagnostics. `hashConfig()` is a 13-bit FNV-1a fingerprint of non-default config values, order-independent. `PROCEDURAL_PATTERN_IDS` frozen registry locks the on-the-wire `patternId` byte — appending a pattern is safe, reordering or renaming is a breaking change. Locked reference vector `2TTVTPVXVYNW` pins the format. +32 unit tests.
+- **Share-code encoder/decoder** (Phase 7d, `c4e4ae7`): `src/utils/shareCode.ts` — 12-character Crockford base32 (no I/L/O/U). 60-bit payload: `[v4][pat5][pre3][thm3][seed32][hash13]`. `ShareCodeError` provides typed structural, registry, and config-fingerprint diagnostics. `hashConfig()` is an order-independent 13-bit FNV-1a best-effort drift detector; its 8192-value space can collide and is not an integrity check. `PROCEDURAL_PATTERN_IDS` frozen registry locks the on-the-wire `patternId` byte — appending a pattern is safe, reordering or renaming is a breaking change. Locked reference vector `2TTVTPVXVYNW` pins the format. +32 unit tests.
 - **`splash share`** (Phase 7e, `6d57515`): prints a code for the would-be-initial-state (config defaults + a fresh random seed) and exits. No engine, no TTY required — usable in scripts and CI.
 - **`splash play <code>`** (Phase 7e): decodes + boots directly into the encoded scene; validates configHash against local config and refuses on mismatch (so cross-machine config drift fails loudly instead of silently playing a different scene). Malformed / version-skewed codes report cleanly even when stdout is piped.
 - **In-app `Shift+S`** (Phase 7e): encodes current state, copies to clipboard, toast shows the code. Refuses on Photo/Layered slots ("share codes are procedural-only"). Falls back to printing the code in the toast if no clipboard tool is available. Documented in the help overlay.

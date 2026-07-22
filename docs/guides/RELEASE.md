@@ -88,20 +88,23 @@ splash --version
 1. **Verify tag commit is on `main`** — refuses to publish from arbitrary branches.
 2. **Verify tag matches `package.json` version** — refuses if `v0.4.0` tag points at a commit whose `package.json` says `0.3.1`. Catches forgotten version bumps.
 3. **`npm ci`** with frozen lockfile.
-4. **`npx tsc --noEmit`** — type check.
-5. **`npm run build`** — compile to `dist/`.
-6. **`npm test`** — full Jest suite (2244 tests).
-7. **Tarball audit** — verifies only whitelisted paths (`dist/`, `examples/`, `package.json`, `README.md`, `LICENSE`, `CHANGELOG.md`) end up in the published tarball. Source-leak protection.
-8. **`npm publish --access public --provenance`** — uses `NPM_TOKEN` secret; publishes with provenance attestation.
-9. **Extract changelog section** for this version and create the GitHub Release with those notes.
+4. **`npm audit --omit=dev`** — block known runtime dependency advisories.
+5. **`npx tsc --noEmit`** — type check.
+6. **`npm run build`** — compile to `dist/`.
+7. **`npm test`** — full Jest suite (currently 2390 tests).
+8. **Tarball audit** — verifies only whitelisted paths (`dist/`, `examples/`, `package.json`, `README.md`, `LICENSE`, `CHANGELOG.md`) end up in the published tarball. Source-leak protection.
+9. **`npm publish --access public --provenance`** — uses `NPM_TOKEN` secret; publishes with provenance attestation.
+10. **Extract changelog section** for this version and create the GitHub Release with those notes.
 
 ## Continuous Integration (CI)
 
-The CI workflow (`.github/workflows/ci.yml`) runs automatically on every push and PR:
+The CI workflow (`.github/workflows/ci.yml`) is configured for pushes and pull
+requests targeting `main`/`develop`, plus a weekly schedule. Normal repository
+work is direct-to-main unless a branch or PR is explicitly requested:
 
-- ✅ Tests on Node 20
-- ✅ TypeScript compilation
-- ✅ Build verification
+- ✅ Node 20 runtime audit, build, typecheck, lint, format, and coverage
+- ✅ Codecov upload from the coverage run's `lcov.info`
+- ✅ Node 22 compatibility build and tests
 
 ## Troubleshooting
 
@@ -191,7 +194,8 @@ After release:
 
 ### `.github/workflows/ci.yml`
 
-Runs on every push and PR — typecheck, tests, build.
+Runs the complete Node 20 quality gate on `main` and Node 22 compatibility
+build/tests.
 
 ### `.github/workflows/release.yml`
 

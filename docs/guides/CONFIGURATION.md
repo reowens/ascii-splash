@@ -318,7 +318,7 @@ Save and load your favorite pattern + preset + theme combinations:
     },
     "9": {
       "pattern": "matrix",
-      "preset": 0,
+      "preset": 1,
       "theme": "matrix",
       "note": "Classic Matrix",
       "savedAt": "2025-11-04T11:00:00Z"
@@ -333,6 +333,16 @@ In the app:
 
 - **Save current setup**: Press `cF#` (where # is 1-9)
 - **Load favorite**: Press `cf#` (where # is 1-9)
+
+Favorites persist stable pattern keys such as `waves` and `matrix`. Older
+configuration files containing constructor names such as `WavePattern` remain
+load-compatible. The `preset` field is written only after a preset has been
+explicitly selected; omitting it preserves the pattern's config-derived
+baseline.
+
+Runtime-only slots (`photo`, `layered`, and `workspace`) are represented by
+their stable keys too. Loading one requires starting Splash with the matching
+runtime context first (`--photo`, `--photo --pattern`, or `watch --fixture`).
 
 ---
 
@@ -397,7 +407,10 @@ By design. Every other `*PatternConfig` in `~/.splashrc` is JSON-serializable, b
 | Random preset           | `c*`          |
 | Random pattern + preset | `c**`         |
 
-Saving a photo preset to a favorites slot (`cF1` … `cF9`) records the pattern + preset + theme triple, but **not** the image path — re-running with the same favorite still requires `--photo`.
+Saving a photo preset to a favorites slot (`cF1` … `cF9`) records the stable
+`photo` key, preset, and theme, but **not** the image path. Re-running with the
+same favorite still requires `--photo`; layered and workspace favorites
+similarly require their original CLI context.
 
 ### Phase 7 outlook
 

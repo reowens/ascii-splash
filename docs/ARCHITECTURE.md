@@ -142,33 +142,17 @@ Orchestrates the animation loop and system control:
 - Manages shuffle mode with configurable intervals
 - Shows success/error feedback messages
 
-**SceneGraph** (v0.3.0)
+**Legacy cleanup** (July 2026)
 
-- Hierarchical scene management with layers and transforms
-- Layer management with z-ordering (background, midground, foreground, UI)
-- Per-layer update/render cycles
-- Proper depth rendering for complex scene-based patterns
+The unused v0.3.0 `SceneGraph`, `SpriteManager`, `ParticleSystem`, and EventBus
+experiments were removed after package-surface review. Persistent Buffer
+overlays were removed at the same time. Scene-style patterns and their local
+particle behavior continue to render directly into `Cell[][]`; `LayeredPattern`
+composes sequentially; UI overlays write through the ordinary frame callback.
 
-**SpriteManager** (v0.3.0)
-
-- Sprite class with position, animation frames, physics
-- Batch updates for performance
-- Collision detection helpers
-- Used by scene-based patterns for animated elements (birds, fish, etc.)
-
-**ParticleSystem** (v0.3.0)
-
-- Configurable particle emitters with physics simulation
-- Emitter patterns: point, line, area
-- Force fields: gravity, wind, vortex
-- Particle pooling for performance
-- Used for sparks, bubbles, snow, smoke effects
-
-**EventBus** (v0.3.0)
-
-- Decoupled event system for inter-component communication
-- Supports one-time and persistent listeners
-- Auto-cleanup to prevent memory leaks
+These facilities were never supported package APIs. See the
+[July 2026 architecture triage](status/reports/2026-07-11-architecture-triage.md)
+for the evidence and compatibility assessment.
 
 ### 4. UI Layer (`src/ui/`) - v0.3.0
 
@@ -333,18 +317,22 @@ render(buffer, time, size, mousePos) {
 
 That's the entire compositor. Two sequential `render()` calls into the same `Cell[][]` — the buffer is cleared each frame by `AnimationEngine.update()`, so both layers paint from a clean slate.
 
-### Why no SceneGraph?
+### Why sequential composition?
 
-`SceneGraph` exists in `src/engine/SceneGraph.ts` (built in v0.3.0) but has zero production callers — even the v0.3.0 scene-based patterns (OceanBeach, Campfire, Aquarium, etc.) render manually. Phase 3 deliberately skipped adopting it:
+The v0.3.0 SceneGraph experiment never gained a production caller and was
+removed in July 2026. The active two-layer design remains deliberately small:
 
-- `SceneLayer.render(buffer, size)` lacks `time` and `mousePos`, so adapting `Pattern` to it would require a stateful adapter that ferries those inputs per frame — ~120 LOC of glue for the same observable behavior as the 30-LOC sequential render.
-- 2-layer composition by sequential render IS what z-ordering would do.
-- The engine, the 23 procedural patterns, and SceneGraph itself stay completely untouched.
-- A future 3+ layer scenario (e.g., photo background + overlay + foreground particles) can adopt SceneGraph then with a real driver.
+- Two sequential `render()` calls provide the required photo-then-overlay
+  ordering without adapters or extra frame storage.
+- The engine and all 23 procedural patterns remain independent of composition.
+- A future 3+ layer scenario should introduce only the smallest compositor its
+  measured requirements need.
 
 ### Transparency convention
 
-Inherited from `SpriteManager.render()` (`src/engine/SpriteManager.ts:138`): the space character is treated as transparent. The overlay leaves the photo visible at every cell where it doesn't write or where it would write `' '`.
+The space character is treated as transparent by convention. The overlay leaves
+the photo visible at every cell where it does not write or where it would write
+`' '`.
 
 - **Sparse overlays** (Matrix, Starfield, Lightning, Fireworks, Rain, Snow, DNA, Particles, Smoke, Snowfall, Quicksilver) only paint a small subset of cells — the photo shows through naturally, no flag needed.
 - **Dense overlays** (Plasma, Wave) paint every cell. They opt-in via `transparentBg: true` to skip writes at their background-color cells:
@@ -963,9 +951,7 @@ export class YourPattern implements Pattern {
   }
 
   getPresets?(): PatternPreset[] {
-    return [
-      /* 6 presets */
-    ];
+    return [/* 6 presets */];
   }
 
   applyPreset?(presetId: number): boolean {

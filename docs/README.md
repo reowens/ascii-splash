@@ -5,10 +5,11 @@ status: reference
 
 # Documentation Index
 
-> **📦 Released: v0.3.1 — Next-Generation Terminal Graphics, Published to npm** ✅
-> **🚧 In flight: v0.4.0 Phases 1 + 2** on `feature/v0.4.0-phase1-photo-pattern`
+> **📦 Released: v0.5.0 — Shareable Scenes** ✅
+> **🚧 Active: workspace visualization Phase A visual-quality gate**
 >
-> 23 procedural patterns + optional `PhotoPattern` (12 photo presets via `--photo`), scene-based architecture, **2197 tests** passing (92%+ coverage). v0.4.0 adds `HalfBlockRenderer`, `BrailleRenderer`, dither + edge utilities, and a 24th pattern that renders any image at 2× / 8× resolution.
+> 23 procedural patterns, 138 procedural presets, 18 photo presets, seeded share
+> codes, and **2390 tests** passing with 94.56% statement coverage.
 
 Welcome to **ascii-splash** documentation. Choose your path based on your role:
 
@@ -37,7 +38,7 @@ Welcome to **ascii-splash** documentation. Choose your path based on your role:
 - 🔧 **[Issue Tracking](issues/README.md)** - Bug reports, testing checklists, issue organization
 - 📈 **[Planning & Roadmap](planning/)** - Enhancement proposals, future features
   - **[Enhancement Proposals](planning/enhancement-proposals/)** - Fireworks, visual media, etc.
-  - **[Roadmap](planning/README.md)** - v0.3.0+ planned features
+  - **[Roadmap](planning/README.md)** - Current and released plans
 
 ### Historical Reference
 
@@ -167,7 +168,8 @@ npm run test:coverage  # Coverage report
 - Quicksilver, Particle, Metaball - Interactive
 - LavaLamp, Smoke, Snow - Ambient
 - Ocean Beach, Campfire, Aquarium, Night Sky, Snowfall Park - Scene-based (v0.3.0)
-- Photo - Image-driven, half-block + braille modes (v0.4.0+, opt-in via `--photo PATH`)
+- Photo - Half-block, braille, and symbol modes (opt-in via `--photo PATH`)
+- Workspace - Fixture-driven Phase A view via `splash watch --fixture PATH`
 
 ### Commands (in-app)
 
@@ -209,5 +211,5 @@ npm run test:coverage  # Coverage report
 
 ---
 
-**Last Updated**: May 9, 2026 (v0.4.0 Phases 1 + 2 done on branch; awaiting review)
+**Last Updated**: July 11, 2026 (v0.5.0 released; workspace Phase A tested)
 **Organization Status**: ✅ Consolidated, Reorganized, and Ready

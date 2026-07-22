@@ -14,7 +14,7 @@
 
 **ascii-splash** is a lightweight terminal ASCII animation application that displays interactive animated patterns in a terminal window. Designed for IDE workspaces as an ambient visual effect.
 
-**Key Stats** (released v0.4.0, May 10, 2026):
+**Key Stats** (v0.5.0 plus workspace-viz Phase A, verified July 11, 2026):
 
 - **23 interactive procedural patterns** with full theme support (including 5 scene-based patterns)
 - **+ optional `PhotoPattern`** (24th slot, loaded only when `--photo <path>` is supplied) with **18 photo presets** across half-block / braille / symbol render modes
@@ -22,7 +22,8 @@
 - **138 procedural presets** (6 per pattern) + 18 photo presets
 - **5 color themes** (Ocean, Matrix, Starlight, Fire, Monochrome)
 - **40+ commands** via multi-key command system
-- **2244 tests** with 92%+ coverage (2097 in v0.3.0; +147 from v0.4.0 Phases 1–4)
+- **2390 tests across 70 suites**; coverage: 94.56% statements, 87.24% branches,
+  94.56% functions, 95.14% lines
 - **Performance**: <5% CPU, ~40-50MB RAM
 - **Target**: Node.js 20+
 
@@ -33,7 +34,9 @@
 - **Phase 3 shipped**: `LayeredPattern` composes a `PhotoPattern` background with a procedural overlay (`splash --photo bg.jpg --pattern starfield`). Plasma + Wave gained an opt-in `transparentBg` flag for dense-pattern compositing; sparse patterns (Matrix, Starfield, Lightning, …) compose naturally. Adds a `'layered'` slot displayed as `Photo + <Overlay>`. Bonus: latent Phase 1 theme-cycle crash fixed via a `buildPatterns()` helper that re-attaches the photo on every theme rebuild.
 - **Phase 4 shipped**: chafa-style symbol matcher. `SymbolRenderer` picks, per 8×8 source patch, the bitmap whose lit/unlit partition best separates the patch into two color clusters (squared-color error). 34 hand-authored bitmaps across `TAG_ASCII | TAG_BLOCK | TAG_QUADRANT | TAG_SHADE`. Three-step tiebreaker (err → fg luminance → litCount) makes the choice between visually-equivalent bit-complement symbols deterministic. Adds `mode: 'symbol'` to `PhotoPattern` with an 8× source canvas and 6 new presets (ids 13–18) covering all-tags / ASCII-only / block-only / high-contrast / grayscale combos. 18 photo presets total.
 - Release infra: `release.yml` does CI-side `npm publish --provenance` gated on tarball audit + tag-on-main + tag-matches-package.json. `npm version <bump>` fires `preversion` (test + typecheck) and `postversion` (push main + tag, watch CI, reinstall global) — one-command releases.
-- Phases 5–9 planned: Kitty/iTerm2/Sixel pass-through, color-mask sprites, seeded PRNG + share codes, asciinema export.
+- Seeded PRNG + share codes shipped in v0.5.0. Kitty/iTerm2/Sixel
+  pass-through, color-mask sprites, asciinema export, and GIF export remain
+  deferred.
 - Full plan: [docs/planning/v0.4.0-ROADMAP.md](docs/planning/v0.4.0-ROADMAP.md).
 
 **Tech Stack**:
@@ -94,10 +97,7 @@ splash/
 │   │   ├── CommandBuffer.ts     # Multi-key input accumulation
 │   │   ├── CommandParser.ts     # Parse command strings
 │   │   ├── CommandExecutor.ts   # Execute parsed commands
-│   │   ├── SceneGraph.ts        # Hierarchical scene management (v0.3.0)
-│   │   ├── SpriteManager.ts     # Sprite pooling & animation (v0.3.0)
-│   │   ├── ParticleSystem.ts    # Particle emitters & physics (v0.3.0)
-│   │   └── EventBus.ts          # Decoupled event system (v0.3.0)
+│   │   └── RuntimeController.ts # Authoritative runtime scene state
 │   │
 │   ├── ui/                      # UI components (v0.3.0)
 │   │   ├── StatusBar.ts         # Bottom status bar
@@ -140,9 +140,9 @@ splash/
 │           ├── WorkspaceVizPattern.ts # Disposable view (Pattern interface)
 │           └── fixture.ts         # Schema-versioned fixture parser (pure)
 │
-├── tests/                        # Jest test suites (2244 tests)
+├── tests/                        # Jest test suites (2390 tests across 70 suites)
 │   ├── unit/patterns/           # Pattern tests (23 + optional Photo)
-│   ├── unit/engine/             # SceneGraph, SpriteManager, ParticleSystem
+│   ├── unit/engine/             # Animation, timing, commands, runtime state
 │   ├── unit/ui/                 # StatusBar, ToastManager, HelpOverlay
 │   ├── unit/renderer/           # Buffer, HalfBlockRenderer, BrailleRenderer, TransitionManager
 │   └── unit/utils/              # math, noise, drawing, dither, edges, validation
@@ -325,16 +325,18 @@ interface Theme {
 
 ## Current Status (AI Awareness)
 
-**Released**: v0.5.0 — "Shareable Scenes" ✅ **STABLE RELEASE** (2026-05-11, tag `v0.5.0`). Seeded PRNG + 12-char Crockford base32 share codes (`splash share` / `splash play <code>` / in-app `Shift+S`). Every pattern on injected `Random` (zero `Math.random()` in `src/patterns/`), encoder/decoder with version-prefix + 13-bit FNV-1a config fingerprint, determinism suite with byte-for-byte replay canaries. 2317 tests. See [docs/planning/v0.5.0-ROADMAP.md](docs/planning/v0.5.0-ROADMAP.md).
+**Released**: v0.5.0 — "Shareable Scenes" ✅ **STABLE RELEASE** (2026-05-11, tag `v0.5.0`). Seeded PRNG + 12-char Crockford base32 share codes (`splash share` / `splash play <code>` / in-app `Shift+S`). Every pattern on injected `Random` (zero `Math.random()` in `src/patterns/`), encoder/decoder with version-prefix + 13-bit FNV-1a config fingerprint, determinism suite with byte-for-byte replay canaries. Current post-cleanup baseline: 2390 tests. See [docs/planning/v0.5.0-ROADMAP.md](docs/planning/v0.5.0-ROADMAP.md).
 **Previous**: v0.4.0 — "Photos in the Terminal" (2026-05-10)
-**In progress**: workspace-viz ("`splash watch`") **Phase A — model + static render**, source landed on `main` (2026-07-03), unit tests pending. Proposal: [docs/planning/enhancement-proposals/WORKSPACE_VIZ.md](docs/planning/enhancement-proposals/WORKSPACE_VIZ.md). Shipped so far:
+**In progress**: workspace-viz ("`splash watch`") **Phase A — model + static render**, source and comprehensive unit/lifecycle coverage landed on `main`. The 80×24 visual-quality gate remains before Phase B live watching begins. Proposal: [docs/planning/enhancement-proposals/WORKSPACE_VIZ.md](docs/planning/enhancement-proposals/WORKSPACE_VIZ.md). Shipped so far:
 
 - `src/patterns/workspace/` — `WorkspaceModel` (persistent session state: tree, lazy heat decay via decayed-counter subtree aggregates, LOD visible-tree under a hard node budget, model-time epoch), `RadialLayout` (Gource-style angular sectors, log-scaled weights, stable sibling order), `Camera` (damped pan/zoom, cell-aspect correction, lives on the model), `WorkspaceVizPattern` (disposable view: eased node glides, heat/extension-driven glyphs + theme-aware colors, hot labels, presets 1–3 radial/focus/minimal-mono), `fixture.ts` (schema-v1 pure parser).
 - Lifecycle contract honored: the model is created once in `main.ts` and survives theme rebuilds + pattern switches; `buildPatterns()` constructs a fresh view per rebuild; `reset()` clears view transients only; no `Date.now()`/`Math.random()` in the pattern.
 - CLI: `splash watch --fixture tests/fixtures/tree-medium.json` (live watching lands in Phase B). New `ConfigSchema.patterns.workspaceViz` + defaults; the slot is appended like the photo slot (absent in plain `splash`, `seeds.push(0)`, not share-code encodable).
 - Fixtures: `tests/fixtures/tree-small.json` (14 files), `tree-medium.json` (105 files, warm billing-flow working set).
 
-**Next**: Phase A test suites (~55: model/layout/camera/fixture/pattern lifecycle), visual tuning at 80×24 (the kill/pivot gate), then Phase B (live FS events via chokidar). After workspace-viz: remaining v0.4 roadmap phases (Kitty/iTerm2/Sixel, color-mask sprites, asciinema export, GIF export).
+**Next**: visual tuning at 80×24 (the kill/pivot gate), then Phase B live
+filesystem events if accepted. After workspace-viz: deferred native graphics,
+color-mask sprite, asciinema, and GIF ideas.
 
 **v0.3.0 (released)**:
 
@@ -344,7 +346,7 @@ interface Theme {
 - ✅ Configuration system
 - ✅ Favorites & shuffle mode
 - ✅ 2097 tests, **92%+ coverage**
-- ✅ **Scene-based Architecture** - SceneGraph, SpriteManager, ParticleSystem
+- ✅ **Scene-style patterns** - production patterns render directly to Cell[][]
 - ✅ **UI Components** - StatusBar, ToastManager, HelpOverlay, TransitionManager
 - ✅ Published to npm (v0.3.0: Dec 25, 2025)
 
@@ -352,7 +354,7 @@ interface Theme {
 
 - 5 new scene-based patterns: Ocean Beach, Campfire, Aquarium, Night Sky, Snowfall Park
 - Enhanced Metaball Playground with physics simulation modes
-- SceneGraph architecture for hierarchical rendering
+- Experimental scene/sprite/particle primitives (not adopted by production patterns)
 - New UI components integrated throughout
 
 **v0.4.0 progress** (see [docs/planning/v0.4.0-ROADMAP.md](docs/planning/v0.4.0-ROADMAP.md)):
@@ -420,12 +422,13 @@ npm run test:coverage # Coverage report
 **Test Organization**:
 
 - `tests/unit/patterns/`: Pattern-specific tests (23 patterns + optional Photo)
-- `tests/unit/engine/`: Engine tests (AnimationEngine, PerformanceMonitor, SceneGraph, SpriteManager, ParticleSystem)
+- `tests/unit/engine/`: Engine tests (AnimationEngine, AnimationClock, RuntimeController, PerformanceMonitor, commands)
 - `tests/unit/config/`: Configuration tests (ConfigLoader, defaults)
 - `tests/unit/renderer/`: Renderer, Buffer & TransitionManager tests
 - `tests/unit/ui/`: UI component tests (StatusBar, ToastManager, HelpOverlay)
 
-**Coverage**: 92%+ (2244 tests)
+**Coverage**: 2390 tests; 94.56% statements, 87.24% branches, 94.56%
+functions, 95.14% lines
 
 ---
 
@@ -520,6 +523,7 @@ npm run test:coverage # Coverage report
 
 ---
 
-**Last Updated**: July 3, 2026 (workspace-viz Phase A source landed on main — WorkspaceModel/RadialLayout/Camera/WorkspaceVizPattern/fixtures + `splash watch --fixture` CLI. All 2317 existing tests green; Phase A unit tests are the next task.)
+**Last Updated**: July 12, 2026 (legacy experimental primitives removed;
+workspace-viz Phase A source/tests green; 2390 tests; 80×24 visual gate next.)
 **For**: AI Assistant navigation and project context
 **Human Readers**: Please see [README.md](README.md) instead

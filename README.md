@@ -15,7 +15,7 @@ Transform your terminal into a mesmerizing visual experience with **23 interacti
 - 🎨 **23 Interactive Patterns** - Waves, Starfield, Matrix, Rain, Quicksilver, Particles, Spiral, Plasma, Tunnel, Lightning, Fireworks, Life, Maze, DNA, Lava Lamp, Smoke, Snow, Ocean Beach, Campfire, Aquarium, Night Sky, Snowfall Park, Metaball Playground
 - 🎯 **138 Total Presets** - 6 carefully crafted variations for each pattern
 - 🌈 **5 Color Themes** - Ocean, Matrix, Starlight, Fire, Monochrome (all patterns adapt)
-- 🔗 **Shareable Scenes (v0.5.0+)** - Press `Shift+S` to copy a 12-char share code; `splash play <code>` reproduces the scene byte-for-byte on any machine
+- 🔗 **Shareable Scenes (v0.5.0+)** - Press `Shift+S` to copy a 12-char share code; `splash play <code>` reproduces the scene byte-for-byte with the same app version and effective config
 - ⌨️ **Advanced Command System** - Multi-key commands for quick pattern/preset/theme switching
 - 💾 **Favorites System** - Save and recall your favorite combinations
 - 🔀 **Shuffle Mode** - Auto-cycle presets or entire configurations
@@ -197,10 +197,10 @@ splash -h
 
 **Subcommands (v0.5.0+):**
 
-| Subcommand           | Description                                                                               |
-| -------------------- | ----------------------------------------------------------------------------------------- |
-| `splash share`       | Print a 12-character share code for the bootstrapped state and exit. No TTY required.     |
-| `splash play <code>` | Decode a share code and boot directly into the encoded scene (byte-for-byte reproducible) |
+| Subcommand           | Description                                                                                                   |
+| -------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `splash share`       | Print a 12-character share code for the bootstrapped state and exit. No TTY required.                         |
+| `splash play <code>` | Decode a share code and boot into the encoded scene (reproducible with the same version and effective config) |
 
 ### 📸 Photo Mode (v0.4.0+, on `feature/v0.4.0-phase1-photo-pattern`)
 
@@ -259,7 +259,7 @@ Cycle presets at runtime with `.` / `,`, or jump directly with `c13` (preset 13)
 
 ### 🔗 Share Codes (v0.5.0+, on `feature/v0.5.0-phase7-share-codes`)
 
-Every procedural pattern is now deterministic — the random seed that drives a scene can be captured in a 12-character code and replayed on any machine, byte-for-byte.
+Every procedural pattern is now deterministic — the random seed that drives a scene can be captured in a 12-character code and replayed byte-for-byte with the same ascii-splash version, effective pattern config, and frame schedule.
 
 **Three entry points:**
 
@@ -276,7 +276,7 @@ Every procedural pattern is now deterministic — the random seed that drives a 
 $ splash share
 2N9KT7VBQX3M
 
-# In another, play it back — byte-for-byte identical animation
+# In another, play it back with the same version/config
 $ splash play 2N9KT7VBQX3M
 ```
 
@@ -288,13 +288,14 @@ $ splash play 2N9KT7VBQX3M
 - Preset (1–6)
 - Theme (ocean / matrix / starlight / fire / monochrome)
 - PRNG seed (u32 — the actual scene state)
-- 13-bit fingerprint of your non-default pattern config (so a code generated on a machine with custom settings won't silently produce a different scene on yours)
+- 13-bit fingerprint of your non-default pattern config. This is a best-effort drift check with 8192 possible values: it catches most accidental mismatches, but collisions are possible and it is not an integrity or security check.
 
 **Errors:**
 
 - `Share code is version N, but this build only understands v1` — upgrade ascii-splash to play a code from a newer release.
 - `Share code must be 12 characters` — code was truncated or has extra characters.
 - `Invalid character "X" in share code` — typo, or a char outside Crockford base32.
+- `Share code references unsupported preset/theme/pattern` — the code contains a structurally valid value that this build cannot run; upgrade ascii-splash or request a new code.
 - `This share code was made with different settings for "pattern"` — your local config has overrides that would change the scene. Use the default config to play this code, or ask the sender to share their config too.
 
 ## 📝 Configuration File
