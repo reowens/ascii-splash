@@ -1,22 +1,17 @@
-/**
- * TransitionManager - Smooth transitions between patterns
- *
- * Supports crossfade, dissolve, and instant transitions
- */
+/** Snapshot-based transitions between already-rendered pattern frames. */
 
-import type { Cell, Color, Size, Point, Pattern } from '../types/index.js';
+import type { Cell, Color, Size } from '../types/index.js';
 
 export type TransitionType = 'crossfade' | 'dissolve' | 'wipe-left' | 'wipe-right' | 'instant';
 
 export interface TransitionConfig {
   type: TransitionType;
-  duration: number; // milliseconds
+  duration: number;
   easing: EasingFunction;
 }
 
 export type EasingFunction = (t: number) => number;
 
-// Built-in easing functions
 export const Easing = {
   linear: (t: number): number => t,
   easeInQuad: (t: number): number => t * t,
@@ -29,261 +24,189 @@ export const Easing = {
 };
 
 interface ActiveTransition {
-  fromPattern: Pattern;
-  toPattern: Pattern;
+  source: Cell[][];
+  size: Size;
   config: TransitionConfig;
   startTime: number;
-  fromBuffer: Cell[][];
-  toBuffer: Cell[][];
+}
+
+function cloneCell(cell: Cell | undefined): Cell {
+  if (!cell) return { char: ' ' };
+  const clone: Cell = { char: cell.char };
+  if (cell.color !== undefined) clone.color = { ...cell.color };
+  if (cell.bg !== undefined) clone.bg = { ...cell.bg };
+  return clone;
+}
+
+function cloneFrame(frame: readonly (readonly Cell[])[]): Cell[][] {
+  return frame.map(row => row.map(cell => cloneCell(cell)));
+}
+
+function frameSize(frame: readonly (readonly Cell[])[]): Size {
+  return { width: frame[0]?.length ?? 0, height: frame.length };
 }
 
 export class TransitionManager {
   private activeTransition: ActiveTransition | null = null;
   private defaultConfig: TransitionConfig = {
     type: 'crossfade',
-    duration: 500, // 500ms default
+    duration: 500,
     easing: Easing.easeOutQuad,
   };
 
-  /**
-   * Start a transition between two patterns
-   */
-  start(
-    fromPattern: Pattern,
-    toPattern: Pattern,
-    size: Size,
-    config?: Partial<TransitionConfig>
-  ): void {
+  /** Start from an immutable copy of the last raw pattern frame. */
+  start(sourceFrame: readonly (readonly Cell[])[], config?: Partial<TransitionConfig>): void {
     const finalConfig = { ...this.defaultConfig, ...config };
-
-    // For instant transitions, don't set up a transition at all
-    if (finalConfig.type === 'instant' || finalConfig.duration <= 0) {
+    const size = frameSize(sourceFrame);
+    if (
+      finalConfig.type === 'instant' ||
+      finalConfig.duration <= 0 ||
+      size.width === 0 ||
+      size.height === 0
+    ) {
       this.activeTransition = null;
       return;
     }
 
-    // Create buffers for both patterns
-    const fromBuffer = this.createBuffer(size);
-    const toBuffer = this.createBuffer(size);
-
     this.activeTransition = {
-      fromPattern,
-      toPattern,
+      source: cloneFrame(sourceFrame),
+      size,
       config: finalConfig,
       startTime: Date.now(),
-      fromBuffer,
-      toBuffer,
     };
   }
 
-  /**
-   * Check if a transition is currently active
-   */
   isActive(): boolean {
     return this.activeTransition !== null;
   }
 
-  /**
-   * Get the current progress (0-1)
-   */
   getProgress(): number {
     if (!this.activeTransition) return 1;
     const elapsed = Date.now() - this.activeTransition.startTime;
-    return Math.min(1, elapsed / this.activeTransition.config.duration);
+    return Math.min(1, Math.max(0, elapsed / this.activeTransition.config.duration));
   }
 
-  /**
-   * Cancel the current transition
-   */
   cancel(): void {
     this.activeTransition = null;
   }
 
-  /**
-   * Set the default transition configuration
-   */
   setDefaultConfig(config: Partial<TransitionConfig>): void {
     this.defaultConfig = { ...this.defaultConfig, ...config };
   }
 
   /**
-   * Render the transition to the buffer
-   * Returns true if transition is still active, false if complete
+   * Blend the source snapshot over the already-rendered target frame in place.
+   * A size change cancels the short transition and leaves the target untouched.
    */
-  render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): boolean {
-    if (!this.activeTransition) return false;
+  render(target: Cell[][], time: number, size: Size): boolean {
+    const active = this.activeTransition;
+    if (!active) return false;
 
-    const { fromPattern, toPattern, config, startTime, fromBuffer, toBuffer } =
-      this.activeTransition;
-    const elapsed = time - startTime;
-    const rawProgress = Math.min(1, elapsed / config.duration);
-    const easedProgress = config.easing(rawProgress);
-
-    // Resize buffers if needed
     if (
-      fromBuffer.length !== size.height ||
-      (fromBuffer[0] && fromBuffer[0].length !== size.width)
+      size.width !== active.size.width ||
+      size.height !== active.size.height ||
+      target.length < size.height ||
+      (size.height > 0 && target[0]?.length < size.width)
     ) {
-      this.activeTransition.fromBuffer = this.createBuffer(size);
-      this.activeTransition.toBuffer = this.createBuffer(size);
+      this.activeTransition = null;
+      return false;
     }
 
-    // Clear and render both patterns to their buffers
-    this.clearBuffer(fromBuffer, size);
-    this.clearBuffer(toBuffer, size);
-    fromPattern.render(fromBuffer, time, size, mousePos);
-    toPattern.render(toBuffer, time, size, mousePos);
-
-    // Blend based on transition type
-    this.blend(buffer, fromBuffer, toBuffer, easedProgress, config.type, size);
-
-    // Check if transition is complete
+    const elapsed = time - active.startTime;
+    const rawProgress = Math.min(1, Math.max(0, elapsed / active.config.duration));
     if (rawProgress >= 1) {
       this.activeTransition = null;
       return false;
     }
 
+    const progress = active.config.easing(rawProgress);
+    switch (active.config.type) {
+      case 'crossfade':
+        this.crossfade(target, active.source, progress, size);
+        break;
+      case 'dissolve':
+        this.dissolve(target, active.source, progress, size);
+        break;
+      case 'wipe-left':
+        this.wipeHorizontal(target, active.source, progress, size, 'left');
+        break;
+      case 'wipe-right':
+        this.wipeHorizontal(target, active.source, progress, size, 'right');
+        break;
+      default:
+        this.activeTransition = null;
+        return false;
+    }
     return true;
   }
 
-  private blend(
-    output: Cell[][],
-    from: Cell[][],
-    to: Cell[][],
-    progress: number,
-    type: TransitionType,
-    size: Size
-  ): void {
-    switch (type) {
-      case 'crossfade':
-        this.crossfade(output, from, to, progress, size);
-        break;
-      case 'dissolve':
-        this.dissolve(output, from, to, progress, size);
-        break;
-      case 'wipe-left':
-        this.wipeHorizontal(output, from, to, progress, size, 'left');
-        break;
-      case 'wipe-right':
-        this.wipeHorizontal(output, from, to, progress, size, 'right');
-        break;
-      default:
-        // Instant - just copy the target
-        this.copyBuffer(output, to, size);
-    }
-  }
-
-  private crossfade(
-    output: Cell[][],
-    from: Cell[][],
-    to: Cell[][],
-    progress: number,
-    size: Size
-  ): void {
-    for (let y = 0; y < size.height && y < output.length; y++) {
-      for (let x = 0; x < size.width && x < output[y].length; x++) {
-        const fromCell = from[y]?.[x] ?? { char: ' ' };
-        const toCell = to[y]?.[x] ?? { char: ' ' };
-
-        // Blend colors
-        const blendedColor = this.blendColors(
-          fromCell.color ?? { r: 0, g: 0, b: 0 },
-          toCell.color ?? { r: 0, g: 0, b: 0 },
-          progress
-        );
-
-        // Use character from whichever pattern is "winning"
-        const char = progress < 0.5 ? fromCell.char : toCell.char;
-
-        output[y][x] = { char, color: blendedColor };
+  private crossfade(target: Cell[][], source: Cell[][], progress: number, size: Size): void {
+    for (let y = 0; y < size.height; y++) {
+      for (let x = 0; x < size.width; x++) {
+        const fromCell = source[y][x];
+        const toCell = target[y][x];
+        const result: Cell = {
+          char: progress < 0.5 ? fromCell.char : toCell.char,
+        };
+        const color = this.transitionColor(fromCell.color, toCell.color, progress);
+        const bg = this.transitionColor(fromCell.bg, toCell.bg, progress);
+        if (color !== undefined) result.color = color;
+        if (bg !== undefined) result.bg = bg;
+        target[y][x] = result;
       }
     }
   }
 
-  private dissolve(
-    output: Cell[][],
-    from: Cell[][],
-    to: Cell[][],
-    progress: number,
-    size: Size
-  ): void {
-    // Use a pseudo-random pattern based on position
-    for (let y = 0; y < size.height && y < output.length; y++) {
-      for (let x = 0; x < size.width && x < output[y].length; x++) {
-        // Simple hash for pseudo-random
+  private dissolve(target: Cell[][], source: Cell[][], progress: number, size: Size): void {
+    const threshold = progress * 1000;
+    for (let y = 0; y < size.height; y++) {
+      for (let x = 0; x < size.width; x++) {
         const hash = ((x * 7919) ^ (y * 6971)) % 1000;
-        const threshold = progress * 1000;
-
-        if (hash < threshold) {
-          output[y][x] = to[y]?.[x] ?? { char: ' ' };
-        } else {
-          output[y][x] = from[y]?.[x] ?? { char: ' ' };
-        }
+        target[y][x] = cloneCell(hash < threshold ? target[y][x] : source[y][x]);
       }
     }
   }
 
   private wipeHorizontal(
-    output: Cell[][],
-    from: Cell[][],
-    to: Cell[][],
+    target: Cell[][],
+    source: Cell[][],
     progress: number,
     size: Size,
     direction: 'left' | 'right'
   ): void {
     const wipeX = Math.floor(size.width * progress);
-
-    for (let y = 0; y < size.height && y < output.length; y++) {
-      for (let x = 0; x < size.width && x < output[y].length; x++) {
-        const showTo = direction === 'left' ? x < wipeX : x >= size.width - wipeX;
-        output[y][x] = showTo ? (to[y]?.[x] ?? { char: ' ' }) : (from[y]?.[x] ?? { char: ' ' });
-      }
-    }
-  }
-
-  private blendColors(from: Color, to: Color, progress: number): Color {
-    return {
-      r: Math.round(from.r * (1 - progress) + to.r * progress),
-      g: Math.round(from.g * (1 - progress) + to.g * progress),
-      b: Math.round(from.b * (1 - progress) + to.b * progress),
-    };
-  }
-
-  private createBuffer(size: Size): Cell[][] {
-    const buffer: Cell[][] = [];
     for (let y = 0; y < size.height; y++) {
-      buffer[y] = [];
       for (let x = 0; x < size.width; x++) {
-        buffer[y][x] = { char: ' ' };
-      }
-    }
-    return buffer;
-  }
-
-  private clearBuffer(buffer: Cell[][], size: Size): void {
-    for (let y = 0; y < size.height && y < buffer.length; y++) {
-      for (let x = 0; x < size.width && x < buffer[y].length; x++) {
-        buffer[y][x] = { char: ' ' };
+        const showTarget = direction === 'left' ? x < wipeX : x >= size.width - wipeX;
+        target[y][x] = cloneCell(showTarget ? target[y][x] : source[y][x]);
       }
     }
   }
 
-  private copyBuffer(output: Cell[][], source: Cell[][], size: Size): void {
-    for (let y = 0; y < size.height && y < output.length; y++) {
-      for (let x = 0; x < size.width && x < output[y].length; x++) {
-        output[y][x] = source[y]?.[x] ?? { char: ' ' };
-      }
+  private transitionColor(
+    source: Color | undefined,
+    target: Color | undefined,
+    progress: number
+  ): Color | undefined {
+    if (source !== undefined && target !== undefined) {
+      return {
+        r: Math.round(source.r * (1 - progress) + target.r * progress),
+        g: Math.round(source.g * (1 - progress) + target.g * progress),
+        b: Math.round(source.b * (1 - progress) + target.b * progress),
+      };
     }
+    return cloneColor(progress < 0.5 ? source : target);
   }
 }
 
-// Singleton instance
+function cloneColor(color: Color | undefined): Color | undefined {
+  return color === undefined ? undefined : { ...color };
+}
+
 let transitionManager: TransitionManager | null = null;
 
 export function getTransitionManager(): TransitionManager {
-  if (!transitionManager) {
-    transitionManager = new TransitionManager();
-  }
+  if (!transitionManager) transitionManager = new TransitionManager();
   return transitionManager;
 }
 

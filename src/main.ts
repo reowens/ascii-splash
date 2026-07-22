@@ -5,73 +5,57 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { TerminalRenderer } from './renderer/TerminalRenderer.js';
 import { AnimationEngine } from './engine/AnimationEngine.js';
-import { WavePattern } from './patterns/WavePattern.js';
-import { StarfieldPattern } from './patterns/StarfieldPattern.js';
-import { MatrixPattern } from './patterns/MatrixPattern.js';
-import { RainPattern } from './patterns/RainPattern.js';
-import { QuicksilverPattern } from './patterns/QuicksilverPattern.js';
-import { ParticlePattern } from './patterns/ParticlePattern.js';
-import { SpiralPattern } from './patterns/SpiralPattern.js';
-import { PlasmaPattern } from './patterns/PlasmaPattern.js';
-import { TunnelPattern } from './patterns/TunnelPattern.js';
-import { LightningPattern } from './patterns/LightningPattern.js';
-import { FireworksPattern } from './patterns/FireworksPattern.js';
-import { MazePattern } from './patterns/MazePattern.js';
-import { LifePattern } from './patterns/LifePattern.js';
-import { DNAPattern } from './patterns/DNAPattern.js';
-import { LavaLampPattern } from './patterns/LavaLampPattern.js';
-import { SmokePattern } from './patterns/SmokePattern.js';
-import { SnowPattern } from './patterns/SnowPattern.js';
-import { OceanBeachPattern } from './patterns/OceanBeachPattern.js';
-import { CampfirePattern } from './patterns/CampfirePattern.js';
-import { NightSkyPattern } from './patterns/NightSkyPattern.js';
-import { AquariumPattern } from './patterns/AquariumPattern.js';
-import { SnowfallParkPattern } from './patterns/SnowfallParkPattern.js';
-import { MetaballPattern } from './patterns/MetaballPattern.js';
 import { PhotoPattern } from './patterns/PhotoPattern.js';
-import { LayeredPattern } from './patterns/LayeredPattern.js';
 import { WorkspaceModel } from './patterns/workspace/WorkspaceModel.js';
-import {
-  WorkspaceVizPattern,
-  type WorkspaceVizConfig,
-} from './patterns/workspace/WorkspaceVizPattern.js';
+import { buildPatternSlots, PROCEDURAL_PATTERN_DEFINITIONS } from './patterns/PatternCatalog.js';
 import { parseWorkspaceFixture } from './patterns/workspace/fixture.js';
-import { Pattern, CliOptions, QualityPreset, ConfigSchema, Theme } from './types/index.js';
+import { CliOptions, QualityPreset, ConfigSchema, Theme } from './types/index.js';
 import { ConfigLoader } from './config/ConfigLoader.js';
 import { defaultConfig } from './config/defaults.js';
-import { getTheme, getNextThemeName } from './config/themes.js';
+import { getTheme, THEME_NAMES } from './config/themes.js';
 import { CommandBuffer } from './engine/CommandBuffer.js';
 import { CommandParser } from './engine/CommandParser.js';
 import { CommandExecutor } from './engine/CommandExecutor.js';
+import { RuntimeController } from './engine/RuntimeController.js';
 import { getStatusBar } from './ui/StatusBar.js';
 import { getToastManager } from './ui/ToastManager.js';
 import { getHelpOverlay } from './ui/HelpOverlay.js';
-import { Mulberry32, randomSeed } from './utils/random.js';
+import { randomSeed } from './utils/random.js';
 import {
-  PROCEDURAL_PATTERN_IDS,
   encodeShareCode,
   decodeShareCode,
   hashConfig,
   patternIdByName,
   patternNameById,
   ShareCodeError,
+  validateShareState,
+  type ShareCodeRegistry,
   type ShareState,
 } from './utils/shareCode.js';
 import { copyToClipboard, ClipboardError } from './utils/clipboard.js';
 import { getTransitionManager } from './renderer/TransitionManager.js';
+import {
+  assertInteractiveTTY,
+  createIdempotentCleanup,
+  createTerminalResource,
+  toCliOptions,
+  type ParsedCli,
+} from './cli/bootstrap.js';
+import { isPauseKey } from './cli/keyBindings.js';
 
 const term = terminalKit.terminal;
 
-/**
- * Result of parsing CLI args. `mode` discriminates the three top-level
- * actions: normal interactive run, `splash share` (print a code + exit),
- * and `splash play <code>` (boot directly into the encoded state).
- */
-type ParsedCli =
-  | { mode: 'run'; options: CliOptions }
-  | { mode: 'share'; options: CliOptions }
-  | { mode: 'play'; options: CliOptions; code: string }
-  | { mode: 'watch'; options: CliOptions; watchPath?: string; fixture?: string };
+const SHARE_CODE_REGISTRY: ShareCodeRegistry = Object.freeze({
+  patterns: Object.freeze(
+    PROCEDURAL_PATTERN_DEFINITIONS.map(definition =>
+      Object.freeze({
+        key: definition.key,
+        presetIds: Object.freeze(definition.getPresets().map(preset => preset.id)),
+      })
+    )
+  ),
+  themes: Object.freeze([...THEME_NAMES]),
+});
 
 /**
  * Parse command line arguments
@@ -167,35 +151,17 @@ function parseCliArguments(): ParsedCli {
       subcommand.fixture = cmdOpts.fixture;
     });
 
+  // Commander shows help when a program has subcommands but no root action.
+  // Keep the historical `splash` default as the interactive runtime.
+  program.action(() => {
+    subcommand.mode = 'run';
+  });
+
   program.parse();
   const options = program.opts();
 
   // Validate pattern if provided
-  const validPatterns = [
-    'waves',
-    'starfield',
-    'matrix',
-    'rain',
-    'quicksilver',
-    'particles',
-    'spiral',
-    'plasma',
-    'tunnel',
-    'lightning',
-    'fireworks',
-    'maze',
-    'life',
-    'dna',
-    'lavalamp',
-    'smoke',
-    'snow',
-    'oceanbeach',
-    'campfire',
-    'nightsky',
-    'aquarium',
-    'snowfallpark',
-    'metaball',
-  ];
+  const validPatterns = PROCEDURAL_PATTERN_DEFINITIONS.map(definition => definition.key);
   if (options.pattern && !validPatterns.includes(options.pattern.toLowerCase())) {
     program.error(
       `Invalid pattern: ${options.pattern}\nValid patterns: ${validPatterns.join(', ')}`
@@ -210,14 +176,7 @@ function parseCliArguments(): ParsedCli {
     );
   }
 
-  const opts: CliOptions = {
-    pattern: options.pattern?.toLowerCase(),
-    quality: options.quality?.toLowerCase() as QualityPreset,
-    fps: options.fps,
-    theme: options.theme?.toLowerCase(),
-    mouse: options.mouse,
-    photo: options.photo,
-  };
+  const opts = toCliOptions(options);
   if (subcommand.mode === 'play' && subcommand.code) {
     return { mode: 'play', options: opts, code: subcommand.code };
   }
@@ -322,9 +281,8 @@ function runShareCommand(opts: CliOptions): never {
     process.exit(1);
   }
 
-  const themeNames = ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'];
   const themeName = (opts.theme ?? cfg.theme ?? 'ocean').toLowerCase();
-  const themeId = Math.max(0, themeNames.indexOf(themeName));
+  const themeId = Math.max(0, THEME_NAMES.indexOf(themeName));
 
   const state: ShareState = {
     patternId,
@@ -333,24 +291,11 @@ function runShareCommand(opts: CliOptions): never {
     seed: randomSeed(),
     configHash: computeConfigHash(patternName, cfg),
   };
-  const code = encodeShareCode(state);
+  const code = encodeShareCode(
+    validateShareState(state, SHARE_CODE_REGISTRY, name => computeConfigHash(name, cfg))
+  );
   process.stdout.write(`${code}\n`);
   process.exit(0);
-}
-
-/**
- * Check if running in a TTY environment
- * Exits with error if not interactive
- */
-function checkTTY(): void {
-  if (!process.stdout.isTTY) {
-    console.error('Error: ascii-splash requires an interactive terminal (TTY)');
-    console.error('It cannot be run via pipe, redirect, or non-interactive environments.');
-    console.error('');
-    console.error('Usage: splash [options]');
-    console.error('Try: splash --help');
-    process.exit(1);
-  }
 }
 
 async function main() {
@@ -379,7 +324,9 @@ async function main() {
   let playState: ShareState | null = null;
   if (parsed.mode === 'play') {
     try {
-      playState = decodeShareCode(parsed.code);
+      playState = validateShareState(decodeShareCode(parsed.code), SHARE_CODE_REGISTRY, name =>
+        computeConfigHash(name, config)
+      );
     } catch (err) {
       if (err instanceof ShareCodeError) {
         console.error(`Error: ${err.message}`);
@@ -392,25 +339,11 @@ async function main() {
     }
     const decodedName = patternNameById(playState.patternId);
     if (!decodedName) {
-      console.error(
-        `Error: share code references patternId ${String(playState.patternId)}, which this build doesn't recognise. Upgrade ascii-splash.`
-      );
+      console.error('Error: validated share code lost its runtime pattern mapping.');
       process.exit(1);
     }
-    // Validate config fingerprint *before* swapping defaults so the
-    // diagnostic message names the pattern in question.
-    const localHash = computeConfigHash(decodedName, config);
-    if (localHash !== playState.configHash) {
-      console.error(
-        `Error: this share code was made with different settings for "${decodedName}" ` +
-          `(local config fingerprint 0x${localHash.toString(16)}, code expects 0x${playState.configHash.toString(16)}). ` +
-          `Replay would diverge — refusing.`
-      );
-      process.exit(1);
-    }
-    const themeNames = ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'];
     config.defaultPattern = decodedName;
-    config.theme = themeNames[playState.themeId] ?? config.theme;
+    config.theme = THEME_NAMES[playState.themeId];
   }
 
   // workspace-viz Phase A: `splash watch --fixture <file>` builds the
@@ -443,353 +376,69 @@ async function main() {
 
   // Check TTY *after* play-code validation so malformed codes get a
   // friendly diagnostic even when stdout is piped.
-  checkTTY();
+  assertInteractiveTTY(process.stdout.isTTY);
 
   // Determine mouse enabled state from config
   const mouseEnabled = config.mouseEnabled !== false;
 
   // Create renderer with mouse setting
-  const renderer = new TerminalRenderer(mouseEnabled);
+  const renderer = createTerminalResource(
+    () => new TerminalRenderer(mouseEnabled),
+    cleanup => {
+      // Install cleanup immediately after entering fullscreen. Any later
+      // initialization failure is caught by the top-level bootstrap.
+      cleanupHandler = cleanup;
+    }
+  );
 
   // Current quality setting
-  let currentQuality: QualityPreset = config.quality || 'medium';
-
-  // Quality-based FPS presets (used when quality changes)
-  const qualityFpsPresets = {
-    low: 15,
-    medium: 30,
-    high: 60,
-  };
+  const initialQuality: QualityPreset = config.quality || 'medium';
 
   // Load theme from config
-  let currentTheme: Theme = getTheme(config.theme);
-
-  // Create patterns with configuration
-  let patterns: Pattern[] = [];
+  const initialTheme: Theme = getTheme(config.theme);
 
   // v0.4.0 Phase 1+3: photo + optional layered scene. These references
-  // outlive the patterns array so theme-cycle rebuilds can re-attach them.
+  // outlive rebuilt catalogs so theme changes can re-attach them.
   let photoPattern: PhotoPattern | null = null;
   const layeredOverlayName: string | null =
     cliOptions.photo && cliOptions.pattern ? cliOptions.pattern : null;
-
-  /**
-   * Build the 23 procedural patterns. Returns parallel `patterns` and
-   * `seeds` arrays — `seeds[i]` is the u32 used to construct `patterns[i]`
-   * (or 0 for WavePattern, which is purely math-based and takes no
-   * Random). `seedOverride` lets `splash play <code>` reproduce a scene
-   * by replacing the random seed for one slot; every other slot still
-   * gets a fresh random seed (they're not the active pattern).
-   */
-  function createPatternsFromConfig(
-    cfg: ConfigSchema,
-    theme: Theme,
-    seedOverride?: { patternIdx: number; seed: number }
-  ): { patterns: Pattern[]; seeds: number[] } {
-    const seeds: number[] = new Array<number>(PROCEDURAL_PATTERN_IDS.length).fill(0);
-    function rng(idx: number): Mulberry32 {
-      const s = seedOverride?.patternIdx === idx ? seedOverride.seed : randomSeed();
-      seeds[idx] = s;
-      return new Mulberry32(s);
-    }
-    const list: Pattern[] = [
-      new WavePattern(theme, {
-        layers: cfg.patterns?.waves?.layers,
-        amplitude: cfg.patterns?.waves?.amplitude,
-        speed: cfg.patterns?.waves?.speed,
-        frequency: cfg.patterns?.waves?.frequency,
-      }),
-      new StarfieldPattern(theme, rng(1), {
-        starCount: cfg.patterns?.starfield?.starCount,
-        speed: cfg.patterns?.starfield?.speed,
-      }),
-      new MatrixPattern(theme, rng(2), {
-        density: cfg.patterns?.matrix?.columnDensity,
-        speed: cfg.patterns?.matrix?.speed,
-      }),
-      new RainPattern(theme, rng(3), {
-        density: cfg.patterns?.rain?.dropCount ? cfg.patterns.rain.dropCount / 500 : undefined,
-        speed: cfg.patterns?.rain?.speed,
-      }),
-      new QuicksilverPattern(theme, rng(4), {
-        speed: cfg.patterns?.quicksilver?.speed,
-        flowIntensity: cfg.patterns?.quicksilver?.viscosity,
-        noiseScale: 0.05,
-      }),
-      new ParticlePattern(theme, rng(5), {
-        particleCount: cfg.patterns?.particles?.particleCount,
-        speed: cfg.patterns?.particles?.speed,
-        gravity: cfg.patterns?.particles?.gravity,
-        mouseForce: cfg.patterns?.particles?.mouseForce,
-        spawnRate: cfg.patterns?.particles?.spawnRate,
-      }),
-      new SpiralPattern(theme, rng(6), {
-        armCount: cfg.patterns?.spiral?.armCount,
-        particleCount: cfg.patterns?.spiral?.particleCount,
-        spiralTightness: cfg.patterns?.spiral?.spiralTightness,
-        rotationSpeed: cfg.patterns?.spiral?.rotationSpeed,
-        particleSpeed: cfg.patterns?.spiral?.particleSpeed,
-        trailLength: cfg.patterns?.spiral?.trailLength,
-        direction: cfg.patterns?.spiral?.direction,
-        pulseEffect: cfg.patterns?.spiral?.pulseEffect,
-      }),
-      new PlasmaPattern(theme, rng(7), {
-        frequency: cfg.patterns?.plasma?.frequency,
-        speed: cfg.patterns?.plasma?.speed,
-        complexity: cfg.patterns?.plasma?.complexity,
-      }),
-      new TunnelPattern(theme, rng(8), {
-        shape: cfg.patterns?.tunnel?.shape,
-        ringCount: cfg.patterns?.tunnel?.ringCount,
-        speed: cfg.patterns?.tunnel?.speed,
-        particleCount: cfg.patterns?.tunnel?.particleCount,
-        speedLineCount: cfg.patterns?.tunnel?.speedLineCount,
-        turbulence: cfg.patterns?.tunnel?.turbulence,
-        glowIntensity: cfg.patterns?.tunnel?.glowIntensity,
-        chromatic: cfg.patterns?.tunnel?.chromatic,
-        rotationSpeed: cfg.patterns?.tunnel?.rotationSpeed,
-        radius: cfg.patterns?.tunnel?.radius,
-      }),
-      new LightningPattern(theme, rng(9), {
-        branchProbability: cfg.patterns?.lightning?.branchProbability,
-        fadeTime: cfg.patterns?.lightning?.fadeTime,
-        strikeInterval: cfg.patterns?.lightning?.strikeInterval,
-        mainPathJaggedness: cfg.patterns?.lightning?.mainPathJaggedness,
-        branchSpread: cfg.patterns?.lightning?.branchSpread,
-      }),
-      new FireworksPattern(theme, rng(10), {
-        burstSize: cfg.patterns?.fireworks?.burstSize,
-        launchSpeed: cfg.patterns?.fireworks?.launchSpeed,
-        gravity: cfg.patterns?.fireworks?.gravity,
-        fadeRate: cfg.patterns?.fireworks?.fadeRate,
-        spawnInterval: cfg.patterns?.fireworks?.spawnInterval,
-        trailLength: cfg.patterns?.fireworks?.trailLength,
-      }),
-      new MazePattern(theme, rng(11), {
-        algorithm: cfg.patterns?.maze?.algorithm,
-        cellSize: cfg.patterns?.maze?.cellSize,
-        generationSpeed: cfg.patterns?.maze?.generationSpeed,
-        wallChar: cfg.patterns?.maze?.wallChar,
-        pathChar: cfg.patterns?.maze?.pathChar,
-        animateGeneration: cfg.patterns?.maze?.animateGeneration,
-      }),
-      new LifePattern(theme, rng(12), {
-        cellSize: cfg.patterns?.life?.cellSize,
-        updateSpeed: cfg.patterns?.life?.updateSpeed,
-        wrapEdges: cfg.patterns?.life?.wrapEdges,
-        aliveChar: cfg.patterns?.life?.aliveChar,
-        deadChar: cfg.patterns?.life?.deadChar,
-        randomDensity: cfg.patterns?.life?.randomDensity,
-        initialPattern: cfg.patterns?.life?.initialPattern,
-      }),
-      new DNAPattern(theme, rng(13), {
-        rotationSpeed: cfg.patterns?.dna?.rotationSpeed,
-        helixRadius: cfg.patterns?.dna?.helixRadius,
-        basePairDensity: cfg.patterns?.dna?.basePairSpacing
-          ? 1 / cfg.patterns.dna.basePairSpacing
-          : undefined,
-        twistRate: cfg.patterns?.dna?.twistRate,
-        showLabels: true,
-      }),
-      new LavaLampPattern(theme, rng(14), {
-        blobCount: cfg.patterns?.lavaLamp?.blobCount,
-        minRadius: cfg.patterns?.lavaLamp?.minRadius,
-        maxRadius: cfg.patterns?.lavaLamp?.maxRadius,
-        riseSpeed: cfg.patterns?.lavaLamp?.riseSpeed,
-        driftSpeed: cfg.patterns?.lavaLamp?.driftSpeed,
-        threshold: cfg.patterns?.lavaLamp?.threshold,
-        mouseForce: cfg.patterns?.lavaLamp?.mouseForce,
-        turbulence: cfg.patterns?.lavaLamp?.turbulence,
-        gravity: cfg.patterns?.lavaLamp?.gravity,
-      }),
-      new SmokePattern(theme, rng(15), {
-        plumeCount: cfg.patterns?.smoke?.plumeCount,
-        particleCount: cfg.patterns?.smoke?.particleCount,
-        riseSpeed: cfg.patterns?.smoke?.riseSpeed,
-        dissipationRate: cfg.patterns?.smoke?.dissipationRate,
-        turbulence: cfg.patterns?.smoke?.turbulence,
-        spread: cfg.patterns?.smoke?.spread,
-        windStrength: cfg.patterns?.smoke?.windStrength,
-        mouseBlowForce: cfg.patterns?.smoke?.mouseBlowForce,
-      }),
-      new SnowPattern(theme, rng(16), {
-        particleCount: cfg.patterns?.snow?.particleCount,
-        fallSpeed: cfg.patterns?.snow?.fallSpeed,
-        windStrength: cfg.patterns?.snow?.windStrength,
-        turbulence: cfg.patterns?.snow?.turbulence,
-        rotationSpeed: cfg.patterns?.snow?.rotationSpeed,
-        particleType: cfg.patterns?.snow?.particleType,
-        accumulation: cfg.patterns?.snow?.accumulation,
-        mouseWindForce: cfg.patterns?.snow?.mouseWindForce,
-      }),
-      new OceanBeachPattern(theme, rng(17), {}),
-      new CampfirePattern(theme, rng(18), {}),
-      new NightSkyPattern(theme, rng(19), {}),
-      new AquariumPattern(theme, rng(20), {}),
-      new SnowfallParkPattern(theme, rng(21), {}),
-      new MetaballPattern(theme, rng(22), {}),
-    ];
-    return { patterns: list, seeds };
-  }
-
-  /**
-   * v0.4.0 Phase 3: build the procedural overlay used inside a
-   * {@link LayeredPattern}. Dense patterns (Wave, Plasma) need a fresh
-   * instance with `transparentBg: true` so the photo shows through. Sparse
-   * patterns (Matrix, Starfield, Lightning, …) don't paint background
-   * cells — the standalone instance composes naturally.
-   */
-  function makeLayeredOverlay(
-    name: string,
-    cfg: ConfigSchema,
-    theme: Theme,
-    fallback: Pattern
-  ): Pattern {
-    if (name === 'waves') {
-      return new WavePattern(theme, {
-        layers: cfg.patterns?.waves?.layers,
-        amplitude: cfg.patterns?.waves?.amplitude,
-        speed: cfg.patterns?.waves?.speed,
-        frequency: cfg.patterns?.waves?.frequency,
-        transparentBg: true,
-      });
-    }
-    if (name === 'plasma') {
-      return new PlasmaPattern(theme, new Mulberry32(randomSeed()), {
-        frequency: cfg.patterns?.plasma?.frequency,
-        speed: cfg.patterns?.plasma?.speed,
-        complexity: cfg.patterns?.plasma?.complexity,
-        transparentBg: true,
-      });
-    }
-    return fallback;
-  }
-
-  /**
-   * v0.4.0: wraps {@link createPatternsFromConfig} to re-attach the loaded
-   * PhotoPattern + a {@link LayeredPattern} slot on every theme rebuild.
-   * Without this, cycling themes while on the photo or layered slot would
-   * leave `patterns[currentPatternIndex]` undefined.
-   */
-  function buildPatterns(
-    cfg: ConfigSchema,
-    theme: Theme,
-    seedOverride?: { patternIdx: number; seed: number }
-  ): { patterns: Pattern[]; seeds: number[] } {
-    const { patterns: list, seeds } = createPatternsFromConfig(cfg, theme, seedOverride);
-    if (photoPattern) {
-      list.push(photoPattern);
-      seeds.push(0); // photo slot is not encodable in share codes
-      if (layeredOverlayName) {
-        const overlayIdx = patternNames.indexOf(layeredOverlayName);
-        if (overlayIdx >= 0) {
-          const overlay = makeLayeredOverlay(layeredOverlayName, cfg, theme, list[overlayIdx]);
-          list.push(new LayeredPattern(photoPattern, overlay));
-          seeds.push(0); // layered slot is not encodable either
-        }
-      }
-    }
-    if (workspaceModel) {
-      // A fresh disposable view over the persistent model on every
-      // rebuild — the lifecycle contract from the workspace-viz proposal.
-      const wv = cfg.patterns?.workspaceViz;
-      const viewConfig: Partial<WorkspaceVizConfig> = {};
-      if (wv?.nodeBudget !== undefined) viewConfig.nodeBudget = wv.nodeBudget;
-      if (wv?.showLabels !== undefined) viewConfig.showLabels = wv.showLabels;
-      list.push(
-        new WorkspaceVizPattern(workspaceModel, theme, new Mulberry32(randomSeed()), viewConfig)
-      );
-      seeds.push(0); // workspace slot is not encodable in share codes
-    }
-    return { patterns: list, seeds };
-  }
-
-  let patternSeeds: number[];
-  // Inject the decoded seed for the played pattern; every other slot
-  // still gets a fresh random seed (they aren't the active scene).
-  const initialSeedOverride = playState
-    ? { patternIdx: playState.patternId, seed: playState.seed }
-    : undefined;
-  ({ patterns, seeds: patternSeeds } = createPatternsFromConfig(
-    config,
-    currentTheme,
-    initialSeedOverride
-  ));
-
-  // Pattern names mapping (internal names). Sourced from the share-code
-  // registry so the on-the-wire patternId byte stays in sync with the
-  // runtime index. PhotoPattern + LayeredPattern slots may be appended
-  // below when --photo is supplied.
-  const patternNames: string[] = [...PROCEDURAL_PATTERN_IDS];
-
-  // Pattern display names for user-facing messages
-  const patternDisplayNames: Record<string, string> = {
-    waves: 'Waves',
-    starfield: 'Starfield',
-    matrix: 'Matrix',
-    rain: 'Rain',
-    quicksilver: 'Quicksilver',
-    particles: 'Particles',
-    spiral: 'Spiral',
-    plasma: 'Plasma',
-    tunnel: 'Tunnel',
-    lightning: 'Lightning',
-    fireworks: 'Fireworks',
-    maze: 'Maze',
-    life: 'Life',
-    dna: 'DNA',
-    lavalamp: 'Lava Lamp',
-    smoke: 'Smoke',
-    snow: 'Snow',
-    oceanbeach: 'Ocean Beach',
-    campfire: 'Campfire',
-    nightsky: 'Night Sky',
-    aquarium: 'Aquarium',
-    snowfallpark: 'Snowfall Park',
-    metaball: 'Metaball',
-    photo: 'Photo',
-  };
 
   // v0.4.0 Phase 1: optional PhotoPattern when --photo <path> is supplied.
   // Decoded once up front so the first frame doesn't ship a blank screen.
   // v0.4.0 Phase 3: when --pattern is also supplied, build a LayeredPattern
   // slot that composes the photo with the chosen procedural overlay.
   if (cliOptions.photo) {
-    photoPattern = new PhotoPattern(currentTheme, { source: cliOptions.photo });
+    photoPattern = new PhotoPattern(initialTheme, { source: cliOptions.photo });
     try {
       await photoPattern.load();
       await photoPattern.prepareForSize(renderer.getSize());
     } catch (err) {
-      renderer.cleanup();
-      console.error(
-        `Error: failed to load --photo "${cliOptions.photo}": ${err instanceof Error ? err.message : String(err)}`
+      throw new Error(
+        `failed to load --photo "${cliOptions.photo}": ${err instanceof Error ? err.message : String(err)}`
       );
-      process.exit(1);
     }
-    patternNames.push('photo');
-    if (layeredOverlayName) {
-      patternNames.push('layered');
-      const overlayDisplay = patternDisplayNames[layeredOverlayName] ?? layeredOverlayName;
-      patternDisplayNames.layered = `Photo + ${overlayDisplay}`;
-    }
-    // Rebuild now that photoPattern + layered slot are available.
-    ({ patterns, seeds: patternSeeds } = buildPatterns(config, currentTheme));
   }
 
-  // workspace-viz Phase A: append the workspace slot (present only in
-  // watch mode — plain `splash` loads no workspace code path).
-  if (workspaceModel) {
-    patternNames.push('workspace');
-    patternDisplayNames.workspace = 'Workspace';
-    ({ patterns, seeds: patternSeeds } = buildPatterns(config, currentTheme));
-  }
+  // Inject the decoded seed for the played pattern; every other procedural
+  // slot still gets a fresh random seed because it is not the active scene.
+  const initialPatternName = playState ? patternNameById(playState.patternId) : undefined;
+  const initialSeedOverrides =
+    playState && initialPatternName ? new Map([[initialPatternName, playState.seed]]) : undefined;
+  const patternSlots = buildPatternSlots({
+    config,
+    theme: initialTheme,
+    seedOverrides: initialSeedOverrides,
+    photoPattern,
+    layeredOverlayKey: layeredOverlayName,
+    workspaceModel,
+  });
 
   // Determine starting pattern from config
-  let currentPatternIndex = 0;
+  let initialPatternIndex = 0;
   if (config.defaultPattern) {
-    const index = patternNames.indexOf(config.defaultPattern);
+    const index = patternSlots.findIndex(slot => slot.key === config.defaultPattern);
     if (index >= 0) {
-      currentPatternIndex = index;
+      initialPatternIndex = index;
     }
   }
 
@@ -797,17 +446,17 @@ async function main() {
   // immediately. With --photo + --pattern, start in the layered slot.
   if (cliOptions.photo) {
     const targetName = layeredOverlayName ? 'layered' : 'photo';
-    const targetIdx = patternNames.indexOf(targetName);
+    const targetIdx = patternSlots.findIndex(slot => slot.key === targetName);
     if (targetIdx >= 0) {
-      currentPatternIndex = targetIdx;
+      initialPatternIndex = targetIdx;
     }
   }
 
   // `splash watch` starts on the workspace slot — that's the whole point.
   if (workspaceModel) {
-    const workspaceIdx = patternNames.indexOf('workspace');
+    const workspaceIdx = patternSlots.findIndex(slot => slot.key === 'workspace');
     if (workspaceIdx >= 0) {
-      currentPatternIndex = workspaceIdx;
+      initialPatternIndex = workspaceIdx;
     }
   }
 
@@ -820,15 +469,18 @@ async function main() {
   const initialFps = ConfigLoader.getFpsFromConfig(config);
 
   // Create animation engine with selected pattern and FPS
-  const engine = new AnimationEngine(renderer, patterns[currentPatternIndex], initialFps);
+  const engine = new AnimationEngine(
+    renderer,
+    patternSlots[initialPatternIndex].pattern,
+    initialFps
+  );
 
   // Initialize StatusBar with initial state
   const statusBar = getStatusBar();
   statusBar.update({
-    patternName:
-      patternDisplayNames[patternNames[currentPatternIndex]] || patternNames[currentPatternIndex],
-    presetNumber: 1,
-    themeName: currentTheme.displayName,
+    patternName: patternSlots[initialPatternIndex].displayName,
+    presetNumber: playState?.presetId ?? 1,
+    themeName: initialTheme.displayName,
     fps: initialFps,
     shuffleMode: 'off',
     paused: false,
@@ -847,35 +499,44 @@ async function main() {
   // Initialize command system
   const commandBuffer = new CommandBuffer();
   const commandParser = new CommandParser();
-  let currentThemeIndex = ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'].indexOf(
-    currentTheme.name
+  const initialThemeIndex = ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'].indexOf(
+    initialTheme.name
   );
-  const commandExecutor = new CommandExecutor(
+  const themes = [
+    getTheme('ocean'),
+    getTheme('matrix'),
+    getTheme('starlight'),
+    getTheme('fire'),
+    getTheme('monochrome'),
+  ];
+  const runtime = new RuntimeController({
     engine,
-    patterns,
-    Object.values({
-      ocean: getTheme('ocean'),
-      matrix: getTheme('matrix'),
-      starlight: getTheme('starlight'),
-      fire: getTheme('fire'),
-      monochrome: getTheme('monochrome'),
-    }),
-    currentPatternIndex,
-    currentThemeIndex,
-    configLoader // Pass ConfigLoader for favorites support
-  );
-
-  // Set up theme change callback for command executor
-  commandExecutor.setThemeChangeCallback((themeIndex: number) => {
-    const themeNames = ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'];
-    currentTheme = getTheme(themeNames[themeIndex]);
-    currentThemeIndex = themeIndex;
-    ({ patterns, seeds: patternSeeds } = buildPatterns(config, currentTheme));
-    engine.setPattern(patterns[currentPatternIndex]);
-    commandExecutor.updateState(currentPatternIndex, currentThemeIndex);
-    // Update status bar
-    statusBar.update({ themeName: currentTheme.displayName });
+    themes,
+    initialSlots: patternSlots,
+    initialPatternIndex,
+    initialThemeIndex,
+    initialPresetId: playState?.presetId ?? 1,
+    initialPresetApplied: Boolean(playState && playState.presetId !== 1),
+    initialQuality,
+    rebuildSlots: (theme, priorSeeds) =>
+      buildPatternSlots({
+        config,
+        theme,
+        priorSeeds,
+        photoPattern,
+        layeredOverlayKey: layeredOverlayName,
+        workspaceModel,
+      }),
+    beforePatternSwitch: () => {
+      isPatternSwitching = true;
+      const sourceFrame = engine.getLastPatternFrame();
+      if (sourceFrame) transitionManager.start(sourceFrame);
+      setTimeout(() => {
+        isPatternSwitching = false;
+      }, 16);
+    },
   });
+  const commandExecutor = new CommandExecutor(runtime, configLoader);
 
   // Command result message state (tracked for cleanup timing)
   const _commandResultTimeout: NodeJS.Timeout | null = null;
@@ -886,85 +547,38 @@ async function main() {
   let patternBufferTimeout: NodeJS.Timeout | null = null;
   const patternBufferTimeoutMs = 5000; // 5 seconds
 
-  // Preset tracking state (for cycling presets)
-  let currentPresetIndex = 1; // Default to preset 1 (1-6)
-
-  // Apply the decoded preset for `splash play <code>`. Done after engine
-  // setup so the pattern instance exists; the engine picks up the new
-  // state on its next frame.
-  if (playState && playState.presetId !== 1) {
-    patterns[currentPatternIndex].applyPreset?.(playState.presetId);
-    currentPresetIndex = playState.presetId;
-    statusBar.update({ presetNumber: currentPresetIndex });
-  }
+  const unsubscribeRuntime = runtime.subscribe(event => {
+    const state = event.current;
+    statusBar.update({
+      patternName: state.patternDisplayName,
+      presetNumber: state.presetId,
+      themeName: state.themeDisplayName,
+      fps: state.fps,
+    });
+    if (event.kind === 'pattern' || event.kind === 'scene') {
+      showPatternName(state.patternKey);
+    }
+  });
 
   function switchPattern(index: number) {
-    if (index >= 0 && index < patterns.length && index !== currentPatternIndex) {
-      isPatternSwitching = true; // Set flag to prevent overlay rendering during switch
-      const oldPattern = patterns[currentPatternIndex];
-      currentPatternIndex = index;
-      currentPresetIndex = 1; // Reset to preset 1 when switching patterns
-      const newPattern = patterns[currentPatternIndex];
-
-      // Start smooth transition between patterns
-      const size = renderer.getSize();
-      transitionManager.start(oldPattern, newPattern, size);
-
-      engine.setPattern(newPattern);
-      commandExecutor.updateState(currentPatternIndex, currentThemeIndex);
-
-      // Update status bar
-      const displayName =
-        patternDisplayNames[patternNames[currentPatternIndex]] || patternNames[currentPatternIndex];
-      statusBar.update({
-        patternName: displayName,
-        presetNumber: currentPresetIndex,
-      });
-      showPatternName(newPattern.name);
-
-      // Clear flag after short delay to allow screen clear to complete
-      setTimeout(() => {
-        isPatternSwitching = false;
-      }, 16); // One frame at 60fps
-    }
+    runtime.switchPattern(index);
   }
 
   function setQuality(quality: QualityPreset) {
-    currentQuality = quality;
-
-    // Update config with new quality
     config.quality = quality;
-    ({ patterns, seeds: patternSeeds } = buildPatterns(config, currentTheme));
-    engine.setFps(qualityFpsPresets[quality]);
-    engine.setPattern(patterns[currentPatternIndex]);
-
-    // Update status bar with new FPS
-    statusBar.update({ fps: qualityFpsPresets[quality] });
+    runtime.setQuality(quality);
 
     const qualityNames = { low: 'LOW (15 FPS)', medium: 'MEDIUM (30 FPS)', high: 'HIGH (60 FPS)' };
     showMessage(`Quality: ${qualityNames[quality]}`);
   }
 
   function cycleTheme() {
-    const nextThemeName = getNextThemeName(currentTheme.name);
-    currentTheme = getTheme(nextThemeName);
-    currentThemeIndex = ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'].indexOf(
-      currentTheme.name
-    );
-
-    // Recreate patterns with new theme
-    ({ patterns, seeds: patternSeeds } = buildPatterns(config, currentTheme));
-    engine.setPattern(patterns[currentPatternIndex]);
-    commandExecutor.updateState(currentPatternIndex, currentThemeIndex);
-
-    // Update status bar with new theme
-    statusBar.update({ themeName: currentTheme.displayName });
-
-    showMessage(`Theme: ${currentTheme.displayName}`);
+    const result = runtime.cycleTheme();
+    showMessage(`Theme: ${result.snapshot.themeDisplayName}`);
   }
 
   function showPatternName(name: string) {
-    const displayName = patternDisplayNames[name] || name;
+    const displayName = runtime.getSlots().find(slot => slot.key === name)?.displayName ?? name;
     toastManager.info(`Pattern: ${displayName}`, 2000);
   }
 
@@ -989,7 +603,8 @@ async function main() {
     const metrics = engine.getPerformanceMonitor().getMetrics();
     const stats = engine.getPerformanceMonitor().getStats();
     const size = renderer.getSize();
-    const currentPattern = patterns[currentPatternIndex];
+    const currentPattern = runtime.getCurrentPattern();
+    const runtimeState = runtime.getSnapshot();
     const bufferSafety = engine.getBufferSafety();
     const errorsByPattern = bufferSafety.getErrorsByPattern();
     const totalErrors = Object.values(errorsByPattern).reduce((sum, count) => sum + count, 0);
@@ -998,8 +613,8 @@ async function main() {
       `PERFORMANCE DEBUG`,
       `────────────────────────────`,
       `Pattern: ${currentPattern.name}`,
-      `Theme: ${currentTheme.displayName}`,
-      `Quality: ${currentQuality.toUpperCase()}`,
+      `Theme: ${runtimeState.themeDisplayName}`,
+      `Quality: ${runtimeState.quality.toUpperCase()}`,
       `FPS: ${metrics.fps.toFixed(1)} / ${metrics.targetFps} (target)`,
       `Frame: ${metrics.frameTime.toFixed(2)}ms`,
       `Update: ${metrics.updateTime.toFixed(2)}ms`,
@@ -1174,8 +789,9 @@ async function main() {
 
     if (!input) {
       // Empty input = previous pattern
-      const nextIndex = currentPatternIndex - 1;
-      switchPattern(nextIndex < 0 ? patterns.length - 1 : nextIndex);
+      const state = runtime.getSnapshot();
+      const nextIndex = state.patternIndex - 1;
+      switchPattern(nextIndex < 0 ? state.patternCount - 1 : nextIndex);
       return;
     }
 
@@ -1190,20 +806,12 @@ async function main() {
           !isNaN(patternNum) &&
           !isNaN(presetNum) &&
           patternNum >= 1 &&
-          patternNum <= patterns.length
+          patternNum <= runtime.getSnapshot().patternCount
         ) {
           const patternIndex = patternNum - 1;
-          switchPattern(patternIndex);
-
-          // Apply preset
-          const pattern = patterns[patternIndex];
-          if (pattern.applyPreset && presetNum >= 1 && presetNum <= 6) {
-            if (pattern.applyPreset(presetNum)) {
-              const displayName = patternDisplayNames[pattern.name] || pattern.name;
-              showMessage(`${displayName} - Preset ${presetNum}`);
-            } else {
-              showMessage(`Invalid preset: ${presetNum}`);
-            }
+          const result = runtime.switchPattern(patternIndex, presetNum);
+          if (result.success) {
+            showMessage(`${result.snapshot.patternDisplayName} - Preset ${presetNum}`);
           } else {
             showMessage(`Invalid preset: ${presetNum}`);
           }
@@ -1214,23 +822,15 @@ async function main() {
 
     // Check if input is a number (pattern index)
     const patternNum = parseInt(input, 10);
-    if (!isNaN(patternNum) && patternNum >= 1 && patternNum <= patterns.length) {
+    if (!isNaN(patternNum) && patternNum >= 1 && patternNum <= runtime.getSnapshot().patternCount) {
       switchPattern(patternNum - 1);
       return;
     }
 
     // Check if input is a pattern name
-    const lowerInput = input.toLowerCase();
-    const patternIndex = patternNames.indexOf(lowerInput);
+    const patternIndex = runtime.findPattern(input);
     if (patternIndex >= 0) {
       switchPattern(patternIndex);
-      return;
-    }
-
-    // Partial name match
-    const partialMatch = patternNames.findIndex(name => name.startsWith(lowerInput));
-    if (partialMatch >= 0) {
-      switchPattern(partialMatch);
       return;
     }
 
@@ -1340,7 +940,7 @@ async function main() {
       commandBuffer.activate();
     }
     // Pause/Resume
-    else if (name === 'SPACE') {
+    else if (isPauseKey(name, data)) {
       engine.pause();
       statusBar.update({ paused: engine.isPaused() });
     }
@@ -1368,10 +968,12 @@ async function main() {
     }
     // Pattern selection - next/previous
     else if (name === 'n') {
-      switchPattern((currentPatternIndex + 1) % patterns.length);
+      const state = runtime.getSnapshot();
+      switchPattern((state.patternIndex + 1) % state.patternCount);
     } else if (name === 'b') {
       // Previous pattern (back)
-      const prevIndex = currentPatternIndex === 0 ? patterns.length - 1 : currentPatternIndex - 1;
+      const state = runtime.getSnapshot();
+      const prevIndex = state.patternIndex === 0 ? state.patternCount - 1 : state.patternIndex - 1;
       switchPattern(prevIndex);
     } else if (name === 'p') {
       // Activate pattern buffer mode
@@ -1379,44 +981,24 @@ async function main() {
     }
     // Preset cycling
     else if (name === '.') {
-      const currentPattern = patterns[currentPatternIndex];
-      if (currentPattern.applyPreset) {
-        // Cycle to next preset (1-6)
-        const nextPreset = (currentPresetIndex % 6) + 1;
-        if (currentPattern.applyPreset(nextPreset)) {
-          currentPresetIndex = nextPreset;
-          statusBar.update({ presetNumber: nextPreset });
-          const displayName =
-            patternDisplayNames[patternNames[currentPatternIndex]] ||
-            patternNames[currentPatternIndex];
-          showMessage(`${displayName} - Preset ${nextPreset}`);
-        }
+      const result = runtime.cyclePreset(1);
+      if (result.success) {
+        showMessage(`${result.snapshot.patternDisplayName} - Preset ${result.snapshot.presetId}`);
       }
     } else if (name === ',') {
-      const currentPattern = patterns[currentPatternIndex];
-      if (currentPattern.applyPreset) {
-        // Cycle to previous preset
-        const prevPreset = currentPresetIndex === 1 ? 6 : currentPresetIndex - 1;
-        if (currentPattern.applyPreset(prevPreset)) {
-          currentPresetIndex = prevPreset;
-          statusBar.update({ presetNumber: prevPreset });
-          const displayName =
-            patternDisplayNames[patternNames[currentPatternIndex]] ||
-            patternNames[currentPatternIndex];
-          showMessage(`${displayName} - Preset ${prevPreset}`);
-        }
+      const result = runtime.cyclePreset(-1);
+      if (result.success) {
+        showMessage(`${result.snapshot.patternDisplayName} - Preset ${result.snapshot.presetId}`);
       }
     }
     // Speed controls
     else if (name === '+' || name === '=') {
       const newFps = Math.min(60, engine.getFps() + 5);
-      engine.setFps(newFps);
-      statusBar.update({ fps: newFps });
+      runtime.setFps(newFps);
       showMessage(`Speed: ${newFps} FPS`);
     } else if (name === '-' || name === '_') {
       const newFps = Math.max(10, engine.getFps() - 5);
-      engine.setFps(newFps);
-      statusBar.update({ fps: newFps });
+      runtime.setFps(newFps);
       showMessage(`Speed: ${newFps} FPS`);
     }
     // Help toggle
@@ -1450,21 +1032,32 @@ async function main() {
     // v0.5.0 Phase 7e: copy a share code for the current scene. Refuses
     // on Photo/Layered slots (those depend on a local image file).
     else if (name === 'S') {
-      const patternName = patternNames[currentPatternIndex];
+      const runtimeState = runtime.getSnapshot();
+      const patternName = runtimeState.patternKey;
       const patternId = patternIdByName(patternName);
-      if (patternId < 0) {
+      if (!runtimeState.shareable || patternId < 0 || runtimeState.seed === null) {
         showMessage(
-          `Share codes are procedural-only — ${patternDisplayNames[patternName] ?? patternName} can't be encoded.`
+          `Share codes are procedural-only — ${runtimeState.patternDisplayName} can't be encoded.`
         );
       } else {
         const state: ShareState = {
           patternId,
-          presetId: currentPresetIndex,
-          themeId: currentThemeIndex,
-          seed: patternSeeds[currentPatternIndex],
+          presetId: runtimeState.presetId,
+          themeId: runtimeState.themeIndex,
+          seed: runtimeState.seed,
           configHash: computeConfigHash(patternName, config),
         };
-        const code = encodeShareCode(state);
+        let code: string;
+        try {
+          code = encodeShareCode(
+            validateShareState(state, SHARE_CODE_REGISTRY, key => computeConfigHash(key, config))
+          );
+        } catch (err) {
+          showMessage(
+            `Can't share this scene: ${err instanceof Error ? err.message : String(err)}`
+          );
+          return;
+        }
         copyToClipboard(code)
           .then(() => {
             showMessage(`Share code ${code} copied`);
@@ -1480,11 +1073,13 @@ async function main() {
     }
     // Quality presets
     else if (name === '[') {
-      if (currentQuality === 'high') setQuality('medium');
-      else if (currentQuality === 'medium') setQuality('low');
+      const quality = runtime.getSnapshot().quality;
+      if (quality === 'high') setQuality('medium');
+      else if (quality === 'medium') setQuality('low');
     } else if (name === ']') {
-      if (currentQuality === 'low') setQuality('medium');
-      else if (currentQuality === 'medium') setQuality('high');
+      const quality = runtime.getSnapshot().quality;
+      if (quality === 'low') setQuality('medium');
+      else if (quality === 'medium') setQuality('high');
     }
   });
 
@@ -1493,7 +1088,7 @@ async function main() {
   const mouseThrottleMs = 16; // ~60fps for mouse events
 
   term.on('mouse', (name: string, data: any) => {
-    const currentPattern = patterns[currentPatternIndex];
+    const currentPattern = runtime.getCurrentPattern();
     const now = Date.now();
 
     if (name === 'MOUSE_MOTION' && currentPattern.onMouseMove) {
@@ -1513,11 +1108,19 @@ async function main() {
     toastManager.info(msg, 1500);
   }
 
-  function cleanup() {
-    commandExecutor.cleanup();
-    engine.stop();
-    renderer.cleanup();
-  }
+  const cleanup = createIdempotentCleanup(
+    unsubscribeRuntime,
+    () => {
+      commandExecutor.cleanup();
+    },
+    () => {
+      engine.stop();
+    },
+    () => {
+      renderer.cleanup();
+    }
+  );
+  cleanupHandler = cleanup;
 
   // Start animation
   engine.start();
@@ -1530,7 +1133,10 @@ async function main() {
 
     // Render transition if active (overwrites the pattern render with blended output)
     if (transitionManager.isActive()) {
-      transitionManager.render(buffer.getBuffer(), now, size);
+      transitionManager.render(buffer.getBuffer(), now, {
+        width: size.width,
+        height: Math.max(0, size.height - 1),
+      });
     }
 
     // Update and render toasts
@@ -1595,5 +1201,16 @@ process.on('unhandledRejection', reason => {
   process.exit(1);
 });
 
-// Run the app
-cleanupHandler = await main();
+// Run the app. Initialization failures after fullscreen setup use the cleanup
+// handler installed immediately after renderer construction.
+try {
+  cleanupHandler = await main();
+} catch (error) {
+  try {
+    cleanupHandler?.();
+  } catch (cleanupError) {
+    console.error('Cleanup failed:', cleanupError);
+  }
+  console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+  process.exitCode = 1;
+}

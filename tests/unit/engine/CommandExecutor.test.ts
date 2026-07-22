@@ -10,10 +10,11 @@
 
 import { jest, describe, expect, beforeEach, afterEach } from '@jest/globals';
 import { CommandExecutor } from '../../../src/engine/CommandExecutor.js';
+import { RuntimeController } from '../../../src/engine/RuntimeController.js';
 import { ParsedCommand } from '../../../src/engine/CommandParser.js';
 import { AnimationEngine } from '../../../src/engine/AnimationEngine.js';
 import { ConfigLoader } from '../../../src/config/ConfigLoader.js';
-import { Pattern, Theme, FavoriteSlot } from '../../../src/types/index.js';
+import { Pattern, Theme, FavoriteSlot, PatternSlot } from '../../../src/types/index.js';
 
 // Mock dependencies
 jest.mock('../../../src/engine/AnimationEngine');
@@ -84,6 +85,15 @@ describe('CommandExecutor', () => {
   let mockConfigLoader: jest.Mocked<ConfigLoader>;
   let patterns: Pattern[];
   let themes: Theme[];
+  let runtime: RuntimeController;
+
+  function observeThemeChanges(callback: (themeIndex: number) => void): void {
+    runtime.subscribe(event => {
+      if (event.previous.themeIndex !== event.current.themeIndex) {
+        callback(event.current.themeIndex);
+      }
+    });
+  }
 
   beforeEach(() => {
     // Reset mocks
@@ -93,7 +103,9 @@ describe('CommandExecutor', () => {
     // Create mock engine
     mockEngine = {
       setPattern: jest.fn(),
+      getPattern: jest.fn(() => patterns[0]),
       getFps: jest.fn(() => 30),
+      setFps: jest.fn(),
     } as any;
 
     // Create mock patterns using the specific classes
@@ -122,20 +134,38 @@ describe('CommandExecutor', () => {
       reset: jest.fn(),
     } as any;
 
-    // Create executor
-    executor = new CommandExecutor(
-      mockEngine,
-      patterns,
+    const slots: PatternSlot[] = patterns.map(pattern => {
+      const patternClass = pattern.constructor as unknown as {
+        getPresets?: () => Array<{ id: number; name: string }>;
+      };
+      const legacyName = pattern.constructor.name;
+      return {
+        key: legacyName.replace('Pattern', '').toLowerCase(),
+        displayName: legacyName.replace('Pattern', ''),
+        kind: 'procedural',
+        pattern,
+        seed: 1,
+        shareable: true,
+        presets: patternClass.getPresets?.() ?? [],
+        legacyNames: [legacyName],
+      };
+    });
+    runtime = new RuntimeController({
+      engine: mockEngine,
       themes,
-      0, // currentPatternIndex
-      0, // currentThemeIndex
-      mockConfigLoader
-    );
+      initialSlots: slots,
+      initialPatternIndex: 0,
+      initialThemeIndex: 0,
+      initialQuality: 'medium',
+      rebuildSlots: () => slots,
+    });
+    executor = new CommandExecutor(runtime, mockConfigLoader);
   });
 
   afterEach(() => {
-    jest.useRealTimers();
     executor.cleanup();
+    expect(jest.getTimerCount()).toBe(0);
+    jest.useRealTimers();
   });
 
   // =============================================================================
@@ -154,7 +184,7 @@ describe('CommandExecutor', () => {
     });
 
     test('works without config loader (optional)', () => {
-      const executorNoConfig = new CommandExecutor(mockEngine, patterns, themes, 0, 0);
+      const executorNoConfig = new CommandExecutor(runtime);
       const result = executorNoConfig.execute(cmd('favorite', { favoriteSlot: 1 }, '0f1'));
       expect(result.success).toBe(false);
       expect(result.message).toContain('Config loader not available');
@@ -162,8 +192,8 @@ describe('CommandExecutor', () => {
   });
 
   describe('State Management', () => {
-    test('updateState updates current indices', () => {
-      executor.updateState(2, 1);
+    test('reads current indices from the shared runtime', () => {
+      runtime.applyScene({ patternIndex: 2, themeIndex: 1 });
 
       // Verify by checking pattern switch doesn't happen when already on pattern 2
       mockEngine.setPattern.mockClear();
@@ -171,9 +201,9 @@ describe('CommandExecutor', () => {
       expect(result.success).toBe(true);
     });
 
-    test('setThemeChangeCallback registers callback', () => {
+    test('theme changes are observable from the shared runtime', () => {
       const callback = jest.fn();
-      executor.setThemeChangeCallback(callback);
+      observeThemeChanges(callback);
 
       // Trigger theme change
       executor.execute(cmd('theme', { themeId: 2 }, '0t2'));
@@ -271,21 +301,22 @@ describe('CommandExecutor', () => {
       expect(patterns[2].applyPreset).toHaveBeenCalledWith(4);
     });
 
-    test('handles pattern with invalid preset gracefully', () => {
+    test('rejects an invalid preset without partially switching patterns', () => {
       const result = executor.execute(
         cmd('pattern', { patternId: 3, patternPreset: 99 }, '0p3.99')
       );
 
-      expect(result.success).toBe(true); // Pattern switch succeeds
-      expect(result.message).toContain('Switched to pattern 3');
+      expect(result.success).toBe(false);
       expect(result.message).toContain('preset 99 not found');
+      expect(runtime.getSnapshot().patternIndex).toBe(0);
     });
 
     test('handles pattern without preset support when preset requested', () => {
       const result = executor.execute(cmd('pattern', { patternId: 2, patternPreset: 1 }, '0p2.1'));
 
-      expect(result.success).toBe(true);
+      expect(result.success).toBe(false);
       expect(result.message).toContain('presets not supported');
+      expect(runtime.getSnapshot().patternIndex).toBe(0);
     });
 
     test('rejects invalid pattern number', () => {
@@ -312,7 +343,7 @@ describe('CommandExecutor', () => {
     });
 
     test('switches to pattern 1 by number', () => {
-      executor.updateState(2, 0); // Start from different pattern
+      runtime.applyScene({ patternIndex: 2, themeIndex: 0 }); // Start from different pattern
       const result = executor.execute(cmd('pattern', { patternId: 1 }, '0p1'));
 
       expect(result.success).toBe(true);
@@ -326,7 +357,7 @@ describe('CommandExecutor', () => {
   describe('executeTheme()', () => {
     test('switches theme by number (1-based)', () => {
       const callback = jest.fn();
-      executor.setThemeChangeCallback(callback);
+      observeThemeChanges(callback);
 
       const result = executor.execute(cmd('theme', { themeId: 2 }, '0t2'));
 
@@ -337,7 +368,7 @@ describe('CommandExecutor', () => {
 
     test('switches theme by name (case-insensitive)', () => {
       const callback = jest.fn();
-      executor.setThemeChangeCallback(callback);
+      observeThemeChanges(callback);
 
       const result = executor.execute(cmd('theme', { themeId: 'matrix' }, '0tmatrix'));
 
@@ -368,9 +399,9 @@ describe('CommandExecutor', () => {
     });
 
     test('switches to first theme', () => {
-      executor.updateState(0, 2); // Start from different theme
+      runtime.applyScene({ patternIndex: 0, themeIndex: 2 }); // Start from different theme
       const callback = jest.fn();
-      executor.setThemeChangeCallback(callback);
+      observeThemeChanges(callback);
 
       const result = executor.execute(cmd('theme', { themeId: 1 }, '0t1'));
 
@@ -385,7 +416,7 @@ describe('CommandExecutor', () => {
   describe('executeFavorite() - Load', () => {
     test('loads favorite with pattern, theme, and preset', () => {
       const favorite: FavoriteSlot = {
-        pattern: 'StarfieldPattern',
+        pattern: 'starfield',
         theme: 'fire',
         preset: 3,
         savedAt: new Date().toISOString(),
@@ -393,13 +424,13 @@ describe('CommandExecutor', () => {
       mockConfigLoader.getFavorite.mockReturnValue(favorite);
 
       const callback = jest.fn();
-      executor.setThemeChangeCallback(callback);
+      observeThemeChanges(callback);
 
       const result = executor.execute(cmd('favorite', { favoriteSlot: 5 }, '0f5'));
 
       expect(result.success).toBe(true);
       expect(result.message).toContain('Loaded favorite 5');
-      expect(result.message).toContain('StarfieldPattern');
+      expect(result.message).toContain('Starfield');
       expect(result.message).toContain('preset 3');
       expect(result.message).toContain('Fire');
       expect(mockEngine.setPattern).toHaveBeenCalledWith(patterns[2]);
@@ -420,6 +451,24 @@ describe('CommandExecutor', () => {
       expect(result.success).toBe(true);
       expect(result.message).toContain('Loaded favorite 1');
       expect(result.message).not.toContain('preset');
+    });
+
+    test('keeps legacy constructor-name favorites load-compatible', () => {
+      mockConfigLoader.getFavorite.mockReturnValue({
+        pattern: 'StarfieldPattern',
+        theme: 'fire',
+        preset: 4,
+        savedAt: new Date().toISOString(),
+      });
+
+      const result = executor.execute(cmd('favorite', { favoriteSlot: 2 }, '0f2'));
+
+      expect(result.success).toBe(true);
+      expect(runtime.getSnapshot()).toMatchObject({
+        patternKey: 'starfield',
+        presetId: 4,
+        themeName: 'fire',
+      });
     });
 
     test('loads favorite with note', () => {
@@ -482,7 +531,7 @@ describe('CommandExecutor', () => {
     });
 
     test('handles missing config loader', () => {
-      const executorNoConfig = new CommandExecutor(mockEngine, patterns, themes, 0, 0);
+      const executorNoConfig = new CommandExecutor(runtime);
 
       const result = executorNoConfig.execute(cmd('favorite', { favoriteSlot: 1 }, '0f1'));
 
@@ -499,7 +548,7 @@ describe('CommandExecutor', () => {
       mockConfigLoader.getFavorite.mockReturnValue(favorite);
 
       const callback = jest.fn();
-      executor.setThemeChangeCallback(callback);
+      observeThemeChanges(callback);
 
       const result = executor.execute(cmd('favorite', { favoriteSlot: 1 }, '0f1'));
 
@@ -514,14 +563,45 @@ describe('CommandExecutor', () => {
 
       expect(result.success).toBe(true);
       expect(result.message).toContain('Saved to favorite 3');
-      expect(result.message).toContain('WavePattern');
+      expect(result.message).toContain('Wave');
       expect(result.message).toContain('Ocean');
       expect(mockConfigLoader.saveFavorite).toHaveBeenCalledWith(
         3,
         expect.objectContaining({
-          pattern: 'WavePattern',
+          pattern: 'wave',
           theme: 'ocean',
         })
+      );
+    });
+
+    test('saves the authoritative explicitly applied preset', () => {
+      runtime.applyPreset(4);
+
+      const result = executor.execute(cmd('saveFavorite', { favoriteSlot: 4 }, '0F4'));
+
+      expect(result.success).toBe(true);
+      expect(result.message).toContain('preset 4');
+      expect(mockConfigLoader.saveFavorite).toHaveBeenCalledWith(
+        4,
+        expect.objectContaining({ pattern: 'wave', preset: 4, theme: 'ocean' })
+      );
+    });
+
+    test('omits preset for the config-derived baseline', () => {
+      executor.execute(cmd('saveFavorite', { favoriteSlot: 5 }, '0F5'));
+
+      const saved = mockConfigLoader.saveFavorite.mock.calls.at(-1)?.[1];
+      expect(saved).toBeDefined();
+      expect(saved).not.toHaveProperty('preset');
+    });
+
+    test('distinguishes an explicitly applied preset 1 from the baseline', () => {
+      runtime.applyPreset(1);
+      executor.execute(cmd('saveFavorite', { favoriteSlot: 6 }, '0F6'));
+
+      expect(mockConfigLoader.saveFavorite).toHaveBeenLastCalledWith(
+        6,
+        expect.objectContaining({ preset: 1 })
       );
     });
 
@@ -544,7 +624,7 @@ describe('CommandExecutor', () => {
     });
 
     test('handles missing config loader', () => {
-      const executorNoConfig = new CommandExecutor(mockEngine, patterns, themes, 0, 0);
+      const executorNoConfig = new CommandExecutor(runtime);
 
       const result = executorNoConfig.execute(cmd('saveFavorite', { favoriteSlot: 1 }, '0F1'));
 
@@ -553,7 +633,7 @@ describe('CommandExecutor', () => {
     });
 
     test('saves from different pattern and theme', () => {
-      executor.updateState(2, 1); // StarfieldPattern, Fire theme
+      runtime.applyScene({ patternIndex: 2, themeIndex: 1 }); // StarfieldPattern, Fire theme
 
       const result = executor.execute(cmd('saveFavorite', { favoriteSlot: 7 }, '0F7'));
 
@@ -561,9 +641,53 @@ describe('CommandExecutor', () => {
       expect(mockConfigLoader.saveFavorite).toHaveBeenCalledWith(
         7,
         expect.objectContaining({
-          pattern: 'StarfieldPattern',
+          pattern: 'starfield',
           theme: 'fire',
         })
+      );
+    });
+
+    test.each([
+      ['photo', 'photo'],
+      ['layered', 'layered'],
+      ['workspace', 'workspace'],
+    ] as const)('represents the optional %s slot with its stable key', (_label, key) => {
+      const optionalPattern = new WavePattern() as any;
+      const optionalSlot: PatternSlot = {
+        key,
+        displayName: key.toUpperCase(),
+        kind: key,
+        pattern: optionalPattern,
+        seed: null,
+        shareable: false,
+        presets: (WavePattern as any).getPresets(),
+        legacyNames: [`${key}Pattern`],
+      };
+      const optionalEngine = {
+        getPattern: () => optionalPattern,
+        setPattern: jest.fn(),
+        getFps: () => 30,
+        setFps: jest.fn(),
+      };
+      const optionalRuntime = new RuntimeController({
+        engine: optionalEngine,
+        themes,
+        initialSlots: [optionalSlot],
+        initialPatternIndex: 0,
+        initialThemeIndex: 0,
+        initialPresetId: 2,
+        initialPresetApplied: true,
+        initialQuality: 'medium',
+        rebuildSlots: () => [optionalSlot],
+      });
+      const optionalExecutor = new CommandExecutor(optionalRuntime, mockConfigLoader);
+
+      expect(
+        optionalExecutor.execute(cmd('saveFavorite', { favoriteSlot: 8 }, '0F8')).success
+      ).toBe(true);
+      expect(mockConfigLoader.saveFavorite).toHaveBeenLastCalledWith(
+        8,
+        expect.objectContaining({ pattern: key, preset: 2 })
       );
     });
   });
@@ -582,7 +706,7 @@ describe('CommandExecutor', () => {
     });
 
     test('listPresets handles pattern without presets', () => {
-      executor.updateState(1, 0); // SimplePattern (no presets)
+      runtime.applyScene({ patternIndex: 1, themeIndex: 0 }); // SimplePattern (no presets)
 
       const result = executor.execute(cmd('special', { specialCmd: 'listPresets' }, '0?'));
 
@@ -623,7 +747,7 @@ describe('CommandExecutor', () => {
     test('favoriteList shows all favorites', () => {
       mockConfigLoader.getAllFavorites.mockReturnValue({
         1: {
-          pattern: 'WavePattern',
+          pattern: 'wave',
           theme: 'ocean',
           preset: 2,
           savedAt: '2025-01-01T00:00:00.000Z',
@@ -654,7 +778,7 @@ describe('CommandExecutor', () => {
     });
 
     test('favoriteList handles missing config loader', () => {
-      const executorNoConfig = new CommandExecutor(mockEngine, patterns, themes, 0, 0);
+      const executorNoConfig = new CommandExecutor(runtime);
 
       const result = executorNoConfig.execute(
         cmd('special', { specialCmd: 'favoriteList' }, '0fl')
@@ -683,7 +807,7 @@ describe('CommandExecutor', () => {
     });
 
     test('randomPreset handles pattern without presets', () => {
-      executor.updateState(1, 0); // SimplePattern
+      runtime.applyScene({ patternIndex: 1, themeIndex: 0 }); // SimplePattern
 
       const result = executor.execute(cmd('special', { specialCmd: 'randomPreset' }, '0*'));
 
@@ -693,7 +817,7 @@ describe('CommandExecutor', () => {
 
     test('randomAll switches to random pattern, preset, and theme', () => {
       const callback = jest.fn();
-      executor.setThemeChangeCallback(callback);
+      observeThemeChanges(callback);
 
       const result = executor.execute(cmd('special', { specialCmd: 'randomAll' }, '0**'));
 
@@ -712,7 +836,7 @@ describe('CommandExecutor', () => {
 
     test('randomTheme switches to random theme', () => {
       const callback = jest.fn();
-      executor.setThemeChangeCallback(callback);
+      observeThemeChanges(callback);
 
       const result = executor.execute(cmd('special', { specialCmd: 'randomTheme' }, '0tr'));
 
@@ -723,7 +847,7 @@ describe('CommandExecutor', () => {
 
     test('randomize switches pattern and theme', () => {
       const callback = jest.fn();
-      executor.setThemeChangeCallback(callback);
+      observeThemeChanges(callback);
 
       const result = executor.execute(cmd('special', { specialCmd: 'randomize' }, '0x'));
 
@@ -758,7 +882,7 @@ describe('CommandExecutor', () => {
     });
 
     test('save handles missing config loader', () => {
-      const executorNoConfig = new CommandExecutor(mockEngine, patterns, themes, 0, 0);
+      const executorNoConfig = new CommandExecutor(runtime);
 
       const result = executorNoConfig.execute(cmd('special', { specialCmd: 'save' }, '0s'));
 
@@ -986,7 +1110,7 @@ describe('CommandExecutor', () => {
     test('shuffle all timer triggers randomAll', () => {
       jest.spyOn(Math, 'random').mockReturnValue(0.5);
       const callback = jest.fn();
-      executor.setThemeChangeCallback(callback);
+      observeThemeChanges(callback);
 
       executor.execute(cmd('special', { specialCmd: 'shuffleAll' }, '0!!'));
 
@@ -1025,7 +1149,7 @@ describe('CommandExecutor', () => {
   describe('Combination Commands', () => {
     test('executes multiple commands in sequence', () => {
       const callback = jest.fn();
-      executor.setThemeChangeCallback(callback);
+      observeThemeChanges(callback);
 
       const result = executor.execute(
         cmd(
@@ -1071,7 +1195,7 @@ describe('CommandExecutor', () => {
 
     test('executes successful commands even if others fail', () => {
       const callback = jest.fn();
-      executor.setThemeChangeCallback(callback);
+      observeThemeChanges(callback);
 
       const result = executor.execute(
         cmd(
@@ -1179,15 +1303,26 @@ describe('CommandExecutor', () => {
     test('handles pattern without constructor name', () => {
       // Edge case: pattern without proper constructor
       const weirdPattern = { name: 'Weird' } as any;
-      const weirdPatterns = [weirdPattern];
-      const weirdExecutor = new CommandExecutor(
-        mockEngine,
-        weirdPatterns,
+      const weirdSlot: PatternSlot = {
+        key: 'weird',
+        displayName: 'Weird',
+        kind: 'procedural',
+        pattern: weirdPattern,
+        seed: 1,
+        shareable: true,
+        presets: [],
+        legacyNames: [],
+      };
+      const weirdRuntime = new RuntimeController({
+        engine: { ...mockEngine, getPattern: () => weirdPattern },
         themes,
-        0,
-        0,
-        mockConfigLoader
-      );
+        initialSlots: [weirdSlot],
+        initialPatternIndex: 0,
+        initialThemeIndex: 0,
+        initialQuality: 'medium',
+        rebuildSlots: () => [weirdSlot],
+      });
+      const weirdExecutor = new CommandExecutor(weirdRuntime, mockConfigLoader);
 
       const result = weirdExecutor.execute(cmd('special', { specialCmd: 'patternList' }, '0p'));
 

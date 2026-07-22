@@ -1,8 +1,10 @@
 import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { AnimationEngine } from '../../../src/engine/AnimationEngine.js';
 import { TerminalRenderer } from '../../../src/renderer/TerminalRenderer.js';
-import { Pattern, Cell, Size } from '../../../src/types/index.js';
+import { Pattern, Cell, FrameTime, Size } from '../../../src/types/index.js';
 import { Buffer } from '../../../src/renderer/Buffer.js';
+import { TransitionManager } from '../../../src/renderer/TransitionManager.js';
+import { AnimationClock, type TimeSource } from '../../../src/engine/AnimationClock.js';
 
 // Mock TerminalRenderer
 jest.mock('../../../src/renderer/TerminalRenderer');
@@ -29,6 +31,61 @@ class MockPattern implements Pattern {
 
   onMouseMove(_pos: { x: number; y: number }): void {}
   onMouseClick(_pos: { x: number; y: number }): void {}
+}
+
+class PaintingPattern implements Pattern {
+  name: string;
+  renderCount = 0;
+
+  constructor(private readonly char: string) {
+    this.name = `Painting${char}`;
+  }
+
+  render(buffer: Cell[][], _time: number, size: Size): void {
+    this.renderCount++;
+    for (let y = 0; y < size.height; y++) {
+      for (let x = 0; x < size.width; x++) {
+        buffer[y][x] = {
+          char: this.char,
+          color: { r: x, g: y, b: 10 },
+          bg: { r: 20, g: x, b: y },
+        };
+      }
+    }
+  }
+
+  reset(): void {}
+}
+
+class ManualTimeSource implements TimeSource {
+  constructor(private value: number) {}
+
+  now(): number {
+    return this.value;
+  }
+
+  advance(milliseconds: number): void {
+    this.value += milliseconds;
+  }
+}
+
+class TimingPattern implements Pattern {
+  name = 'TimingPattern';
+  frames: FrameTime[] = [];
+
+  render(
+    _buffer: Cell[][],
+    _time: number,
+    _size: Size,
+    _mousePos?: { x: number; y: number },
+    frameTime?: FrameTime
+  ): void {
+    if (frameTime) this.frames.push({ ...frameTime });
+  }
+
+  reset(): void {
+    this.frames = [];
+  }
 }
 
 describe('AnimationEngine', () => {
@@ -226,6 +283,63 @@ describe('AnimationEngine', () => {
 
       // Timer should still be active (loop continues, just skips rendering)
       expect(jest.getTimerCount()).toBeGreaterThan(0);
+    });
+
+    it('does not jump scene phase after a long pause', () => {
+      const source = new ManualTimeSource(1000);
+      const pattern = new TimingPattern();
+      const engine = new AnimationEngine(mockRenderer, pattern, 30, new AnimationClock(source));
+      engine.start();
+      source.advance(34);
+      jest.advanceTimersByTime(1);
+      expect(pattern.frames.at(-1)).toEqual({ sceneTime: 34, appTime: 34, deltaTime: 34 });
+
+      engine.pause();
+      source.advance(10000);
+      jest.advanceTimersByTime(100);
+      engine.pause();
+      source.advance(34);
+      jest.advanceTimersByTime(1);
+
+      expect(pattern.frames.at(-1)).toEqual({ sceneTime: 68, appTime: 68, deltaTime: 34 });
+      engine.stop();
+    });
+  });
+
+  describe('Relative scene clock', () => {
+    it('passes the same scene schedule for different wall-clock origins', () => {
+      const run = (origin: number): FrameTime[] => {
+        const source = new ManualTimeSource(origin);
+        const pattern = new TimingPattern();
+        const engine = new AnimationEngine(mockRenderer, pattern, 30, new AnimationClock(source));
+        engine.start();
+        for (const delta of [34, 34, 34]) {
+          source.advance(delta);
+          jest.advanceTimersByTime(1);
+        }
+        engine.stop();
+        return pattern.frames;
+      };
+
+      expect(run(1000)).toEqual(run(900000));
+    });
+
+    it('resets scene time on pattern activation while app time continues', () => {
+      const source = new ManualTimeSource(5000);
+      const first = new TimingPattern();
+      const second = new TimingPattern();
+      const engine = new AnimationEngine(mockRenderer, first, 30, new AnimationClock(source));
+      engine.start();
+      source.advance(40);
+      jest.advanceTimersByTime(1);
+      expect(first.frames.at(-1)?.sceneTime).toBe(40);
+
+      engine.setPattern(second);
+      source.advance(40);
+      jest.advanceTimersByTime(1);
+
+      expect(second.frames.at(-1)).toEqual({ sceneTime: 40, appTime: 80, deltaTime: 40 });
+      engine.stop();
     });
   });
 
@@ -437,11 +551,11 @@ describe('AnimationEngine', () => {
     it('passes time parameter to pattern', () => {
       const engine = new AnimationEngine(mockRenderer, mockPattern, 30);
 
-      const startTime = Date.now();
       engine.start();
       jest.advanceTimersByTime(35);
 
-      expect(mockPattern.lastTime).toBeGreaterThanOrEqual(startTime);
+      expect(mockPattern.lastTime).toBeGreaterThan(0);
+      expect(mockPattern.lastTime).toBeLessThan(100);
     });
 
     it('passes buffer size to pattern', () => {
@@ -469,6 +583,77 @@ describe('AnimationEngine', () => {
       // Performance monitor should have recorded at least one frame
       const stats = perfMonitor.getStats();
       expect(stats.avgFps).toBeGreaterThanOrEqual(0);
+    });
+
+    it('captures the raw pattern frame before UI callbacks and excludes the status row', () => {
+      const canvas: Cell[][] = Array.from({ length: 3 }, () =>
+        Array.from({ length: 4 }, () => ({ char: ' ' }))
+      );
+      mockRenderer.getSize.mockReturnValue({ width: 4, height: 3 });
+      mockBuffer.getBuffer.mockReturnValue(canvas);
+      const pattern = new PaintingPattern('P');
+      const engine = new AnimationEngine(mockRenderer, pattern, 30);
+      engine.setBeforeTerminalRenderCallback(() => {
+        canvas[0][0] = { char: 'U' };
+        canvas[2][0] = { char: 'S' };
+      });
+
+      engine.start();
+      jest.advanceTimersByTime(35);
+      const snapshot = engine.getLastPatternFrame();
+
+      expect(snapshot).toHaveLength(2);
+      expect(snapshot?.[0]).toHaveLength(4);
+      expect(snapshot?.[0][0].char).toBe('P');
+      expect(snapshot?.flat().some(cell => cell.char === 'U' || cell.char === 'S')).toBe(false);
+    });
+
+    it('returns deep snapshot copies that callers cannot mutate', () => {
+      const canvas: Cell[][] = Array.from({ length: 2 }, () =>
+        Array.from({ length: 2 }, () => ({ char: ' ' }))
+      );
+      mockRenderer.getSize.mockReturnValue({ width: 2, height: 2 });
+      mockBuffer.getBuffer.mockReturnValue(canvas);
+      const engine = new AnimationEngine(mockRenderer, new PaintingPattern('P'), 30);
+      engine.start();
+      jest.advanceTimersByTime(35);
+
+      const first = engine.getLastPatternFrame();
+      first![0][0].char = 'X';
+      first![0][0].color!.r = 255;
+
+      expect(engine.getLastPatternFrame()?.[0][0]).toEqual({
+        char: 'P',
+        color: { r: 0, g: 0, b: 10 },
+        bg: { r: 20, g: 0, b: 0 },
+      });
+    });
+
+    it('renders the target pattern only once per frame when a transition callback is active', () => {
+      const canvas: Cell[][] = Array.from({ length: 3 }, () =>
+        Array.from({ length: 4 }, () => ({ char: ' ' }))
+      );
+      mockRenderer.getSize.mockReturnValue({ width: 4, height: 3 });
+      mockBuffer.getBuffer.mockReturnValue(canvas);
+      const oldPattern = new PaintingPattern('A');
+      const targetPattern = new PaintingPattern('B');
+      const engine = new AnimationEngine(mockRenderer, oldPattern, 30);
+      engine.start();
+      jest.advanceTimersByTime(35);
+      const source = engine.getLastPatternFrame();
+      expect(source).not.toBeNull();
+
+      const transition = new TransitionManager();
+      transition.start(source!, { duration: 1000 });
+      engine.setPattern(targetPattern);
+      expect(engine.getLastPatternFrame()).toBeNull();
+      engine.setBeforeTerminalRenderCallback(() => {
+        transition.render(canvas, Date.now(), { width: 4, height: 2 });
+      });
+      jest.advanceTimersByTime(35);
+
+      expect(targetPattern.renderCount).toBe(1);
+      expect(oldPattern.renderCount).toBe(1);
     });
   });
 
@@ -658,8 +843,8 @@ describe('AnimationEngine', () => {
       engine.start();
       jest.advanceTimersByTime(35);
 
-      // Should not crash (height becomes -1 with banner reservation, but pattern should handle it)
-      expect(mockPattern.lastSize).toEqual({ width: 0, height: -1 });
+      // Reserved status space never produces a negative pattern dimension.
+      expect(mockPattern.lastSize).toEqual({ width: 0, height: 0 });
     });
 
     it('handles buffer resize during animation', () => {

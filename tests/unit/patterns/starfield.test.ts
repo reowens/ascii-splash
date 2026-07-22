@@ -211,7 +211,7 @@ describe('StarfieldPattern', () => {
       const clickPos: Point = { x: 40, y: 12 };
 
       pattern.onMouseClick(clickPos);
-      pattern.render(buffer, 1000, size);
+      pattern.render(buffer, 16, size);
 
       // Check that explosion particles are rendered near click position
       const hasExplosionChars = buffer.flat().some(cell => cell.char === '*');
@@ -222,7 +222,7 @@ describe('StarfieldPattern', () => {
       const clickPos: Point = { x: 40, y: 12 };
 
       pattern.onMouseClick(clickPos);
-      pattern.render(buffer, 1000, size);
+      pattern.render(buffer, 16, size);
 
       const metrics = pattern.getMetrics();
       expect(metrics.explosions).toBe(1);

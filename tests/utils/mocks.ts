@@ -24,9 +24,9 @@ export function createMockBuffer(width: number, height: number): Cell[][] {
 export function createMockTheme(name: string = 'test'): Theme {
   const colors: Color[] = [
     { r: 0, g: 0, b: 0 },
-    { r: 255, g: 255, b: 255 }
+    { r: 255, g: 255, b: 255 },
   ];
-  
+
   return {
     name,
     displayName: name.charAt(0).toUpperCase() + name.slice(1),
@@ -37,9 +37,9 @@ export function createMockTheme(name: string = 'test'): Theme {
       return {
         r: Math.round(colors[0].r + (colors[1].r - colors[0].r) * clamped),
         g: Math.round(colors[0].g + (colors[1].g - colors[0].g) * clamped),
-        b: Math.round(colors[0].b + (colors[1].b - colors[0].b) * clamped)
+        b: Math.round(colors[0].b + (colors[1].b - colors[0].b) * clamped),
       };
-    }
+    },
   };
 }
 
@@ -74,7 +74,7 @@ export function createMockCliOptions(overrides?: Partial<CliOptions>): CliOption
     fps: undefined,
     theme: undefined,
     mouse: undefined,
-    ...overrides
+    ...overrides,
   };
 }
 

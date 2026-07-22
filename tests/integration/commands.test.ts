@@ -8,11 +8,12 @@ import { describe, test, expect, beforeEach } from '@jest/globals';
 import { CommandBuffer } from '../../src/engine/CommandBuffer.js';
 import { CommandParser } from '../../src/engine/CommandParser.js';
 import { CommandExecutor } from '../../src/engine/CommandExecutor.js';
+import { RuntimeController } from '../../src/engine/RuntimeController.js';
 import { createMockTheme } from '../utils/mocks.js';
 import { WavePattern } from '../../src/patterns/WavePattern.js';
 import { StarfieldPattern } from '../../src/patterns/StarfieldPattern.js';
 import { MatrixPattern } from '../../src/patterns/MatrixPattern.js';
-import { Pattern, Theme } from '../../src/types/index.js';
+import { Pattern, PatternSlot, Theme } from '../../src/types/index.js';
 
 // Mock AnimationEngine for testing
 class MockAnimationEngine {
@@ -47,6 +48,7 @@ describe('Command System Integration Tests', () => {
   let mockEngine: MockAnimationEngine;
   let executor: CommandExecutor;
   let parser: CommandParser;
+  let runtime: RuntimeController;
 
   beforeEach(() => {
     mockTheme = createMockTheme('ocean');
@@ -57,7 +59,32 @@ describe('Command System Integration Tests', () => {
     ];
     themes = [createMockTheme('ocean'), createMockTheme('matrix'), createMockTheme('fire')];
     mockEngine = new MockAnimationEngine(patterns[0]);
-    executor = new CommandExecutor(mockEngine as any, patterns, themes, 0, 0);
+    const slots: PatternSlot[] = patterns.map(pattern => {
+      const patternClass = pattern.constructor as unknown as {
+        getPresets: () => Array<{ id: number; name: string }>;
+      };
+      const legacyName = pattern.constructor.name;
+      return {
+        key: legacyName.replace('Pattern', '').toLowerCase(),
+        displayName: legacyName.replace('Pattern', ''),
+        kind: 'procedural',
+        pattern,
+        seed: 1,
+        shareable: true,
+        presets: patternClass.getPresets(),
+        legacyNames: [legacyName],
+      };
+    });
+    runtime = new RuntimeController({
+      engine: mockEngine,
+      themes,
+      initialSlots: slots,
+      initialPatternIndex: 0,
+      initialThemeIndex: 0,
+      initialQuality: 'medium',
+      rebuildSlots: () => slots,
+    });
+    executor = new CommandExecutor(runtime);
     parser = new CommandParser();
   });
 
@@ -73,6 +100,8 @@ describe('Command System Integration Tests', () => {
 
       buffer.addChar('2');
       expect(buffer.getBuffer()).toBe('012');
+
+      buffer.cancel();
     });
 
     test('should deactivate and clear buffer', () => {
@@ -93,6 +122,8 @@ describe('Command System Integration Tests', () => {
 
       buffer.activate();
       expect(buffer.isActive()).toBe(true);
+
+      buffer.cancel();
 
       buffer.deactivate();
       expect(buffer.isActive()).toBe(false);
@@ -120,6 +151,8 @@ describe('Command System Integration Tests', () => {
 
       buffer.backspace();
       expect(buffer.getBuffer()).toBe('01');
+
+      buffer.cancel();
     });
 
     test('should maintain command history', () => {
@@ -279,8 +312,8 @@ describe('Command System Integration Tests', () => {
 
     test('should execute theme switch command', () => {
       let themeChanged = false;
-      executor.setThemeChangeCallback(() => {
-        themeChanged = true;
+      runtime.subscribe(event => {
+        if (event.previous.themeIndex !== event.current.themeIndex) themeChanged = true;
       });
 
       const command = parser.parse('0t2');
@@ -301,9 +334,9 @@ describe('Command System Integration Tests', () => {
     });
 
     test('should execute random all command', () => {
-      let themeChanged = false;
-      executor.setThemeChangeCallback(() => {
-        themeChanged = true;
+      let sceneChanged = false;
+      runtime.subscribe(event => {
+        if (event.kind === 'scene') sceneChanged = true;
       });
 
       const command = parser.parse('0**');
@@ -311,7 +344,7 @@ describe('Command System Integration Tests', () => {
 
       const result = executor.execute(command!);
       expect(result.success).toBe(true);
-      expect(themeChanged).toBe(true);
+      expect(sceneChanged).toBe(true);
     });
 
     test('should fail for invalid preset number', () => {
@@ -430,8 +463,10 @@ describe('Command System Integration Tests', () => {
 
       // Switch theme
       let themeIndex = 0;
-      executor.setThemeChangeCallback(index => {
-        themeIndex = index;
+      runtime.subscribe(event => {
+        if (event.previous.themeIndex !== event.current.themeIndex) {
+          themeIndex = event.current.themeIndex;
+        }
       });
 
       parsed = parser.parse('0t2');
@@ -441,14 +476,85 @@ describe('Command System Integration Tests', () => {
     });
 
     test('should update state after external changes', () => {
-      // Update executor state as if UI changed pattern
-      executor.updateState(2, 1);
+      // Change the shared runtime as if a direct UI shortcut selected Matrix.
+      runtime.applyScene({ patternIndex: 2, themeIndex: 1 });
 
-      // Random preset should work on new current pattern
+      // Command execution reads the same authoritative state.
       const parsed = parser.parse('0*');
       const result = executor.execute(parsed!);
 
       expect(result.success).toBe(true);
+      expect(runtime.getSnapshot()).toMatchObject({ patternIndex: 2, themeIndex: 1 });
+    });
+
+    test('command selection becomes the starting point for direct navigation', () => {
+      executor.execute(parser.parse('0p2')!);
+      expect(runtime.getSnapshot().patternIndex).toBe(1);
+
+      const state = runtime.getSnapshot();
+      runtime.switchPattern((state.patternIndex + 1) % state.patternCount);
+      expect(runtime.getSnapshot()).toMatchObject({ patternIndex: 2, patternKey: 'matrix' });
+    });
+
+    test('direct selection followed by a command preset targets the same pattern', () => {
+      runtime.switchPattern(2);
+      const result = executor.execute(parser.parse('003')!);
+
+      expect(result.success).toBe(true);
+      expect(runtime.getSnapshot()).toMatchObject({
+        patternIndex: 2,
+        patternKey: 'matrix',
+        presetId: 3,
+        presetApplied: true,
+      });
+    });
+
+    test('theme commands preserve the selected pattern, preset, and seed', () => {
+      runtime.switchPattern(1, 2);
+      const before = runtime.getSnapshot();
+      executor.execute(parser.parse('0t2')!);
+      const after = runtime.getSnapshot();
+
+      expect(after).toMatchObject({
+        patternKey: before.patternKey,
+        presetId: before.presetId,
+        presetApplied: true,
+        seed: before.seed,
+        themeIndex: 1,
+      });
+    });
+
+    test('save then load restores stable pattern, explicit preset, and theme', () => {
+      let savedFavorite: unknown;
+      const configLoader = {
+        saveFavorite: (_slot: number, favorite: unknown) => {
+          savedFavorite = favorite;
+        },
+        getFavorite: () => savedFavorite,
+      } as any;
+      const favoriteExecutor = new CommandExecutor(runtime, configLoader);
+      runtime.applyScene({ patternIndex: 2, themeIndex: 2, presetId: 4 });
+
+      expect(
+        favoriteExecutor.execute({
+          type: 'saveFavorite',
+          args: { favoriteSlot: 1 },
+          raw: '0F1',
+        }).success
+      ).toBe(true);
+      expect(savedFavorite).toMatchObject({ pattern: 'matrix', preset: 4, theme: 'fire' });
+
+      runtime.applyScene({ patternIndex: 0, themeIndex: 0, presetId: 1 });
+      expect(
+        favoriteExecutor.execute({ type: 'favorite', args: { favoriteSlot: 1 }, raw: '0f1' })
+          .success
+      ).toBe(true);
+      expect(runtime.getSnapshot()).toMatchObject({
+        patternKey: 'matrix',
+        presetId: 4,
+        presetApplied: true,
+        themeName: 'fire',
+      });
     });
   });
 

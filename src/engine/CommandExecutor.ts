@@ -1,41 +1,41 @@
 /**
  * CommandExecutor - Executes parsed commands
  *
- * Interfaces with patterns, engine, themes, and config to apply commands
+ * Translates commands into authoritative runtime-controller actions.
  */
 
 import { ParsedCommand } from './CommandParser.js';
-import { AnimationEngine } from './AnimationEngine.js';
-import { Pattern, Theme, FavoriteSlot } from '../types/index.js';
+import { FavoriteSlot, PatternSlot, Theme } from '../types/index.js';
 import { ConfigLoader } from '../config/ConfigLoader.js';
+import {
+  RuntimeActionResult,
+  RuntimeSceneSelection,
+  RuntimeSnapshot,
+} from './RuntimeController.js';
 
 export interface ExecutionResult {
   success: boolean;
   message: string;
 }
 
-/**
- * Shape of static `getPresets()` on pattern classes that support presets.
- * Used to type-narrow `pattern.constructor` away from `Function`/`any`.
- */
-interface PresetEntry {
-  id: number;
-  name: string;
-}
-interface PatternClassWithPresets {
-  getPresets(): PresetEntry[];
+/** Narrow runtime boundary used by commands and lightweight test fakes. */
+export interface SceneRuntime {
+  getSnapshot(): RuntimeSnapshot;
+  getCurrentSlot(): PatternSlot;
+  getSlots(): readonly PatternSlot[];
+  getThemes(): readonly Theme[];
+  findPattern(query: number | string): number;
+  findTheme(query: number | string): number;
+  switchPattern(index: number, presetId?: number): RuntimeActionResult;
+  applyPreset(presetId: number): RuntimeActionResult;
+  changeTheme(index: number): RuntimeActionResult;
+  applyScene(selection: RuntimeSceneSelection): RuntimeActionResult;
+  resetCurrentPattern(): RuntimeActionResult;
 }
 
 export class CommandExecutor {
-  private engine: AnimationEngine;
-  private patterns: Pattern[];
-  private themes: Theme[];
-  private currentPatternIndex: number;
-  private currentThemeIndex: number;
-  private configLoader?: ConfigLoader;
-
-  // Callback to recreate patterns with new theme
-  private onThemeChange?: (themeIndex: number) => void;
+  private readonly runtime: SceneRuntime;
+  private readonly configLoader?: ConfigLoader;
 
   // Shuffle state
   private shuffleActive = false;
@@ -43,35 +43,9 @@ export class CommandExecutor {
   private shuffleTimer: NodeJS.Timeout | null = null;
   private shuffleAll = false; // If true, shuffle patterns too
 
-  constructor(
-    engine: AnimationEngine,
-    patterns: Pattern[],
-    themes: Theme[],
-    currentPatternIndex: number,
-    currentThemeIndex: number,
-    configLoader?: ConfigLoader
-  ) {
-    this.engine = engine;
-    this.patterns = patterns;
-    this.themes = themes;
-    this.currentPatternIndex = currentPatternIndex;
-    this.currentThemeIndex = currentThemeIndex;
+  constructor(runtime: SceneRuntime, configLoader?: ConfigLoader) {
+    this.runtime = runtime;
     this.configLoader = configLoader;
-  }
-
-  /**
-   * Update current state (called after external changes)
-   */
-  updateState(patternIndex: number, themeIndex: number): void {
-    this.currentPatternIndex = patternIndex;
-    this.currentThemeIndex = themeIndex;
-  }
-
-  /**
-   * Set theme change callback
-   */
-  setThemeChangeCallback(callback: (themeIndex: number) => void): void {
-    this.onThemeChange = callback;
   }
 
   /**
@@ -116,30 +90,24 @@ export class CommandExecutor {
       return { success: false, message: 'Invalid preset number' };
     }
 
-    const currentPattern = this.patterns[this.currentPatternIndex];
-
-    // Check if pattern supports presets
-    if (!currentPattern.applyPreset) {
-      return {
-        success: false,
-        message: `Pattern ${currentPattern.name} doesn't support presets yet`,
-      };
-    }
-
-    // Apply the preset
-    const success = currentPattern.applyPreset(presetNumber);
-
-    if (success) {
+    const currentSlot = this.runtime.getCurrentSlot();
+    const result = this.runtime.applyPreset(presetNumber);
+    if (result.success) {
       return {
         success: true,
-        message: `Applied preset ${String(presetNumber)} to ${currentPattern.name}`,
-      };
-    } else {
-      return {
-        success: false,
-        message: `Preset ${String(presetNumber)} not found for ${currentPattern.name}`,
+        message: `Applied preset ${String(presetNumber)} to ${currentSlot.pattern.name}`,
       };
     }
+    if (result.error === 'presets-unsupported') {
+      return {
+        success: false,
+        message: `Pattern ${currentSlot.pattern.name} doesn't support presets yet`,
+      };
+    }
+    return {
+      success: false,
+      message: `Preset ${String(presetNumber)} not found for ${currentSlot.pattern.name}`,
+    };
   }
 
   /**
@@ -166,8 +134,7 @@ export class CommandExecutor {
       };
     }
 
-    // Find pattern by name
-    const patternIndex = this.patterns.findIndex(p => p.constructor.name === favorite.pattern);
+    const patternIndex = this.runtime.findPattern(favorite.pattern);
 
     if (patternIndex === -1) {
       return {
@@ -176,8 +143,7 @@ export class CommandExecutor {
       };
     }
 
-    // Find theme by name
-    const themeIndex = this.themes.findIndex(t => t.name === favorite.theme);
+    const themeIndex = this.runtime.findTheme(favorite.theme);
 
     if (themeIndex === -1) {
       return {
@@ -186,31 +152,21 @@ export class CommandExecutor {
       };
     }
 
-    // Apply theme first (if different)
-    if (themeIndex !== this.currentThemeIndex) {
-      this.currentThemeIndex = themeIndex;
-      if (this.onThemeChange) {
-        this.onThemeChange(themeIndex);
-      }
+    const result = this.runtime.applyScene({
+      patternIndex,
+      themeIndex,
+      ...(favorite.preset === undefined ? {} : { presetId: favorite.preset }),
+    });
+    if (!result.success) {
+      return { success: false, message: `Favorite ${String(favoriteSlot)} contains invalid state` };
     }
 
-    // Switch to pattern
-    this.engine.setPattern(this.patterns[patternIndex]);
-    this.currentPatternIndex = patternIndex;
-
-    const targetPattern = this.patterns[patternIndex];
-    let message = `Loaded favorite ${String(favoriteSlot)}: ${targetPattern.constructor.name}`;
-
-    // Apply preset if specified
-    if (favorite.preset !== undefined && targetPattern.applyPreset) {
-      const presetSuccess = targetPattern.applyPreset(favorite.preset);
-      if (presetSuccess) {
-        message += ` + preset ${String(favorite.preset)}`;
-      }
-    }
+    const targetSlot = this.runtime.getCurrentSlot();
+    let message = `Loaded favorite ${String(favoriteSlot)}: ${targetSlot.displayName}`;
+    if (favorite.preset !== undefined) message += ` + preset ${String(favorite.preset)}`;
 
     // Add theme info
-    message += ` + ${this.themes[themeIndex].displayName}`;
+    message += ` + ${this.runtime.getThemes()[themeIndex].displayName}`;
 
     // Add note if present
     if (favorite.note) {
@@ -234,27 +190,23 @@ export class CommandExecutor {
       return { success: false, message: 'Config loader not available' };
     }
 
-    // Get current state
-    const currentPattern = this.patterns[this.currentPatternIndex];
-    const currentTheme = this.themes[this.currentThemeIndex];
+    const snapshot = this.runtime.getSnapshot();
+    const currentSlot = this.runtime.getCurrentSlot();
 
     // Create favorite object
     const favorite: FavoriteSlot = {
-      pattern: currentPattern.constructor.name,
-      theme: currentTheme.name,
+      pattern: snapshot.patternKey,
+      theme: snapshot.themeName,
+      ...(snapshot.presetApplied ? { preset: snapshot.presetId } : {}),
       savedAt: new Date().toISOString(),
     };
-
-    // Try to get current preset if pattern supports it
-    // Note: We don't have getCurrentPreset() method, so we'll just save without preset for now
-    // User can still save pattern+preset combos using 0p#.#+0F# combination
 
     // Save to config
     this.configLoader.saveFavorite(favoriteSlot, favorite);
 
     return {
       success: true,
-      message: `Saved to favorite ${String(favoriteSlot)}: ${currentPattern.constructor.name} + ${currentTheme.displayName}`,
+      message: `Saved to favorite ${String(favoriteSlot)}: ${currentSlot.displayName}${snapshot.presetApplied ? ` + preset ${String(snapshot.presetId)}` : ''} + ${snapshot.themeDisplayName}`,
     };
   }
 
@@ -273,42 +225,30 @@ export class CommandExecutor {
 
     if (typeof patternId === 'number') {
       // 1-based index (0p1 = first pattern)
-      targetIndex = patternId - 1;
+      targetIndex = this.runtime.findPattern(patternId);
     } else {
       // Find by name (case-insensitive partial match)
-      const searchTerm = patternId.toLowerCase();
-      targetIndex = this.patterns.findIndex(p =>
-        p.constructor.name.toLowerCase().includes(searchTerm)
-      );
+      targetIndex = this.runtime.findPattern(patternId);
     }
 
-    if (targetIndex < 0 || targetIndex >= this.patterns.length) {
+    if (targetIndex < 0) {
       return {
         success: false,
         message: `Pattern "${String(patternId)}" not found`,
       };
     }
 
-    // Switch to pattern
-    this.engine.setPattern(this.patterns[targetIndex]);
-    this.currentPatternIndex = targetIndex;
-
-    const targetPattern = this.patterns[targetIndex];
-    let message = `Switched to pattern ${String(targetIndex + 1)}: ${targetPattern.constructor.name}`;
-
-    // Apply preset if specified
-    if (patternPreset !== undefined) {
-      if (targetPattern.applyPreset) {
-        const presetSuccess = targetPattern.applyPreset(patternPreset);
-        if (presetSuccess) {
-          message += ` + preset ${String(patternPreset)}`;
-        } else {
-          message += ` (preset ${String(patternPreset)} not found)`;
-        }
-      } else {
-        message += ` (presets not supported)`;
-      }
+    const result = this.runtime.switchPattern(targetIndex, patternPreset);
+    const targetSlot = this.runtime.getSlots()[targetIndex];
+    if (!result.success) {
+      const detail =
+        result.error === 'presets-unsupported'
+          ? 'presets not supported'
+          : `preset ${String(patternPreset)} not found`;
+      return { success: false, message: `${this.legacyPatternName(targetSlot)}: ${detail}` };
     }
+    let message = `Switched to pattern ${String(targetIndex + 1)}: ${this.legacyPatternName(targetSlot)}`;
+    if (patternPreset !== undefined) message += ` + preset ${String(patternPreset)}`;
 
     return { success: true, message };
   }
@@ -328,29 +268,24 @@ export class CommandExecutor {
 
     if (typeof themeId === 'number') {
       // 1-based index (0t1 = first theme)
-      targetIndex = themeId - 1;
+      targetIndex = this.runtime.findTheme(themeId);
     } else {
       // Find by name (case-insensitive)
-      const searchTerm = themeId.toLowerCase();
-      targetIndex = this.themes.findIndex(t => t.name.toLowerCase() === searchTerm);
+      targetIndex = this.runtime.findTheme(themeId);
     }
 
-    if (targetIndex < 0 || targetIndex >= this.themes.length) {
+    if (targetIndex < 0) {
       return {
         success: false,
         message: `Theme "${String(themeId)}" not found`,
       };
     }
 
-    // Trigger theme change
-    this.currentThemeIndex = targetIndex;
-    if (this.onThemeChange) {
-      this.onThemeChange(targetIndex);
-    }
+    this.runtime.changeTheme(targetIndex);
 
     return {
       success: true,
-      message: `Switched to theme: ${this.themes[targetIndex].displayName}`,
+      message: `Switched to theme: ${this.runtime.getThemes()[targetIndex].displayName}`,
     };
   }
 
@@ -456,41 +391,27 @@ export class CommandExecutor {
    * List presets for current pattern
    */
   private listPresets(): ExecutionResult {
-    const currentPattern = this.patterns[this.currentPatternIndex];
-    const patternClass = currentPattern.constructor as unknown as Partial<PatternClassWithPresets>;
-
-    // Check if pattern has getPresets static method
-    if (!patternClass.getPresets) {
+    const currentSlot = this.runtime.getCurrentSlot();
+    if (currentSlot.presets.length === 0) {
       return {
         success: false,
-        message: `${currentPattern.constructor.name} doesn't support presets`,
-      };
-    }
-
-    const presets = patternClass.getPresets();
-
-    if (!presets || presets.length === 0) {
-      return {
-        success: true,
-        message: `No presets available for ${currentPattern.constructor.name}`,
+        message: `${this.legacyPatternName(currentSlot)} doesn't support presets`,
       };
     }
 
     // Format: "Presets for Wave: 1:Calm Seas, 2:Ocean Storm, ..."
-    const presetList = presets
-      .map((p: { id: number; name: string }) => `${String(p.id)}:${p.name}`)
-      .join(', ');
-    const patternName = currentPattern.constructor.name.replace('Pattern', '');
+    const presetList = currentSlot.presets.map(p => `${String(p.id)}:${p.name}`).join(', ');
 
     return {
       success: true,
-      message: `Presets for ${patternName}: ${presetList}`,
+      message: `Presets for ${currentSlot.displayName}: ${presetList}`,
     };
   }
 
   private listPatterns(): ExecutionResult {
-    const patternNames = this.patterns
-      .map((p, i) => `${String(i + 1)}:${p.constructor.name.replace('Pattern', '')}`)
+    const patternNames = this.runtime
+      .getSlots()
+      .map((slot, i) => `${String(i + 1)}:${slot.displayName}`)
       .join(', ');
 
     return {
@@ -500,7 +421,10 @@ export class CommandExecutor {
   }
 
   private listThemes(): ExecutionResult {
-    const themeNames = this.themes.map((t, i) => `${String(i + 1)}:${t.displayName}`).join(', ');
+    const themeNames = this.runtime
+      .getThemes()
+      .map((t, i) => `${String(i + 1)}:${t.displayName}`)
+      .join(', ');
 
     return {
       success: true,
@@ -509,45 +433,37 @@ export class CommandExecutor {
   }
 
   private randomTheme(): ExecutionResult {
-    const randomIndex = Math.floor(Math.random() * this.themes.length);
-    this.currentThemeIndex = randomIndex;
-
-    if (this.onThemeChange) {
-      this.onThemeChange(randomIndex);
-    }
+    const themes = this.runtime.getThemes();
+    const randomIndex = Math.floor(Math.random() * themes.length);
+    this.runtime.changeTheme(randomIndex);
 
     return {
       success: true,
-      message: `Random theme: ${this.themes[randomIndex].displayName}`,
+      message: `Random theme: ${themes[randomIndex].displayName}`,
     };
   }
 
   private randomize(): ExecutionResult {
     // Random pattern + random theme
-    const randomPatternIndex = Math.floor(Math.random() * this.patterns.length);
-    const randomThemeIndex = Math.floor(Math.random() * this.themes.length);
-
-    this.engine.setPattern(this.patterns[randomPatternIndex]);
-    this.currentPatternIndex = randomPatternIndex;
-    this.currentThemeIndex = randomThemeIndex;
-
-    if (this.onThemeChange) {
-      this.onThemeChange(randomThemeIndex);
-    }
+    const slots = this.runtime.getSlots();
+    const themes = this.runtime.getThemes();
+    const randomPatternIndex = Math.floor(Math.random() * slots.length);
+    const randomThemeIndex = Math.floor(Math.random() * themes.length);
+    this.runtime.applyScene({ patternIndex: randomPatternIndex, themeIndex: randomThemeIndex });
 
     return {
       success: true,
-      message: `Randomized: ${this.patterns[randomPatternIndex].constructor.name} + ${this.themes[randomThemeIndex].displayName}`,
+      message: `Randomized: ${this.legacyPatternName(slots[randomPatternIndex])} + ${themes[randomThemeIndex].displayName}`,
     };
   }
 
   private resetPattern(): ExecutionResult {
-    const currentPattern = this.patterns[this.currentPatternIndex];
-    currentPattern.reset();
+    const currentSlot = this.runtime.getCurrentSlot();
+    this.runtime.resetCurrentPattern();
 
     return {
       success: true,
-      message: `Reset: ${currentPattern.constructor.name}`,
+      message: `Reset: ${this.legacyPatternName(currentSlot)}`,
     };
   }
 
@@ -560,14 +476,18 @@ export class CommandExecutor {
     const matches: string[] = [];
 
     // Search patterns
-    this.patterns.forEach((p, i) => {
-      if (p.constructor.name.toLowerCase().includes(searchTerm)) {
-        matches.push(`P${String(i + 1)}:${p.constructor.name.replace('Pattern', '')}`);
+    this.runtime.getSlots().forEach((slot, i) => {
+      if (
+        [slot.key, slot.displayName, ...slot.legacyNames].some(name =>
+          name.toLowerCase().includes(searchTerm)
+        )
+      ) {
+        matches.push(`P${String(i + 1)}:${slot.displayName}`);
       }
     });
 
     // Search themes
-    this.themes.forEach((t, i) => {
+    this.runtime.getThemes().forEach((t, i) => {
       if (
         t.name.toLowerCase().includes(searchTerm) ||
         t.displayName.toLowerCase().includes(searchTerm)
@@ -601,7 +521,11 @@ export class CommandExecutor {
     const lines: string[] = [];
     slots.forEach(slot => {
       const fav: FavoriteSlot = favorites[Number(slot)];
-      const patternName = fav.pattern.replace('Pattern', '');
+      const patternIndex = this.runtime.findPattern(fav.pattern);
+      const patternName =
+        patternIndex >= 0
+          ? this.runtime.getSlots()[patternIndex].displayName
+          : fav.pattern.replace('Pattern', '');
       const presetInfo = fav.preset !== undefined ? `.${String(fav.preset)}` : '';
       const noteInfo = fav.note ? ` "${fav.note}"` : '';
       lines.push(`${slot}:${patternName}${presetInfo}+${fav.theme}${noteInfo}`);
@@ -617,31 +541,20 @@ export class CommandExecutor {
    * Apply random preset to current pattern (0*)
    */
   private randomPreset(): ExecutionResult {
-    const currentPattern = this.patterns[this.currentPatternIndex];
-    const patternClass = currentPattern.constructor as unknown as Partial<PatternClassWithPresets>;
-
-    // Check if pattern has getPresets static method
-    if (!patternClass.getPresets || !currentPattern.applyPreset) {
+    const currentSlot = this.runtime.getCurrentSlot();
+    if (currentSlot.presets.length === 0) {
       return {
         success: false,
-        message: `${currentPattern.constructor.name} doesn't support presets`,
-      };
-    }
-
-    const presets = patternClass.getPresets();
-
-    if (!presets || presets.length === 0) {
-      return {
-        success: false,
-        message: `No presets available for ${currentPattern.constructor.name}`,
+        message: `${this.legacyPatternName(currentSlot)} doesn't support presets`,
       };
     }
 
     // Pick random preset
-    const randomPreset = presets[Math.floor(Math.random() * presets.length)];
-    const success = currentPattern.applyPreset(randomPreset.id);
+    const randomPreset =
+      currentSlot.presets[Math.floor(Math.random() * currentSlot.presets.length)];
+    const result = this.runtime.applyPreset(randomPreset.id);
 
-    if (success) {
+    if (result.success) {
       return {
         success: true,
         message: `Random preset: ${randomPreset.name} (${String(randomPreset.id)})`,
@@ -659,33 +572,26 @@ export class CommandExecutor {
    */
   private randomAll(): ExecutionResult {
     // Pick random pattern
-    const randomPatternIndex = Math.floor(Math.random() * this.patterns.length);
-    const randomPattern = this.patterns[randomPatternIndex];
-    const patternClass = randomPattern.constructor as unknown as Partial<PatternClassWithPresets>;
-
-    // Switch to pattern
-    this.engine.setPattern(randomPattern);
-    this.currentPatternIndex = randomPatternIndex;
-
-    let message = `Random: ${randomPattern.constructor.name}`;
-
-    // Try to apply random preset if available
-    if (patternClass.getPresets && randomPattern.applyPreset) {
-      const presets = patternClass.getPresets();
-      if (presets && presets.length > 0) {
-        const randomPreset = presets[Math.floor(Math.random() * presets.length)];
-        randomPattern.applyPreset(randomPreset.id);
-        message += ` + ${randomPreset.name}`;
-      }
-    }
+    const slots = this.runtime.getSlots();
+    const themes = this.runtime.getThemes();
+    const randomPatternIndex = Math.floor(Math.random() * slots.length);
+    const randomSlot = slots[randomPatternIndex];
+    const randomPreset =
+      randomSlot.presets.length > 0
+        ? randomSlot.presets[Math.floor(Math.random() * randomSlot.presets.length)]
+        : undefined;
 
     // Also randomize theme
-    const randomThemeIndex = Math.floor(Math.random() * this.themes.length);
-    this.currentThemeIndex = randomThemeIndex;
-    if (this.onThemeChange) {
-      this.onThemeChange(randomThemeIndex);
-    }
-    message += ` + ${this.themes[randomThemeIndex].displayName}`;
+    const randomThemeIndex = Math.floor(Math.random() * themes.length);
+    this.runtime.applyScene({
+      patternIndex: randomPatternIndex,
+      themeIndex: randomThemeIndex,
+      ...(randomPreset === undefined ? {} : { presetId: randomPreset.id }),
+    });
+
+    let message = `Random: ${this.legacyPatternName(randomSlot)}`;
+    if (randomPreset) message += ` + ${randomPreset.name}`;
+    message += ` + ${themes[randomThemeIndex].displayName}`;
 
     return {
       success: true,
@@ -699,16 +605,10 @@ export class CommandExecutor {
   private catalogPresets(): ExecutionResult {
     const catalog: string[] = [];
 
-    this.patterns.forEach((pattern, index) => {
-      const patternClass = pattern.constructor as unknown as Partial<PatternClassWithPresets>;
-      const patternName = pattern.constructor.name.replace('Pattern', '');
-
-      if (patternClass.getPresets) {
-        const presets = patternClass.getPresets();
-        if (presets && presets.length > 0) {
-          const presetList = presets.map(p => `${String(p.id)}:${p.name}`).join(',');
-          catalog.push(`${String(index + 1)}.${patternName}[${presetList}]`);
-        }
+    this.runtime.getSlots().forEach((slot, index) => {
+      if (slot.presets.length > 0) {
+        const presetList = slot.presets.map(p => `${String(p.id)}:${p.name}`).join(',');
+        catalog.push(`${String(index + 1)}.${slot.displayName}[${presetList}]`);
       }
     });
 
@@ -733,23 +633,26 @@ export class CommandExecutor {
       return { success: false, message: 'Config loader not available' };
     }
 
-    const currentPattern = this.patterns[this.currentPatternIndex];
-    const currentTheme = this.themes[this.currentThemeIndex];
-    const currentFps = this.engine.getFps();
+    const snapshot = this.runtime.getSnapshot();
+    const currentSlot = this.runtime.getCurrentSlot();
 
     // Load existing config and update with current state
     const config = this.configLoader.load();
-    config.defaultPattern = currentPattern.constructor.name.replace('Pattern', '').toLowerCase();
-    config.theme = currentTheme.name;
-    config.fps = currentFps;
+    config.defaultPattern = snapshot.patternKey;
+    config.theme = snapshot.themeName;
+    config.fps = snapshot.fps;
 
     // Save to file
     this.configLoader.save(config);
 
     return {
       success: true,
-      message: `Saved: ${currentPattern.constructor.name} + ${currentTheme.displayName} @ ${String(currentFps)}fps`,
+      message: `Saved: ${this.legacyPatternName(currentSlot)} + ${snapshot.themeDisplayName} @ ${String(snapshot.fps)}fps`,
     };
+  }
+
+  private legacyPatternName(slot: PatternSlot): string {
+    return slot.legacyNames[0] ?? slot.pattern.constructor.name;
   }
 
   /**

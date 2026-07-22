@@ -12,7 +12,7 @@ import {
   distanceSquared,
   distance,
   Complex,
-  Point3D
+  Point3D,
 } from '../../../src/utils/math.js';
 
 describe('Math Utils', () => {
@@ -22,7 +22,7 @@ describe('Math Utils', () => {
         const a: Complex = { real: 3, imag: 4 };
         const b: Complex = { real: 1, imag: 2 };
         const result = complexAdd(a, b);
-        
+
         expect(result.real).toBe(4);
         expect(result.imag).toBe(6);
       });
@@ -31,7 +31,7 @@ describe('Math Utils', () => {
         const a: Complex = { real: 5, imag: -3 };
         const b: Complex = { real: -2, imag: 7 };
         const result = complexAdd(a, b);
-        
+
         expect(result.real).toBe(3);
         expect(result.imag).toBe(4);
       });
@@ -40,7 +40,7 @@ describe('Math Utils', () => {
         const a: Complex = { real: 5, imag: 3 };
         const b: Complex = { real: 0, imag: 0 };
         const result = complexAdd(a, b);
-        
+
         expect(result.real).toBe(5);
         expect(result.imag).toBe(3);
       });
@@ -52,7 +52,7 @@ describe('Math Utils', () => {
         const b: Complex = { real: 4, imag: 5 };
         // (2+3i)(4+5i) = 8+10i+12i+15i² = 8+22i-15 = -7+22i
         const result = complexMult(a, b);
-        
+
         expect(result.real).toBe(-7);
         expect(result.imag).toBe(22);
       });
@@ -62,7 +62,7 @@ describe('Math Utils', () => {
         const b: Complex = { real: 0, imag: 1 };
         // 3 * i = 3i
         const result = complexMult(a, b);
-        
+
         expect(result.real).toBe(0);
         expect(result.imag).toBe(3);
       });
@@ -72,7 +72,7 @@ describe('Math Utils', () => {
         const b: Complex = { real: 3, imag: -4 };
         // (-2+i)(3-4i) = -6+8i+3i-4i² = -6+11i+4 = -2+11i
         const result = complexMult(a, b);
-        
+
         expect(result.real).toBe(-2);
         expect(result.imag).toBe(11);
       });
@@ -81,7 +81,7 @@ describe('Math Utils', () => {
         const a: Complex = { real: 5, imag: 3 };
         const b: Complex = { real: 0, imag: 0 };
         const result = complexMult(a, b);
-        
+
         expect(result.real).toBe(0);
         expect(result.imag).toBe(0);
       });
@@ -91,35 +91,35 @@ describe('Math Utils', () => {
       it('calculates magnitude squared', () => {
         const c: Complex = { real: 3, imag: 4 };
         const result = complexMagnitudeSquared(c);
-        
+
         expect(result).toBe(25); // 3² + 4² = 9 + 16 = 25
       });
 
       it('handles zero', () => {
         const c: Complex = { real: 0, imag: 0 };
         const result = complexMagnitudeSquared(c);
-        
+
         expect(result).toBe(0);
       });
 
       it('handles negative components', () => {
         const c: Complex = { real: -5, imag: -12 };
         const result = complexMagnitudeSquared(c);
-        
+
         expect(result).toBe(169); // 25 + 144 = 169
       });
 
       it('handles purely real number', () => {
         const c: Complex = { real: 7, imag: 0 };
         const result = complexMagnitudeSquared(c);
-        
+
         expect(result).toBe(49);
       });
 
       it('handles purely imaginary number', () => {
         const c: Complex = { real: 0, imag: 8 };
         const result = complexMagnitudeSquared(c);
-        
+
         expect(result).toBe(64);
       });
     });
@@ -130,7 +130,7 @@ describe('Math Utils', () => {
       it('projects 3D point with default FOV', () => {
         const point: Point3D = { x: 10, y: 20, z: 0 };
         const result = projectTo2D(point);
-        
+
         // At z=0, scale = 500/(500+0) = 1
         expect(result.x).toBe(10);
         expect(result.y).toBe(20);
@@ -139,7 +139,7 @@ describe('Math Utils', () => {
       it('scales down points further from camera', () => {
         const point: Point3D = { x: 100, y: 100, z: 500 };
         const result = projectTo2D(point);
-        
+
         // At z=500, scale = 500/(500+500) = 0.5
         expect(result.x).toBe(50);
         expect(result.y).toBe(50);
@@ -148,7 +148,7 @@ describe('Math Utils', () => {
       it('scales up points closer to camera', () => {
         const point: Point3D = { x: 100, y: 100, z: -250 };
         const result = projectTo2D(point);
-        
+
         // At z=-250, scale = 500/(500-250) = 2
         expect(result.x).toBe(200);
         expect(result.y).toBe(200);
@@ -157,7 +157,7 @@ describe('Math Utils', () => {
       it('handles custom FOV', () => {
         const point: Point3D = { x: 100, y: 100, z: 0 };
         const result = projectTo2D(point, 1000);
-        
+
         // At z=0, scale = 1000/(1000+0) = 1
         expect(result.x).toBe(100);
         expect(result.y).toBe(100);
@@ -166,7 +166,7 @@ describe('Math Utils', () => {
       it('handles negative coordinates', () => {
         const point: Point3D = { x: -50, y: -30, z: 100 };
         const result = projectTo2D(point);
-        
+
         // Scale = 500/600 = 0.833...
         expect(result.x).toBeCloseTo(-41.67, 1);
         expect(result.y).toBeCloseTo(-25, 1);
@@ -177,7 +177,7 @@ describe('Math Utils', () => {
       it('rotates point around Y axis by 90 degrees', () => {
         const point: Point3D = { x: 1, y: 0, z: 0 };
         const result = rotateY(point, Math.PI / 2);
-        
+
         expect(result.x).toBeCloseTo(0, 10);
         expect(result.y).toBe(0);
         expect(result.z).toBeCloseTo(-1, 10);
@@ -186,7 +186,7 @@ describe('Math Utils', () => {
       it('rotates point around Y axis by 180 degrees', () => {
         const point: Point3D = { x: 1, y: 2, z: 3 };
         const result = rotateY(point, Math.PI);
-        
+
         expect(result.x).toBeCloseTo(-1, 10);
         expect(result.y).toBe(2); // Y unchanged
         expect(result.z).toBeCloseTo(-3, 10);
@@ -195,7 +195,7 @@ describe('Math Utils', () => {
       it('handles zero rotation', () => {
         const point: Point3D = { x: 5, y: 10, z: 15 };
         const result = rotateY(point, 0);
-        
+
         expect(result.x).toBeCloseTo(5, 10);
         expect(result.y).toBe(10);
         expect(result.z).toBeCloseTo(15, 10);
@@ -204,7 +204,7 @@ describe('Math Utils', () => {
       it('handles negative angles', () => {
         const point: Point3D = { x: 1, y: 0, z: 0 };
         const result = rotateY(point, -Math.PI / 2);
-        
+
         expect(result.x).toBeCloseTo(0, 10);
         expect(result.y).toBe(0);
         expect(result.z).toBeCloseTo(1, 10);
@@ -215,7 +215,7 @@ describe('Math Utils', () => {
       it('rotates point around Z axis by 90 degrees', () => {
         const point: Point3D = { x: 1, y: 0, z: 0 };
         const result = rotateZ(point, Math.PI / 2);
-        
+
         expect(result.x).toBeCloseTo(0, 10);
         expect(result.y).toBeCloseTo(1, 10);
         expect(result.z).toBe(0);
@@ -224,7 +224,7 @@ describe('Math Utils', () => {
       it('rotates point around Z axis by 180 degrees', () => {
         const point: Point3D = { x: 3, y: 4, z: 5 };
         const result = rotateZ(point, Math.PI);
-        
+
         expect(result.x).toBeCloseTo(-3, 10);
         expect(result.y).toBeCloseTo(-4, 10);
         expect(result.z).toBe(5); // Z unchanged
@@ -233,7 +233,7 @@ describe('Math Utils', () => {
       it('handles zero rotation', () => {
         const point: Point3D = { x: 5, y: 10, z: 15 };
         const result = rotateZ(point, 0);
-        
+
         expect(result.x).toBeCloseTo(5, 10);
         expect(result.y).toBeCloseTo(10, 10);
         expect(result.z).toBe(15);
@@ -242,7 +242,7 @@ describe('Math Utils', () => {
       it('handles negative angles', () => {
         const point: Point3D = { x: 1, y: 0, z: 0 };
         const result = rotateZ(point, -Math.PI / 2);
-        
+
         expect(result.x).toBeCloseTo(0, 10);
         expect(result.y).toBeCloseTo(-1, 10);
         expect(result.z).toBe(0);
@@ -436,10 +436,13 @@ describe('Math Utils', () => {
       });
 
       it('matches square root of distanceSquared', () => {
-        const x1 = 10, y1 = 20, x2 = 30, y2 = 50;
+        const x1 = 10,
+          y1 = 20,
+          x2 = 30,
+          y2 = 50;
         const dist = distance(x1, y1, x2, y2);
         const distSq = distanceSquared(x1, y1, x2, y2);
-        
+
         expect(dist).toBeCloseTo(Math.sqrt(distSq), 10);
       });
     });

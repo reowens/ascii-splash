@@ -42,7 +42,7 @@ describe('Theme System', () => {
     it('produces smooth gradients between adjacent colors', () => {
       const color1 = oceanTheme.getColor(0.2);
       const color2 = oceanTheme.getColor(0.21);
-      
+
       // Colors should be similar but slightly different
       expect(Math.abs(color1.r - color2.r)).toBeLessThan(10);
       expect(Math.abs(color1.g - color2.g)).toBeLessThan(10);
@@ -70,7 +70,7 @@ describe('Theme System', () => {
     it('progresses from dark blue to light cyan', () => {
       const darkColor = THEMES.ocean.colors[0];
       const lightColor = THEMES.ocean.colors[5];
-      
+
       expect(darkColor.b).toBeGreaterThan(darkColor.r);
       expect(lightColor.r).toBeGreaterThan(100); // Light colors have high RGB
       expect(lightColor.b).toBe(255);
@@ -97,7 +97,7 @@ describe('Theme System', () => {
     it('ranges from dark to bright green', () => {
       const darkColor = THEMES.matrix.colors[0];
       const brightColor = THEMES.matrix.colors[5];
-      
+
       expect(darkColor.g).toBeLessThan(64);
       expect(brightColor.g).toBe(255);
     });
@@ -132,7 +132,7 @@ describe('Theme System', () => {
     it('progresses from red to yellow', () => {
       const darkRed = THEMES.fire.colors[0];
       const lightYellow = THEMES.fire.colors[5];
-      
+
       expect(darkRed.r).toBeGreaterThan(darkRed.g);
       expect(darkRed.r).toBeGreaterThan(darkRed.b);
       expect(lightYellow.r).toBe(255);
@@ -164,7 +164,7 @@ describe('Theme System', () => {
     it('ranges from black to white', () => {
       const black = THEMES.monochrome.colors[0];
       const white = THEMES.monochrome.colors[5];
-      
+
       expect(black).toEqual({ r: 0, g: 0, b: 0 });
       expect(white).toEqual({ r: 255, g: 255, b: 255 });
     });
@@ -275,7 +275,7 @@ describe('Theme System', () => {
       const theme = THEMES.ocean;
       const samples = [0, 0.25, 0.5, 0.75, 1];
       const colors = samples.map(intensity => theme.getColor(intensity));
-      
+
       // Each color should be different from its neighbors
       for (let i = 0; i < colors.length - 1; i++) {
         const c1 = colors[i];
@@ -290,7 +290,7 @@ describe('Theme System', () => {
       const theme = THEMES.fire;
       const waveIntensity = Math.sin(Date.now() / 1000) * 0.5 + 0.5; // 0-1
       const color = theme.getColor(waveIntensity);
-      
+
       expect(color.r).toBeGreaterThanOrEqual(0);
       expect(color.r).toBeLessThanOrEqual(255);
       expect(color.g).toBeGreaterThanOrEqual(0);
@@ -302,13 +302,13 @@ describe('Theme System', () => {
     it('handles rapid intensity changes smoothly', () => {
       const theme = THEMES.matrix;
       const colors: any[] = [];
-      
+
       // Simulate animation frame color changes
       for (let i = 0; i < 100; i++) {
         const intensity = i / 99;
         colors.push(theme.getColor(intensity));
       }
-      
+
       // Verify no sudden jumps (smooth gradient)
       for (let i = 0; i < colors.length - 1; i++) {
         const c1 = colors[i];
@@ -325,7 +325,7 @@ describe('Theme System', () => {
       const theme = THEMES.ocean;
       const color1 = theme.getColor(0.5);
       const color2 = theme.getColor(0.5000001);
-      
+
       // Should be very close or identical
       expect(Math.abs(color1.r - color2.r)).toBeLessThanOrEqual(1);
       expect(Math.abs(color1.g - color2.g)).toBeLessThanOrEqual(1);
@@ -336,7 +336,7 @@ describe('Theme System', () => {
       const theme = THEMES.ocean;
       // 5 intervals between 6 colors: 0, 0.2, 0.4, 0.6, 0.8, 1
       const exactStop = theme.getColor(0.4); // Should be exactly colors[2]
-      
+
       expect(exactStop.r).toBeGreaterThanOrEqual(0);
       expect(exactStop.r).toBeLessThanOrEqual(255);
     });
@@ -345,7 +345,7 @@ describe('Theme System', () => {
       // All themes have 6 colors, but the logic should work with any number >= 2
       const theme = THEMES.monochrome;
       expect(theme.colors.length).toBeGreaterThanOrEqual(2);
-      
+
       const color = theme.getColor(0.5);
       expect(color).toBeDefined();
     });
@@ -353,7 +353,7 @@ describe('Theme System', () => {
     it('handles Infinity intensity', () => {
       const theme = THEMES.fire;
       const color = theme.getColor(Infinity);
-      
+
       // Should clamp to 1
       expect(color).toEqual({ r: 255, g: 255, b: 128 });
     });
@@ -361,7 +361,7 @@ describe('Theme System', () => {
     it('handles -Infinity intensity', () => {
       const theme = THEMES.starlight;
       const color = theme.getColor(-Infinity);
-      
+
       // Should clamp to 0
       expect(color).toEqual({ r: 16, g: 0, b: 48 });
     });

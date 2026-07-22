@@ -267,8 +267,7 @@ export class QuicksilverPattern implements Pattern {
   onMouseClick(pos: Point): void {
     // Click creates mercury droplets that splash and fall
     const numDroplets = 12;
-    // Use currentTime if available (after render called), otherwise use Date.now()
-    const clickTime = this.currentTime || Date.now();
+    const clickTime = this.currentTime;
 
     for (let i = 0; i < numDroplets; i++) {
       const angle = (Math.PI * 2 * i) / numDroplets;

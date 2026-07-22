@@ -237,7 +237,7 @@ describe('QuicksilverPattern', () => {
       const pos = createMockPoint(40, 12);
       pattern.onMouseClick(pos);
 
-      pattern.render(buffer, Date.now(), size);
+      pattern.render(buffer, 16, size);
 
       // After initial click, droplets should still exist
       expect(pattern.getMetrics().droplets).toBe(12);

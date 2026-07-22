@@ -298,7 +298,7 @@ export class StarfieldPattern implements Pattern {
     this.explosions.push({
       x: pos.x,
       y: pos.y,
-      time: this.currentTime || Date.now(), // Use currentTime if available, otherwise Date.now()
+      time: this.currentTime,
       particles,
     });
   }

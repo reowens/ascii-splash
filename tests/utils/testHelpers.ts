@@ -34,15 +34,15 @@ export async function captureConsole(
 ): Promise<{ stdout: string[]; stderr: string[] }> {
   const stdout: string[] = [];
   const stderr: string[] = [];
-  
+
   const originalLog = console.log;
   const originalError = console.error;
   const originalWarn = console.warn;
-  
+
   console.log = (...args: any[]) => stdout.push(args.join(' '));
   console.error = (...args: any[]) => stderr.push(args.join(' '));
   console.warn = (...args: any[]) => stderr.push(args.join(' '));
-  
+
   try {
     await fn();
   } finally {
@@ -50,7 +50,7 @@ export async function captureConsole(
     console.error = originalError;
     console.warn = originalWarn;
   }
-  
+
   return { stdout, stderr };
 }
 
@@ -71,9 +71,7 @@ export function benchmark(fn: () => void, iterations: number = 100): number {
  */
 export function assertInRange(value: number, min: number, max: number, message?: string): void {
   if (value < min || value > max) {
-    throw new Error(
-      message || `Expected ${value} to be between ${min} and ${max}`
-    );
+    throw new Error(message || `Expected ${value} to be between ${min} and ${max}`);
   }
 }
 
@@ -89,7 +87,8 @@ export function assertApproximately(
   const diff = Math.abs(actual - expected);
   if (diff > epsilon) {
     throw new Error(
-      message || `Expected ${actual} to be approximately ${expected} (within ${epsilon}), but difference was ${diff}`
+      message ||
+        `Expected ${actual} to be approximately ${expected} (within ${epsilon}), but difference was ${diff}`
     );
   }
 }

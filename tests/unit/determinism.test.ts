@@ -9,10 +9,9 @@
  *
  * Coverage:
  *   - Round-trip: every patternId in the registry survives encode→decode.
- *   - Byte-for-byte replay across two runs (DNA + Starfield + Fireworks
- *     — picked as canaries: DNA was the 7a proof-of-concept, Starfield
- *     is the simplest sparse case, Fireworks is the worst-case
- *     stochastic stress test with bursts and trails).
+ *   - Byte-for-byte replay canaries (DNA + Starfield + Fireworks).
+ *   - Complete-cell replay across different clock origins for the full
+ *     23-pattern procedural registry.
  *   - Version-skew rejection (a fabricated v2 code throws cleanly).
  *   - UX-random carve-out: CommandExecutor's c* / c** / r still use
  *     `Math.random()` and are explicitly NOT deterministic — they're
@@ -36,6 +35,9 @@ import { StarfieldPattern } from '../../src/patterns/StarfieldPattern.js';
 import { FireworksPattern } from '../../src/patterns/FireworksPattern.js';
 import type { Cell } from '../../src/types/index.js';
 import { createMockTheme, createMockBuffer } from '../utils/mocks.js';
+import { createDefaultConfig } from '../../src/config/defaults.js';
+import { buildPatternSlots } from '../../src/patterns/PatternCatalog.js';
+import { AnimationClock, type TimeSource } from '../../src/engine/AnimationClock.js';
 
 const size = { width: 80, height: 24 };
 
@@ -44,27 +46,35 @@ const size = { width: 80, height: 24 };
  * if equal), so jest failures point at exactly where determinism broke.
  */
 function firstDifference(a: Cell[][], b: Cell[][]): { x: number; y: number } | null {
+  const colorsEqual = (left: Cell['color'], right: Cell['color']): boolean => {
+    if (!left || !right) return left === right;
+    return left.r === right.r && left.g === right.g && left.b === right.b;
+  };
+
   for (let y = 0; y < a.length; y++) {
     for (let x = 0; x < a[y].length; x++) {
       const ca = a[y][x];
       const cb = b[y][x];
       if (ca.char !== cb.char) return { x, y };
-      const colorA = ca.color;
-      const colorB = cb.color;
-      if (colorA && colorB) {
-        if (colorA.r !== colorB.r || colorA.g !== colorB.g || colorA.b !== colorB.b) {
-          return { x, y };
-        }
-      } else if (colorA || colorB) {
-        // One defined, the other not → divergence.
-        return { x, y };
-      }
+      if (!colorsEqual(ca.color, cb.color) || !colorsEqual(ca.bg, cb.bg)) return { x, y };
     }
   }
   return null;
 }
 
 describe('determinism — v0.5.0 share-code replay contract', () => {
+  class ManualTimeSource implements TimeSource {
+    constructor(private value: number) {}
+
+    now(): number {
+      return this.value;
+    }
+
+    advance(milliseconds: number): void {
+      this.value += milliseconds;
+    }
+  }
+
   describe('encode/decode round-trip across the full registry', () => {
     it('every patternId in PROCEDURAL_PATTERN_IDS survives a round-trip', () => {
       for (let patternId = 0; patternId < PROCEDURAL_PATTERN_IDS.length; patternId++) {
@@ -164,6 +174,74 @@ describe('determinism — v0.5.0 share-code replay contract', () => {
         );
         expect(firstDifference(a, b)).not.toBeNull();
       });
+    });
+  });
+
+  describe('different-origin replay across the procedural registry', () => {
+    it('renders identical complete cells for all 23 patterns', () => {
+      const theme = createMockTheme();
+      const seeds = new Map(
+        PROCEDURAL_PATTERN_IDS.map((key, index) => [key, (0x9e3779b9 * (index + 1)) >>> 0])
+      );
+      const makeSlots = () =>
+        buildPatternSlots({
+          config: createDefaultConfig(),
+          theme,
+          seedOverrides: seeds,
+          seedFactory: () => 0,
+        });
+      const slotsA = makeSlots();
+      const slotsB = makeSlots();
+      const sourceA = new ManualTimeSource(1000);
+      const sourceB = new ManualTimeSource(900000000);
+      const clockA = new AnimationClock(sourceA);
+      const clockB = new AnimationClock(sourceB);
+      clockA.start();
+      clockB.start();
+      const schedule = [16, 17, 33, 34, 50, 16, 100, 33, 33, 40];
+      const timesA = schedule.map(delta => {
+        sourceA.advance(delta);
+        return clockA.frame();
+      });
+      const timesB = schedule.map(delta => {
+        sourceB.advance(delta);
+        return clockB.frame();
+      });
+
+      for (let index = 0; index < PROCEDURAL_PATTERN_IDS.length; index++) {
+        const bufferA = createMockBuffer(size.width, size.height);
+        const bufferB = createMockBuffer(size.width, size.height);
+        for (let frame = 0; frame < schedule.length; frame++) {
+          for (let y = 0; y < size.height; y++) {
+            for (let x = 0; x < size.width; x++) {
+              bufferA[y][x] = { char: ' ' };
+              bufferB[y][x] = { char: ' ' };
+            }
+          }
+          slotsA[index].pattern.render(
+            bufferA,
+            timesA[frame].sceneTime,
+            size,
+            undefined,
+            timesA[frame]
+          );
+          slotsB[index].pattern.render(
+            bufferB,
+            timesB[frame].sceneTime,
+            size,
+            undefined,
+            timesB[frame]
+          );
+        }
+
+        const difference = firstDifference(bufferA, bufferB);
+        if (difference) {
+          throw new Error(
+            `${PROCEDURAL_PATTERN_IDS[index]} differed across clock origins at ` +
+              `(${String(difference.x)}, ${String(difference.y)})`
+          );
+        }
+      }
     });
   });
 

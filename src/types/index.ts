@@ -32,6 +32,16 @@ export interface Cell {
   bg?: Color;
 }
 
+/** Pause-aware timing values supplied for the current rendered frame. */
+export interface FrameTime {
+  /** Active time since the current scene was activated or reset. */
+  sceneTime: number;
+  /** Active time since the application clock started. */
+  appTime: number;
+  /** Active time elapsed since the previous rendered frame. */
+  deltaTime: number;
+}
+
 export interface Pattern {
   name: string;
 
@@ -39,21 +49,23 @@ export interface Pattern {
    * Renders the pattern to the buffer.
    *
    * @param buffer - 2D array of cells to render into
-   * @param time - Absolute timestamp in milliseconds (from Date.now())
+   * @param time - Pause-aware milliseconds since this scene was activated
    * @param size - Current terminal dimensions
    * @param mousePos - Optional mouse position (0-based coordinates)
+   * @param frameTime - Optional full timing context for persistent application services
    *
    * **Time Parameter Convention:**
-   * - `time` is an absolute timestamp (milliseconds since epoch)
+   * - `time` is scene-relative and resets when the pattern is activated
+   * - paused and stopped intervals are excluded
    * - For frame-rate independent animation, patterns should:
    *   1. Track `lastTime` as a private field
    *   2. Calculate `deltaTime = time - lastTime` (in milliseconds)
    *   3. Convert to seconds: `deltaSeconds = deltaTime / 1000`
    *   4. Update `lastTime = time` after calculation
-   * - For periodic functions (sin/cos), using absolute `time` is acceptable
+   * - For periodic functions (sin/cos), use scene-relative `time` directly
    * - Patterns must reset `lastTime = 0` in their `reset()` method
    */
-  render(buffer: Cell[][], time: number, size: Size, mousePos?: Point): void;
+  render(buffer: Cell[][], time: number, size: Size, mousePos?: Point, frameTime?: FrameTime): void;
 
   // Mouse interaction
   onMouseMove?(pos: Point): void;
@@ -77,6 +89,32 @@ export interface Pattern {
   onResize?(size: Size): void;
   /** Called when FPS setting changes */
   onFpsChange?(fps: number): void;
+}
+
+/** Lightweight preset metadata used by runtime catalogs and command UI. */
+export interface PatternPresetInfo {
+  id: number;
+  name: string;
+  description?: string;
+}
+
+/** Origin of a runtime-selectable pattern slot. */
+export type PatternSlotKind = 'procedural' | 'photo' | 'layered' | 'workspace';
+
+/**
+ * A self-describing runtime pattern entry. Keeping identity, seed, presets,
+ * and the Pattern instance together prevents parallel registry arrays from
+ * drifting when optional slots are appended or patterns are rebuilt.
+ */
+export interface PatternSlot {
+  readonly key: string;
+  readonly displayName: string;
+  readonly kind: PatternSlotKind;
+  readonly pattern: Pattern;
+  readonly seed: number | null;
+  readonly shareable: boolean;
+  readonly presets: readonly PatternPresetInfo[];
+  readonly legacyNames: readonly string[];
 }
 
 export interface AppState {
@@ -299,69 +337,12 @@ export interface Vector2 {
   y: number;
 }
 
-// Scene graph layer interface for layered rendering
-export interface SceneLayer {
-  name: string;
-  zIndex: number;
-  visible: boolean;
-  update(deltaTime: number, size: Size): void;
-  render(buffer: Cell[][], size: Size): void;
-}
-
-// Sprite for animated characters/objects
-export interface Sprite {
-  position: Vector2;
-  velocity: Vector2;
-  frames: string[][]; // Animation frames (each frame is array of lines)
-  currentFrame: number;
-  frameTime: number; // Time accumulated for current frame (ms)
-  frameDuration: number; // Duration per frame (ms)
-  color: Color;
-  scale: number;
-  active: boolean;
-}
-
-// Particle for particle systems
-export interface Particle {
-  position: Vector2;
-  velocity: Vector2;
-  acceleration: Vector2;
-  life: number; // Remaining lifetime in seconds
-  maxLife: number; // Total lifetime for fade calculation
-  color: Color;
-  char: string;
-  active: boolean;
-}
-
-// Range types for particle emitters
-export interface Vector2Range {
-  min: Vector2;
-  max: Vector2;
-}
-
-export interface ColorRange {
-  start: Color;
-  end: Color;
-}
-
-// Particle emitter configuration
-export interface ParticleEmitter {
-  position: Vector2;
-  emissionRate: number; // Particles per second
-  particleLife: number; // Lifetime in seconds
-  initialVelocity: Vector2Range;
-  acceleration: Vector2; // Gravity, wind, etc.
-  colorRange: ColorRange;
-  characters: string[];
-  maxParticles?: number;
-  burstMode?: boolean; // Emit all at once vs continuous
-  burstCount?: number; // Number of particles in burst
-}
-
 // Favorite slot interface
 export interface FavoriteSlot {
-  pattern: string; // Pattern name (e.g., "WavePattern")
-  preset?: number; // Preset ID (if applicable)
+  /** Stable PatternSlot key. Legacy constructor names remain load-compatible. */
+  pattern: string;
+  /** Explicitly applied preset ID; omitted for the config-derived baseline. */
+  preset?: number;
   theme: string; // Theme name (e.g., "ocean")
   config?: Record<string, unknown>; // Custom pattern config (if any)
   note?: string; // Optional user note

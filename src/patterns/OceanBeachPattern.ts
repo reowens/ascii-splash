@@ -227,7 +227,7 @@ export class OceanBeachPattern implements Pattern {
 
   constructor(_theme: Theme, random: Random, config?: Partial<OceanBeachConfig>) {
     this.random = random;
-    this.noise2D = createNoise2D();
+    this.noise2D = createNoise2D(() => this.random.next());
 
     this.config = {
       waveSpeed: 1.0,
@@ -678,7 +678,7 @@ export class OceanBeachPattern implements Pattern {
     this.clouds = [];
     this.seagulls = [];
     this.waveLayers = [];
-    this.noise2D = createNoise2D();
+    this.noise2D = createNoise2D(() => this.random.next());
   }
 
   static getPresets(): OceanBeachPreset[] {

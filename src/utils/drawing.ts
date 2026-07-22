@@ -9,7 +9,7 @@ import { Point } from '../types/index.js';
  */
 export function bresenhamLine(x0: number, y0: number, x1: number, y1: number): Point[] {
   const points: Point[] = [];
-  
+
   x0 = Math.floor(x0);
   y0 = Math.floor(y0);
   x1 = Math.floor(x1);

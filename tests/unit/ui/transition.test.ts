@@ -1,353 +1,263 @@
-/**
- * TransitionManager Unit Tests
- */
-
-import { describe, test, expect, beforeEach } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
 import {
-  TransitionManager,
+  Easing,
   getTransitionManager,
   resetTransitionManager,
-  Easing,
+  TransitionManager,
 } from '../../../src/renderer/TransitionManager.js';
+import type { Cell, Color, Size } from '../../../src/types/index.js';
 import { createMockBuffer } from '../../utils/mocks.js';
-import { Pattern, Cell, Size, Point } from '../../../src/types/index.js';
 
-// Simple mock pattern for testing
-class MockPattern implements Pattern {
-  name = 'MockPattern';
-  private char: string;
-  private color: { r: number; g: number; b: number };
-
-  constructor(char: string, color: { r: number; g: number; b: number }) {
-    this.char = char;
-    this.color = color;
-  }
-
-  render(buffer: Cell[][], _time: number, size: Size, _mousePos?: Point): void {
-    for (let y = 0; y < size.height && y < buffer.length; y++) {
-      for (let x = 0; x < size.width && x < buffer[y].length; x++) {
-        buffer[y][x] = { char: this.char, color: this.color };
-      }
-    }
-  }
-
-  reset(): void {}
+function frame(size: Size, char: string, color?: Color, bg?: Color): Cell[][] {
+  return Array.from({ length: size.height }, () =>
+    Array.from({ length: size.width }, () => ({
+      char,
+      ...(color === undefined ? {} : { color: { ...color } }),
+      ...(bg === undefined ? {} : { bg: { ...bg } }),
+    }))
+  );
 }
 
 describe('TransitionManager', () => {
   let transitionManager: TransitionManager;
-  let patternA: Pattern;
-  let patternB: Pattern;
   const size = { width: 40, height: 20 };
+  const source = frame(size, 'A', { r: 255, g: 0, b: 0 });
+  const targetColor = { r: 0, g: 0, b: 255 };
 
   beforeEach(() => {
     resetTransitionManager();
     transitionManager = getTransitionManager();
-    patternA = new MockPattern('A', { r: 255, g: 0, b: 0 });
-    patternB = new MockPattern('B', { r: 0, g: 0, b: 255 });
+    jest.spyOn(Date, 'now').mockReturnValue(1000);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('Singleton', () => {
     test('getTransitionManager returns same instance', () => {
-      const instance1 = getTransitionManager();
-      const instance2 = getTransitionManager();
-      expect(instance1).toBe(instance2);
+      expect(getTransitionManager()).toBe(getTransitionManager());
     });
 
     test('resetTransitionManager creates new instance', () => {
-      const instance1 = getTransitionManager();
+      const first = getTransitionManager();
       resetTransitionManager();
-      const instance2 = getTransitionManager();
-      expect(instance1).not.toBe(instance2);
+      expect(getTransitionManager()).not.toBe(first);
     });
   });
 
-  describe('start()', () => {
-    test('should start a transition', () => {
-      transitionManager.start(patternA, patternB, size);
+  describe('start and lifecycle', () => {
+    test('starts from a non-empty frame snapshot', () => {
+      transitionManager.start(source);
       expect(transitionManager.isActive()).toBe(true);
     });
 
-    test('should not start transition for instant type', () => {
-      transitionManager.start(patternA, patternB, size, { type: 'instant' });
+    test('does not start instant, zero-duration, or empty transitions', () => {
+      transitionManager.start(source, { type: 'instant' });
+      expect(transitionManager.isActive()).toBe(false);
+      transitionManager.start(source, { duration: 0 });
+      expect(transitionManager.isActive()).toBe(false);
+      transitionManager.start([]);
       expect(transitionManager.isActive()).toBe(false);
     });
 
-    test('should not start transition for zero duration', () => {
-      transitionManager.start(patternA, patternB, size, { duration: 0 });
-      expect(transitionManager.isActive()).toBe(false);
+    test('accepts custom configuration and reports progress', () => {
+      transitionManager.start(source, { type: 'dissolve', duration: 1000 });
+      jest.mocked(Date.now).mockReturnValue(1500);
+      expect(transitionManager.getProgress()).toBe(0.5);
     });
 
-    test('should accept custom configuration', () => {
-      transitionManager.start(patternA, patternB, size, {
-        type: 'dissolve',
-        duration: 1000,
-      });
-      expect(transitionManager.isActive()).toBe(true);
-    });
-  });
-
-  describe('isActive()', () => {
-    test('should return false when no transition', () => {
-      expect(transitionManager.isActive()).toBe(false);
-    });
-
-    test('should return true during transition', () => {
-      transitionManager.start(patternA, patternB, size);
-      expect(transitionManager.isActive()).toBe(true);
-    });
-  });
-
-  describe('getProgress()', () => {
-    test('should return 1 when no transition', () => {
+    test('reports complete progress when inactive', () => {
       expect(transitionManager.getProgress()).toBe(1);
     });
 
-    test('should return value between 0 and 1 during transition', () => {
-      transitionManager.start(patternA, patternB, size, { duration: 1000 });
-      const progress = transitionManager.getProgress();
-      expect(progress).toBeGreaterThanOrEqual(0);
-      expect(progress).toBeLessThanOrEqual(1);
-    });
-  });
-
-  describe('cancel()', () => {
-    test('should cancel active transition', () => {
-      transitionManager.start(patternA, patternB, size);
-      expect(transitionManager.isActive()).toBe(true);
-
+    test('cancel is safe and deactivates the transition', () => {
+      transitionManager.start(source);
+      transitionManager.cancel();
       transitionManager.cancel();
       expect(transitionManager.isActive()).toBe(false);
     });
 
-    test('should be safe to call when no transition', () => {
-      expect(() => {
-        transitionManager.cancel();
-      }).not.toThrow();
+    test('default configuration can be updated', () => {
+      transitionManager.setDefaultConfig({ type: 'dissolve', duration: 200 });
+      transitionManager.start(source);
+      expect(transitionManager.isActive()).toBe(true);
+      const target = frame(size, 'B', targetColor);
+      expect(transitionManager.render(target, 1200, size)).toBe(false);
+    });
+
+    test('starting a new transition replaces the active source snapshot', () => {
+      transitionManager.start(source, { duration: 1000, easing: Easing.linear });
+      transitionManager.start(frame(size, 'C'), { duration: 1000, easing: Easing.linear });
+      const target = frame(size, 'B');
+      transitionManager.render(target, 1000, size);
+      expect(target[0][0].char).toBe('C');
     });
   });
 
-  describe('setDefaultConfig()', () => {
-    test('should update default transition type', () => {
-      transitionManager.setDefaultConfig({ type: 'dissolve' });
-      transitionManager.start(patternA, patternB, size);
-      expect(transitionManager.isActive()).toBe(true);
+  describe('snapshot rendering', () => {
+    test('returns false without an active transition', () => {
+      expect(transitionManager.render(frame(size, 'B'), 1000, size)).toBe(false);
     });
 
-    test('should update default duration', () => {
-      transitionManager.setDefaultConfig({ duration: 200 });
-      transitionManager.start(patternA, patternB, size);
-      expect(transitionManager.isActive()).toBe(true);
-    });
-  });
+    test('first transition frame shows the captured old state', () => {
+      transitionManager.start(source, { duration: 1000, easing: Easing.linear });
+      const target = frame(size, 'B', targetColor);
 
-  describe('render()', () => {
-    test('should return false when no transition', () => {
-      const buffer = createMockBuffer(40, 20);
-      const result = transitionManager.render(buffer, Date.now(), size);
-      expect(result).toBe(false);
+      expect(transitionManager.render(target, 1000, size)).toBe(true);
+      expect(target[10][20]).toEqual(source[10][20]);
     });
 
-    test('should return true during active transition', () => {
-      const buffer = createMockBuffer(40, 20);
-      transitionManager.start(patternA, patternB, size, { duration: 1000 });
-      const result = transitionManager.render(buffer, Date.now(), size);
-      expect(result).toBe(true);
+    test('completion leaves the exact target frame untouched', () => {
+      transitionManager.start(source, { duration: 100, easing: Easing.linear });
+      const target = frame(size, 'B', targetColor, { r: 1, g: 2, b: 3 });
+      const expected = structuredClone(target);
+
+      expect(transitionManager.render(target, 1100, size)).toBe(false);
+      expect(target).toEqual(expected);
+      expect(transitionManager.isActive()).toBe(false);
     });
 
-    test('should return false when transition completes', () => {
-      const buffer = createMockBuffer(40, 20);
-      const startTime = Date.now();
-      transitionManager.start(patternA, patternB, size, { duration: 100 });
-
-      // Render at completion time
-      const result = transitionManager.render(buffer, startTime + 200, size);
-      expect(result).toBe(false);
-    });
-
-    test('crossfade should blend colors', () => {
-      const buffer = createMockBuffer(40, 20);
-      const startTime = Date.now();
-      transitionManager.start(patternA, patternB, size, {
+    test('crossfade blends defined foreground and background colors', () => {
+      const sourceWithBg = frame(size, 'A', { r: 255, g: 0, b: 0 }, { r: 0, g: 255, b: 0 });
+      transitionManager.start(sourceWithBg, {
         type: 'crossfade',
         duration: 1000,
         easing: Easing.linear,
       });
+      const target = frame(size, 'B', targetColor, { r: 0, g: 0, b: 255 });
 
-      // Render at 50% progress
-      transitionManager.render(buffer, startTime + 500, size);
-
-      // At 50%, colors should be blended
-      const cell = buffer[10][20];
-      expect(cell.color).toBeDefined();
-      // Blended color should have both red and blue components
-      expect(cell.color!.r).toBeGreaterThan(0);
-      expect(cell.color!.b).toBeGreaterThan(0);
+      transitionManager.render(target, 1500, size);
+      expect(target[10][20]).toEqual({
+        char: 'B',
+        color: { r: 128, g: 0, b: 128 },
+        bg: { r: 0, g: 128, b: 128 },
+      });
     });
 
-    test('dissolve should show mixed cells', () => {
-      const buffer = createMockBuffer(40, 20);
-      const startTime = Date.now();
-      transitionManager.start(patternA, patternB, size, {
+    test('crossfade preserves terminal-default color definedness', () => {
+      transitionManager.start(frame(size, 'A'), {
+        type: 'crossfade',
+        duration: 1000,
+        easing: Easing.linear,
+      });
+      const early = frame(size, 'B', targetColor, { r: 1, g: 2, b: 3 });
+      transitionManager.render(early, 1250, size);
+      expect(early[0][0]).toEqual({ char: 'A' });
+
+      transitionManager.cancel();
+      transitionManager.start(frame(size, 'A'), {
+        type: 'crossfade',
+        duration: 1000,
+        easing: Easing.linear,
+      });
+      const late = frame(size, 'B', targetColor, { r: 1, g: 2, b: 3 });
+      transitionManager.render(late, 1750, size);
+      expect(late[0][0]).toEqual({
+        char: 'B',
+        color: targetColor,
+        bg: { r: 1, g: 2, b: 3 },
+      });
+    });
+
+    test('dissolve shows a deterministic mix and preserves complete cells', () => {
+      const sourceWithBg = frame(size, 'A', { r: 1, g: 2, b: 3 }, { r: 4, g: 5, b: 6 });
+      transitionManager.start(sourceWithBg, {
         type: 'dissolve',
         duration: 1000,
         easing: Easing.linear,
       });
+      const target = frame(size, 'B', { r: 7, g: 8, b: 9 }, { r: 10, g: 11, b: 12 });
+      transitionManager.render(target, 1500, size);
 
-      // Render at 50% progress
-      transitionManager.render(buffer, startTime + 500, size);
-
-      // Should have mix of A and B cells
-      let hasA = false;
-      let hasB = false;
-      for (let y = 0; y < 20; y++) {
-        for (let x = 0; x < 40; x++) {
-          if (buffer[y][x].char === 'A') hasA = true;
-          if (buffer[y][x].char === 'B') hasB = true;
-        }
-      }
-      expect(hasA).toBe(true);
-      expect(hasB).toBe(true);
+      const cells = target.flat();
+      expect(cells.some(cell => cell.char === 'A')).toBe(true);
+      expect(cells.some(cell => cell.char === 'B')).toBe(true);
+      expect(cells.find(cell => cell.char === 'A')).toEqual(sourceWithBg[0][0]);
+      expect(cells.find(cell => cell.char === 'B')).toEqual({
+        char: 'B',
+        color: { r: 7, g: 8, b: 9 },
+        bg: { r: 10, g: 11, b: 12 },
+      });
     });
 
-    test('wipe-left should show progressive reveal', () => {
-      const buffer = createMockBuffer(40, 20);
-      const startTime = Date.now();
-      transitionManager.start(patternA, patternB, size, {
-        type: 'wipe-left',
+    test.each([
+      ['wipe-left', 'B', 'A'],
+      ['wipe-right', 'A', 'B'],
+    ] as const)('%s reveals the expected half and preserves fg/bg', (type, left, right) => {
+      const sourceWithBg = frame(size, 'A', { r: 1, g: 2, b: 3 }, { r: 4, g: 5, b: 6 });
+      transitionManager.start(sourceWithBg, {
+        type,
         duration: 1000,
         easing: Easing.linear,
       });
+      const target = frame(size, 'B', { r: 7, g: 8, b: 9 }, { r: 10, g: 11, b: 12 });
+      transitionManager.render(target, 1500, size);
 
-      // Render at 50% progress
-      transitionManager.render(buffer, startTime + 500, size);
-
-      // Left half should be B, right half should be A
-      const leftCell = buffer[10][5];
-      const rightCell = buffer[10][35];
-      expect(leftCell.char).toBe('B');
-      expect(rightCell.char).toBe('A');
+      expect(target[10][5].char).toBe(left);
+      expect(target[10][35].char).toBe(right);
+      expect(target[10][5].bg).toBeDefined();
+      expect(target[10][35].bg).toBeDefined();
     });
 
-    test('wipe-right should show progressive reveal', () => {
-      const buffer = createMockBuffer(40, 20);
-      const startTime = Date.now();
-      transitionManager.start(patternA, patternB, size, {
-        type: 'wipe-right',
-        duration: 1000,
-        easing: Easing.linear,
-      });
+    test('does not mutate the caller source and snapshots nested colors', () => {
+      const mutable = frame(size, 'A', { r: 1, g: 2, b: 3 });
+      transitionManager.start(mutable, { duration: 1000, easing: Easing.linear });
+      mutable[0][0].char = 'X';
+      if (mutable[0][0].color) mutable[0][0].color.r = 99;
+      const target = frame(size, 'B');
 
-      // Render at 50% progress
-      transitionManager.render(buffer, startTime + 500, size);
-
-      // Right half should be B, left half should be A
-      const leftCell = buffer[10][5];
-      const rightCell = buffer[10][35];
-      expect(leftCell.char).toBe('A');
-      expect(rightCell.char).toBe('B');
+      transitionManager.render(target, 1000, size);
+      expect(target[0][0]).toEqual({ char: 'A', color: { r: 1, g: 2, b: 3 } });
     });
 
-    test('should handle resize during transition', () => {
-      const buffer1 = createMockBuffer(40, 20);
-      const startTime = Date.now();
-      transitionManager.start(patternA, patternB, size, { duration: 1000 });
+    test('does not touch the reserved status row', () => {
+      transitionManager.start(source, { duration: 1000, easing: Easing.linear });
+      const fullTarget = frame({ width: 40, height: 21 }, 'B', targetColor);
+      fullTarget[20] = frame({ width: 40, height: 1 }, 'S')[0];
 
-      // Render at original size
-      transitionManager.render(buffer1, startTime + 100, size);
+      transitionManager.render(fullTarget, 1500, size);
+      expect(fullTarget[20].every(cell => cell.char === 'S')).toBe(true);
+    });
+  });
 
-      // Render at different size
-      const newSize = { width: 60, height: 30 };
-      const buffer2 = createMockBuffer(60, 30);
+  describe('resize safety', () => {
+    test.each([
+      { width: 60, height: 30 },
+      { width: 20, height: 10 },
+    ])('cancels safely for resized target $width×$height', resized => {
+      transitionManager.start(source, { duration: 1000 });
+      const target = frame(resized, 'B', targetColor);
+      const expected = structuredClone(target);
 
-      expect(() => {
-        transitionManager.render(buffer2, startTime + 200, newSize);
-      }).not.toThrow();
+      expect(() => transitionManager.render(target, 1200, resized)).not.toThrow();
+      expect(target).toEqual(expected);
+      expect(transitionManager.isActive()).toBe(false);
     });
   });
 
   describe('Easing Functions', () => {
-    test('linear should return input value', () => {
-      expect(Easing.linear(0)).toBe(0);
-      expect(Easing.linear(0.5)).toBe(0.5);
-      expect(Easing.linear(1)).toBe(1);
+    test('linear', () => {
+      expect([Easing.linear(0), Easing.linear(0.5), Easing.linear(1)]).toEqual([0, 0.5, 1]);
     });
 
-    test('easeInQuad should accelerate', () => {
-      expect(Easing.easeInQuad(0)).toBe(0);
+    test('quadratic easing', () => {
       expect(Easing.easeInQuad(0.5)).toBe(0.25);
-      expect(Easing.easeInQuad(1)).toBe(1);
-    });
-
-    test('easeOutQuad should decelerate', () => {
-      expect(Easing.easeOutQuad(0)).toBe(0);
       expect(Easing.easeOutQuad(0.5)).toBe(0.75);
-      expect(Easing.easeOutQuad(1)).toBe(1);
-    });
-
-    test('easeInOutQuad should ease in and out', () => {
-      expect(Easing.easeInOutQuad(0)).toBe(0);
-      expect(Easing.easeInOutQuad(0.5)).toBe(0.5);
-      expect(Easing.easeInOutQuad(1)).toBe(1);
-      // First half should be slower
       expect(Easing.easeInOutQuad(0.25)).toBeLessThan(0.25);
-      // Second half should be faster approach
       expect(Easing.easeInOutQuad(0.75)).toBeGreaterThan(0.75);
     });
 
-    test('easeInCubic should accelerate more aggressively', () => {
-      expect(Easing.easeInCubic(0)).toBe(0);
+    test('cubic easing', () => {
       expect(Easing.easeInCubic(0.5)).toBe(0.125);
-      expect(Easing.easeInCubic(1)).toBe(1);
-    });
-
-    test('easeOutCubic should decelerate more smoothly', () => {
-      expect(Easing.easeOutCubic(0)).toBe(0);
-      expect(Easing.easeOutCubic(1)).toBe(1);
-      // Should approach 1 faster than linear
       expect(Easing.easeOutCubic(0.5)).toBeGreaterThan(0.5);
-    });
-
-    test('easeInOutCubic should ease in and out smoothly', () => {
-      expect(Easing.easeInOutCubic(0)).toBe(0);
       expect(Easing.easeInOutCubic(0.5)).toBe(0.5);
-      expect(Easing.easeInOutCubic(1)).toBe(1);
     });
   });
 
-  describe('Edge Cases', () => {
-    test('should handle empty buffer', () => {
-      const buffer: Cell[][] = [];
-      const emptySize = { width: 0, height: 0 };
-
-      transitionManager.start(patternA, patternB, emptySize);
-
-      expect(() => {
-        transitionManager.render(buffer, Date.now(), emptySize);
-      }).not.toThrow();
-    });
-
-    test('should handle starting new transition while one is active', () => {
-      const buffer = createMockBuffer(40, 20);
-      transitionManager.start(patternA, patternB, size, { duration: 1000 });
-      expect(transitionManager.isActive()).toBe(true);
-
-      // Start new transition
-      const patternC = new MockPattern('C', { r: 0, g: 255, b: 0 });
-      transitionManager.start(patternB, patternC, size, { duration: 500 });
-      expect(transitionManager.isActive()).toBe(true);
-
-      // Render should work with new transition
-      transitionManager.render(buffer, Date.now(), size);
-    });
-
-    test('should handle mousePos parameter', () => {
-      const buffer = createMockBuffer(40, 20);
-      transitionManager.start(patternA, patternB, size);
-
-      expect(() => {
-        transitionManager.render(buffer, Date.now(), size, { x: 20, y: 10 });
-      }).not.toThrow();
-    });
+  test('handles an empty target without throwing when inactive', () => {
+    expect(() =>
+      transitionManager.render(createMockBuffer(0, 0), 1000, { width: 0, height: 0 })
+    ).not.toThrow();
   });
 });

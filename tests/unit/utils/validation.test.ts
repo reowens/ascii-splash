@@ -11,7 +11,7 @@ import {
   validateInterval,
   validateIntensity,
   isValidNumber,
-  sanitizeNumeric
+  sanitizeNumeric,
 } from '../../../src/utils/validation.js';
 
 describe('Validation Utils', () => {
@@ -273,7 +273,7 @@ describe('Validation Utils', () => {
     it('validates typical matrix config', () => {
       const density = validateDensity(0.3);
       const speed = validateSpeed(1.0, 0.1, 5);
-      
+
       expect(density).toBe(0.3);
       expect(speed).toBe(1.0);
     });
@@ -286,7 +286,7 @@ describe('Validation Utils', () => {
       const strikeInterval = validateInterval(2000, 100, 10000);
       const maxBranches = validateCount(5, 20);
       const thickness = validateCount(1, 10);
-      
+
       expect(boltDensity).toBe(10);
       expect(branchProb).toBe(0.25);
       expect(branchAngle).toBeCloseTo(Math.PI / 4, 10);
@@ -301,7 +301,7 @@ describe('Validation Utils', () => {
       const speed = validateSpeed(-1, 0.1, 5); // Negative
       const gravity = clamp(10, -0.5, 0.5); // Way too high
       const mouseForce = clamp(-5, 0, 2); // Negative
-      
+
       expect(particleCount).toBe(500);
       expect(speed).toBe(0.1);
       expect(gravity).toBe(0.5);

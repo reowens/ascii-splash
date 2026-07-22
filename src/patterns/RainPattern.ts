@@ -273,11 +273,10 @@ export class RainPattern implements Pattern {
 
   onMouseClick(pos: Point): void {
     // Create big dramatic splash
-    // Use currentTime if available (after render called), otherwise use Date.now()
     this.splashes.push({
       x: pos.x,
       y: pos.y,
-      time: this.currentTime || Date.now(),
+      time: this.currentTime,
       radius: 5,
     });
 
