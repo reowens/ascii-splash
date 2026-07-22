@@ -4,7 +4,8 @@
  * Serialises a {@link ShareState} ({patternId, presetId, themeId, seed,
  * configHash}) to a 12-character Crockford base32 string and back, so users
  * can hand each other a code that reproduces a specific animation
- * byte-for-byte (`splash share` / `splash play <code>`).
+ * byte-for-byte with the same version, effective config, and frame schedule
+ * (`splash share` / `splash play <code>`).
  *
  * ## Bit layout (60 bits, MSB → LSB)
  *
@@ -46,7 +47,7 @@ export const SHARE_CODE_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 
 /**
  * Frozen registry mapping `patternId` (0-based) to the internal pattern
- * name used by `main.ts`'s `patternNames` array.
+ * key used by PatternCatalog and RuntimeController.
  *
  * **Do not reorder.** A share code records `patternId` as a 5-bit integer
  * indexing into this list; reordering or renaming entries would silently
@@ -100,12 +101,13 @@ export function patternNameById(id: number): string | undefined {
  * - `version` — code was produced by a different format version
  * - `length`  — wrong number of chars after normalisation
  * - `alphabet` — non-base32 character present (after Crockford fixups)
+ * - `pattern`, `preset`, `theme` — structurally valid payload references a
+ *   value unsupported by the current runtime registry
  * - `configHash` — payload decoded cleanly but its config fingerprint
- *   doesn't match the local non-default config. This is thrown by the
- *   *consumer* (main.ts) after a successful structural decode, not by
- *   `decodeShareCode` itself.
+ *   doesn't match the local non-default config
  */
-export type ShareCodeErrorKind = 'version' | 'length' | 'alphabet' | 'configHash';
+export type ShareCodeErrorKind =
+  'version' | 'length' | 'alphabet' | 'pattern' | 'preset' | 'theme' | 'configHash';
 
 export class ShareCodeError extends Error {
   constructor(
@@ -120,8 +122,8 @@ export class ShareCodeError extends Error {
 /**
  * The payload a share code reproduces. Field semantics intentionally
  * mirror the runtime state in `main.ts` so callers can compose a
- * ShareState directly from `{currentPatternIndex, currentPresetIndex,
- * currentThemeIndex, seed, hashConfig(config, defaults)}`.
+ * ShareState directly from the authoritative RuntimeController snapshot plus
+ * `hashConfig(config, defaults)`.
  */
 export interface ShareState {
   /** 0-based index in the procedural pattern list. Must fit in 5 bits. */
@@ -134,6 +136,15 @@ export interface ShareState {
   seed: number;
   /** 13-bit FNV-1a fingerprint from {@link hashConfig}. */
   configHash: number;
+}
+
+/** Supported share-code state derived from the current runtime registries. */
+export interface ShareCodeRegistry {
+  readonly patterns: readonly {
+    readonly key: string;
+    readonly presetIds: readonly number[];
+  }[];
+  readonly themes: readonly string[];
 }
 
 const ALPHABET_INDEX: Record<string, number> = (() => {
@@ -250,9 +261,58 @@ export function decodeShareCode(code: string): ShareState {
 }
 
 /**
- * 32-bit FNV-1a hash. Tiny, well-known, no dep — sufficient for a
- * fingerprint where we just need "different bytes → different hash with
- * overwhelming probability". Not cryptographic.
+ * Validate a structurally decoded state against the runtime's supported
+ * patterns, per-pattern presets, themes, and optional local config hash.
+ */
+export function validateShareState(
+  state: ShareState,
+  registry: ShareCodeRegistry,
+  configHashForPattern?: (patternKey: string) => number
+): ShareState {
+  const wirePattern = patternNameById(state.patternId);
+  const runtimePattern = registry.patterns[state.patternId];
+  if (!wirePattern || runtimePattern?.key !== wirePattern) {
+    throw new ShareCodeError(
+      'pattern',
+      `Share code references unsupported pattern ID ${String(state.patternId)}. Upgrade ascii-splash to play this scene.`
+    );
+  }
+
+  if (!runtimePattern.presetIds.includes(state.presetId)) {
+    throw new ShareCodeError(
+      'preset',
+      `Share code references unsupported preset ${String(state.presetId)} for "${runtimePattern.key}". ` +
+        `Supported presets: ${runtimePattern.presetIds.join(', ')}.`
+    );
+  }
+
+  if (registry.themes[state.themeId] === undefined) {
+    throw new ShareCodeError(
+      'theme',
+      `Share code references unsupported theme ID ${String(state.themeId)}. ` +
+        `This build supports theme IDs 0-${String(Math.max(0, registry.themes.length - 1))}.`
+    );
+  }
+
+  if (configHashForPattern) {
+    const localHash = configHashForPattern(runtimePattern.key);
+    if (localHash !== state.configHash) {
+      throw new ShareCodeError(
+        'configHash',
+        `This share code was made with different settings for "${runtimePattern.key}" ` +
+          `(local config fingerprint 0x${localHash.toString(16)}, code expects 0x${state.configHash.toString(16)}). ` +
+          `Replay would diverge — refusing.`
+      );
+    }
+  }
+
+  return state;
+}
+
+/**
+ * 32-bit FNV-1a hash. Tiny, well-known, and dependency-free. The wire format
+ * retains only 13 bits, so this is a best-effort drift detector with 8192
+ * possible values, not an integrity check or cryptographic guarantee.
  *
  * Reference: http://www.isthe.com/chongo/tech/comp/fnv/
  */
@@ -268,10 +328,9 @@ function fnv1a32(str: string): number {
 /**
  * Compute a 13-bit fingerprint of the non-default values in `config`.
  *
- * Two share codes that point at the same pattern + preset + theme + seed
- * but were generated against different configs will decode to different
- * `configHash` values, so `splash play` can detect "this code was made
- * with different settings" before silently producing a different scene.
+ * Two share codes generated against different configs will usually have
+ * different `configHash` values, allowing `splash play` to catch accidental
+ * drift. Collisions are possible because only 13 bits are retained.
  *
  * Implementation: stable-serialise `{key=JSON.stringify(value)}` pairs
  * (sorted by key) for every entry in `config` whose value differs from

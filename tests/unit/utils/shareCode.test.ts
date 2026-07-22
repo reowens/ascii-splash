@@ -7,6 +7,9 @@ import {
   SHARE_CODE_VERSION,
   SHARE_CODE_LENGTH,
   SHARE_CODE_ALPHABET,
+  PROCEDURAL_PATTERN_IDS,
+  validateShareState,
+  type ShareCodeRegistry,
 } from '../../../src/utils/shareCode.js';
 
 /**
@@ -22,6 +25,27 @@ const SAMPLE_STATE: ShareState = {
   seed: 0xdeadbeef,
   configHash: 0x1abc,
 };
+
+const REGISTRY: ShareCodeRegistry = {
+  patterns: PROCEDURAL_PATTERN_IDS.map(key => ({ key, presetIds: [1, 2, 3, 4, 5, 6] })),
+  themes: ['ocean', 'matrix', 'starlight', 'fire', 'monochrome'],
+};
+
+function encodeStructuralState(state: ShareState): string {
+  let payload = 0n;
+  payload = (payload << 4n) | BigInt(SHARE_CODE_VERSION);
+  payload = (payload << 5n) | BigInt(state.patternId);
+  payload = (payload << 3n) | BigInt(state.presetId - 1);
+  payload = (payload << 3n) | BigInt(state.themeId);
+  payload = (payload << 32n) | BigInt(state.seed >>> 0);
+  payload = (payload << 13n) | BigInt(state.configHash);
+  const chars = new Array<string>(SHARE_CODE_LENGTH);
+  for (let i = SHARE_CODE_LENGTH - 1; i >= 0; i--) {
+    chars[i] = SHARE_CODE_ALPHABET[Number(payload & 0x1fn)];
+    payload >>= 5n;
+  }
+  return chars.join('');
+}
 
 describe('shareCode', () => {
   describe('encodeShareCode + decodeShareCode round trip', () => {
@@ -267,6 +291,70 @@ describe('shareCode', () => {
     it('throws RangeError on configHash out of range', () => {
       expect(() => encodeShareCode({ ...SAMPLE_STATE, configHash: 0x2000 })).toThrow(RangeError);
       expect(() => encodeShareCode({ ...SAMPLE_STATE, configHash: -1 })).toThrow(RangeError);
+    });
+  });
+
+  describe('runtime registry validation', () => {
+    it.each([7, 8])('structurally decodes but rejects unsupported preset %i', presetId => {
+      const decoded = decodeShareCode(encodeStructuralState({ ...SAMPLE_STATE, presetId }));
+      expect(decoded.presetId).toBe(presetId);
+      expect(() => validateShareState(decoded, REGISTRY)).toThrow(
+        expect.objectContaining({ kind: 'preset' })
+      );
+    });
+
+    it.each([5, 6, 7])('rejects unsupported theme ID %i', themeId => {
+      const decoded = decodeShareCode(encodeShareCode({ ...SAMPLE_STATE, themeId }));
+      expect(() => validateShareState(decoded, REGISTRY)).toThrow(
+        expect.objectContaining({ kind: 'theme' })
+      );
+    });
+
+    it.each([23, 24, 25, 26, 27, 28, 29, 30, 31])('rejects reserved pattern ID %i', patternId => {
+      const decoded = decodeShareCode(encodeShareCode({ ...SAMPLE_STATE, patternId }));
+      expect(() => validateShareState(decoded, REGISTRY)).toThrow(
+        expect.objectContaining({ kind: 'pattern' })
+      );
+    });
+
+    it('uses the selected pattern preset registry rather than a global range', () => {
+      const registry: ShareCodeRegistry = {
+        patterns: REGISTRY.patterns.map((entry, index) =>
+          index === 0 ? { ...entry, presetIds: [1, 3] } : entry
+        ),
+        themes: REGISTRY.themes,
+      };
+      expect(() =>
+        validateShareState({ ...SAMPLE_STATE, patternId: 0, presetId: 2 }, registry)
+      ).toThrow(expect.objectContaining({ kind: 'preset' }));
+    });
+
+    it('accepts valid maximum registry values', () => {
+      const state = {
+        ...SAMPLE_STATE,
+        patternId: PROCEDURAL_PATTERN_IDS.length - 1,
+        presetId: 6,
+        themeId: REGISTRY.themes.length - 1,
+      };
+      expect(validateShareState(state, REGISTRY)).toEqual(state);
+    });
+
+    it('returns a typed configHash error after registry validation', () => {
+      expect(() => validateShareState(SAMPLE_STATE, REGISTRY, () => 0)).toThrow(
+        expect.objectContaining({ kind: 'configHash' })
+      );
+    });
+
+    it('can re-encode every successfully validated registry scene', () => {
+      for (let patternId = 0; patternId < REGISTRY.patterns.length; patternId++) {
+        for (const presetId of REGISTRY.patterns[patternId].presetIds) {
+          for (let themeId = 0; themeId < REGISTRY.themes.length; themeId++) {
+            const state = { ...SAMPLE_STATE, patternId, presetId, themeId };
+            const validated = validateShareState(decodeShareCode(encodeShareCode(state)), REGISTRY);
+            expect(() => encodeShareCode(validated)).not.toThrow();
+          }
+        }
+      }
     });
   });
 });
