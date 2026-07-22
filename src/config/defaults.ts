@@ -159,6 +159,18 @@ export const defaultConfig: ConfigSchema = {
 };
 
 /**
+ * Return an isolated copy of the JSON-persistable default configuration.
+ *
+ * Config merging is intentionally mutable for performance and simplicity, so
+ * callers must never merge directly into the exported `defaultConfig` object.
+ * Node 20's structured clone keeps nested pattern objects and arrays detached
+ * without maintaining a second hand-written clone implementation.
+ */
+export function createDefaultConfig(): ConfigSchema {
+  return structuredClone(defaultConfig);
+}
+
+/**
  * Quality preset FPS values
  */
 export const qualityPresets = {

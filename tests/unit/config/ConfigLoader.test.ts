@@ -8,6 +8,9 @@
 import { jest, describe, expect, beforeEach, afterEach, test } from '@jest/globals';
 import { ConfigSchema, CliOptions, FavoriteSlot } from '../../../src/types/index.js';
 import { defaultConfig, qualityPresets } from '../../../src/config/defaults.js';
+import { hashConfig } from '../../../src/utils/shareCode.js';
+import { validateFileConfig } from '../../../src/config/validateConfig.js';
+import { readFileSync } from 'node:fs';
 
 // Create mock store
 const mockStore = {
@@ -170,6 +173,182 @@ describe('ConfigLoader', () => {
       expect(config.patterns?.waves?.frequency).toBe(0.5);
       expect(config.patterns?.waves?.amplitude).toBe(3); // From defaults
       expect(config.patterns?.waves?.layers).toBe(3); // From defaults
+    });
+
+    test('does not mutate defaultConfig when merging nested file overrides', () => {
+      const defaultsBefore = structuredClone(defaultConfig);
+      mockStore.has.mockImplementation((key: any) => key === 'patterns');
+      mockStore.get.mockImplementation((key: any) =>
+        key === 'patterns' ? { waves: { frequency: 0.777 } } : undefined
+      );
+
+      const config = configLoader.load();
+
+      expect(config.patterns?.waves?.frequency).toBe(0.777);
+      expect(defaultConfig).toEqual(defaultsBefore);
+      expect(defaultConfig.patterns?.waves?.frequency).toBe(0.1);
+    });
+
+    test('returns isolated nested config objects on sequential loads', () => {
+      mockStore.has.mockReturnValue(false);
+
+      const first = configLoader.load();
+      first.patterns!.waves!.frequency = 999;
+      first.patterns!.workspaceViz!.ignore = ['dist/**'];
+
+      const second = configLoader.load();
+
+      expect(second.patterns?.waves?.frequency).toBe(0.1);
+      expect(second.patterns?.workspaceViz?.ignore).toBeUndefined();
+      expect(defaultConfig.patterns?.waves?.frequency).toBe(0.1);
+    });
+
+    test('does not retain mutable arrays returned by the config store', () => {
+      const ignore = ['dist/**'];
+      mockStore.has.mockImplementation((key: any) => key === 'patterns');
+      mockStore.get.mockImplementation((key: any) =>
+        key === 'patterns' ? { workspaceViz: { ignore } } : undefined
+      );
+
+      const config = configLoader.load();
+      config.patterns?.workspaceViz?.ignore?.push('coverage/**');
+
+      expect(ignore).toEqual(['dist/**']);
+    });
+
+    test('preserves non-default values in the share-code config fingerprint', () => {
+      mockStore.has.mockImplementation((key: any) => key === 'patterns');
+      mockStore.get.mockImplementation((key: any) =>
+        key === 'patterns' ? { waves: { frequency: 0.777 } } : undefined
+      );
+
+      const config = configLoader.load();
+      const loadedHash = hashConfig(
+        config.patterns?.waves as Record<string, unknown>,
+        defaultConfig.patterns?.waves as Record<string, unknown>
+      );
+      const defaultHash = hashConfig(
+        defaultConfig.patterns?.waves as Record<string, unknown>,
+        defaultConfig.patterns?.waves as Record<string, unknown>
+      );
+
+      expect(loadedHash).not.toBe(defaultHash);
+    });
+
+    test('falls back field-by-field for invalid globals, counts, intervals, enums, and chars', () => {
+      mockStore.has.mockReturnValue(true);
+      mockStore.get.mockImplementation((key: any) => {
+        const invalid: Record<string, unknown> = {
+          defaultPattern: 'unknown',
+          quality: 'ultra',
+          fps: 1000,
+          theme: 'missing',
+          mouseEnabled: 'yes',
+          patterns: {
+            starfield: { starCount: 1e9 },
+            tunnel: { ringCount: -1, shape: 'triangle' },
+            lightning: { strikeInterval: 0 },
+            maze: { cellSize: 0, wallChar: '\n' },
+          },
+        };
+        return invalid[key];
+      });
+      const warning = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const config = configLoader.load();
+
+      expect(config).toMatchObject({
+        defaultPattern: defaultConfig.defaultPattern,
+        quality: defaultConfig.quality,
+        fps: defaultConfig.fps,
+        theme: defaultConfig.theme,
+        mouseEnabled: defaultConfig.mouseEnabled,
+      });
+      expect(config.patterns?.starfield?.starCount).toBe(
+        defaultConfig.patterns?.starfield?.starCount
+      );
+      expect(config.patterns?.tunnel?.ringCount).toBe(defaultConfig.patterns?.tunnel?.ringCount);
+      expect(config.patterns?.maze?.cellSize).toBe(defaultConfig.patterns?.maze?.cellSize);
+      expect(warning).toHaveBeenCalledWith(expect.stringContaining(mockStore.path));
+      expect(warning).toHaveBeenCalledWith(expect.stringContaining('patterns.starfield.starCount'));
+    });
+
+    test('rejects non-finite values and repairs coupled lava-lamp radii', () => {
+      mockStore.has.mockImplementation((key: any) => key === 'patterns');
+      mockStore.get.mockReturnValue({
+        waves: { speed: NaN, amplitude: Infinity },
+        lavaLamp: { minRadius: 50, maxRadius: 5 },
+        workspaceViz: { heatHalfLifeMs: -1, nodeBudget: 1000000 },
+      });
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const config = configLoader.load();
+
+      expect(config.patterns?.waves?.speed).toBe(defaultConfig.patterns?.waves?.speed);
+      expect(config.patterns?.waves?.amplitude).toBe(defaultConfig.patterns?.waves?.amplitude);
+      expect(config.patterns?.lavaLamp?.minRadius).toBe(
+        defaultConfig.patterns?.lavaLamp?.minRadius
+      );
+      expect(config.patterns?.lavaLamp?.maxRadius).toBe(
+        defaultConfig.patterns?.lavaLamp?.maxRadius
+      );
+      expect(config.patterns?.workspaceViz?.nodeBudget).toBe(
+        defaultConfig.patterns?.workspaceViz?.nodeBudget
+      );
+    });
+
+    test('sanitizes before share fingerprinting', () => {
+      mockStore.has.mockImplementation((key: any) => key === 'patterns');
+      mockStore.get.mockReturnValue({ waves: { layers: 999999 } });
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const config = configLoader.load();
+      expect(
+        hashConfig(
+          config.patterns?.waves as Record<string, unknown>,
+          defaultConfig.patterns?.waves as Record<string, unknown>
+        )
+      ).toBe(
+        hashConfig(
+          defaultConfig.patterns?.waves as Record<string, unknown>,
+          defaultConfig.patterns?.waves as Record<string, unknown>
+        )
+      );
+    });
+
+    test('accepts all defaults unchanged through the schema', () => {
+      const warnings: string[] = [];
+      expect(
+        validateFileConfig(defaultConfig, defaultConfig, mockStore.path, message =>
+          warnings.push(message)
+        )
+      ).toEqual(defaultConfig);
+      expect(warnings).toEqual([]);
+    });
+
+    test('accepts every documented example value without warnings', () => {
+      const example = JSON.parse(
+        readFileSync(`${process.cwd()}/examples/.splashrc.example`, 'utf8')
+      ) as unknown;
+      const warnings: string[] = [];
+      const sanitized = validateFileConfig(example, defaultConfig, mockStore.path, message =>
+        warnings.push(message)
+      );
+      expect(warnings).toEqual([]);
+      expect(sanitized).toMatchObject({ defaultPattern: 'waves', fps: 30, theme: 'ocean' });
+    });
+
+    test('bounds workspace ignore arrays and extension colors', () => {
+      mockStore.has.mockImplementation((key: any) => key === 'patterns');
+      mockStore.get.mockReturnValue({
+        workspaceViz: {
+          ignore: new Array(101).fill('x'),
+          extColors: { '.ts': 'not-a-color' },
+        },
+      });
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const config = configLoader.load();
+      expect(config.patterns?.workspaceViz?.ignore).toBeUndefined();
+      expect(config.patterns?.workspaceViz?.extColors).toBeUndefined();
     });
   });
 

@@ -1,6 +1,7 @@
 import Conf from 'conf';
 import { ConfigSchema, CliOptions, FavoriteSlot } from '../types/index.js';
-import { defaultConfig, qualityPresets } from './defaults.js';
+import { createDefaultConfig, qualityPresets } from './defaults.js';
+import { validateFileConfig } from './validateConfig.js';
 
 /**
  * Recursive deep-merge type. Used to keep `deepMerge` typed without `any`.
@@ -15,11 +16,15 @@ type DeepMergeable = Record<string, unknown>;
 export class ConfigLoader {
   private store: Conf<ConfigSchema>;
 
-  constructor() {
+  constructor(store?: Conf<ConfigSchema>) {
+    if (store) {
+      this.store = store;
+      return;
+    }
     // Initialize conf with project name and defaults
     this.store = new Conf<ConfigSchema>({
       projectName: 'ascii-splash',
-      defaults: defaultConfig,
+      defaults: createDefaultConfig(),
       // Use .splashrc as config file name
       configName: '.splashrc',
     });
@@ -32,11 +37,11 @@ export class ConfigLoader {
    */
   load(cliOptions: CliOptions = {}): ConfigSchema {
     // Start with defaults
-    const config: ConfigSchema = { ...defaultConfig };
+    const config = createDefaultConfig();
 
     // Merge with config file (if it exists)
-    const fileConfig = this.loadFromFile();
-    this.deepMerge(config as DeepMergeable, fileConfig as DeepMergeable);
+    const fileConfig = validateFileConfig(this.loadFromFile(), config, this.getConfigPath());
+    this.deepMerge(config as DeepMergeable, fileConfig);
 
     // Override with CLI options (highest priority)
     if (cliOptions.pattern !== undefined) {
@@ -143,8 +148,9 @@ export class ConfigLoader {
         target[key] = nested;
         this.deepMerge(nested, sourceVal as DeepMergeable);
       } else {
-        // Primitives, null, and arrays overwrite directly.
-        target[key] = sourceVal;
+        // Primitives and null are immutable. Arrays remain mutable after load,
+        // so clone them instead of retaining a reference owned by Conf.
+        target[key] = Array.isArray(sourceVal) ? structuredClone(sourceVal) : sourceVal;
       }
     }
   }

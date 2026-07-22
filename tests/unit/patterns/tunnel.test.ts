@@ -41,6 +41,15 @@ describe('TunnelPattern', () => {
       expect(metrics.particles).toBe(100);
     });
 
+    test('caps allocation-heavy counts defensively', () => {
+      const capped = new TunnelPattern(theme, new Mulberry32(42), {
+        ringCount: Number.POSITIVE_INFINITY,
+        particleCount: 1_000_000,
+        speedLineCount: 1_000_000,
+      });
+      expect(capped.getMetrics()).toMatchObject({ rings: 200, particles: 5000, speedLines: 1000 });
+    });
+
     test('should merge partial config with defaults', () => {
       const partialPattern = new TunnelPattern(theme, new Mulberry32(42), { ringCount: 40 });
       const metrics = partialPattern.getMetrics();

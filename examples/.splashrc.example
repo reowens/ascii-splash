@@ -1,21 +1,21 @@
 {
   "$schema": "Configuration file for ascii-splash terminal animation app",
-  
+
   "comment": "This is an example configuration file for ascii-splash.",
   "comment": "Copy this to ~/.config/ascii-splash/.splashrc.json (Linux/macOS) or",
   "comment": "%APPDATA%/ascii-splash/config.json (Windows) and modify as needed.",
   "comment": "",
   "comment": "All settings are optional. Omitted values will use defaults.",
   "comment": "CLI arguments always take precedence over config file settings.",
-  
+
   "defaultPattern": "waves",
   "quality": "medium",
   "fps": 30,
   "theme": "ocean",
   "mouseEnabled": true,
-  
+
   "comment": "Available themes: ocean (default), matrix, starlight, fire, monochrome",
-  
+
   "patterns": {
     "waves": {
       "comment": "Wave pattern settings",
@@ -25,7 +25,7 @@
       "layers": 3,
       "rippleDuration": 2000
     },
-    
+
     "starfield": {
       "comment": "3D starfield pattern settings",
       "starCount": 200,
@@ -33,7 +33,7 @@
       "forceFieldRadius": 15,
       "forceFieldStrength": 200
     },
-    
+
     "matrix": {
       "comment": "Matrix rain pattern settings",
       "columnDensity": 0.1,
@@ -41,14 +41,14 @@
       "fadeTime": 1000,
       "distortionRadius": 10
     },
-    
+
     "rain": {
       "comment": "Rain droplets pattern settings",
       "dropCount": 100,
       "speed": 1.0,
       "splashDuration": 500
     },
-    
+
     "quicksilver": {
       "comment": "Liquid metal flow pattern settings",
       "blobCount": 15,
@@ -56,52 +56,58 @@
       "viscosity": 0.95,
       "mousePull": 0.3
     },
-    
+
     "particles": {
       "comment": "Physics-based particle system settings",
       "particleCount": 150,
+      "speed": 1.0,
       "gravity": 0.2,
-      "friction": 0.98,
       "mouseForce": 5.0,
-      "burstSize": 20
+      "spawnRate": 2
     },
-    
+
     "spiral": {
       "comment": "Logarithmic spiral pattern settings",
       "armCount": 3,
+      "particleCount": 100,
+      "spiralTightness": 0.1,
       "rotationSpeed": 0.2,
-      "pointDensity": 2.0,
-      "spreadFactor": 0.1
+      "particleSpeed": 1.0,
+      "trailLength": 5,
+      "direction": "outward",
+      "pulseEffect": true
     },
-    
+
     "plasma": {
       "comment": "Fluid plasma effect settings",
+      "frequency": 0.1,
       "speed": 1.0,
-      "complexity": 1.0,
-      "scale": 10.0
+      "complexity": 3
     },
-    
+
     "tunnel": {
       "comment": "3D geometric tunnel pattern settings",
       "shape": "circle",
       "ringCount": 12,
-      "ringSpacing": 0.5,
       "speed": 1.0,
+      "particleCount": 60,
+      "speedLineCount": 20,
+      "turbulence": 0.1,
+      "glowIntensity": 0.7,
+      "chromatic": false,
       "rotationSpeed": 0.2,
-      "radius": 15
+      "radius": 0.75
     },
-    
+
     "lightning": {
       "comment": "Electric lightning bolt pattern settings",
-      "boltDensity": 0.5,
       "branchProbability": 0.3,
-      "branchAngle": 30,
       "fadeTime": 300,
       "strikeInterval": 1500,
-      "maxBranches": 3,
-      "thickness": 1
+      "mainPathJaggedness": 8,
+      "branchSpread": 10
     },
-    
+
     "fireworks": {
       "comment": "Particle fireworks pattern settings",
       "burstSize": 80,
@@ -112,12 +118,12 @@
       "trailLength": 8
     }
   },
-  
+
   "comment": "Favorites system - saved pattern+preset+theme combinations",
   "comment": "Use 0F1-0F99 to save, 0f1-0f99 to load, 0fl to list",
   "favorites": {
     "1": {
-      "pattern": "WavePattern",
+      "pattern": "waves",
       "preset": 2,
       "theme": "ocean",
       "note": "Calm ocean waves",

@@ -1,6 +1,7 @@
 import { Pattern, Cell, Size, Point, Theme } from '../types/index.js';
 import { bresenhamLine } from '../utils/drawing.js';
 import { Random } from '../utils/random.js';
+import { validateCount } from '../utils/validation.js';
 
 interface TunnelConfig {
   shape: 'circle' | 'square' | 'hexagon' | 'star';
@@ -177,6 +178,9 @@ export class TunnelPattern implements Pattern {
       radius: 0.75,
       ...config,
     };
+    this.config.ringCount = validateCount(this.config.ringCount, 200);
+    this.config.particleCount = validateCount(this.config.particleCount, 5000);
+    this.config.speedLineCount = validateCount(this.config.speedLineCount, 1000);
     this.initializeRings();
     this.initializeParticles();
     this.initializeSpeedLines();
@@ -547,6 +551,7 @@ export class TunnelPattern implements Pattern {
     return {
       rings: this.rings.length,
       particles: this.particles.length,
+      speedLines: this.speedLines.length,
       boost: this.boostActive ? 1 : 0,
     };
   }
