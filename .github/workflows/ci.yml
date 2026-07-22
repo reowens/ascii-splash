@@ -2,107 +2,96 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
+  schedule:
+    - cron: '17 8 * * 1'
 
 jobs:
-  test:
-    name: Test on Node ${{ matrix.node-version }}
+  quality:
+    name: Quality and coverage (Node 20)
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        node-version: [20.x, 22.x]
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v5
-    
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v5
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Run TypeScript compiler
-      run: npm run build
-    
-    - name: Run tests
-      run: npm test
-    
-    - name: Upload coverage to Codecov
-      if: matrix.node-version == '20.x'
-      uses: codecov/codecov-action@v4
-      with:
-        files: ./coverage/lcov.info
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
-        token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Checkout code
+        uses: actions/checkout@v5
 
-  build-check:
-    name: Build Check
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v5
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v5
-      with:
-        node-version: '20.x'
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Check TypeScript compilation
-      run: npx tsc --noEmit
-    
-    - name: Build project
-      run: npm run build
-    
-    - name: Check dist directory exists
-      run: |
-        if [ ! -d "dist" ]; then
-          echo "Error: dist directory not created"
-          exit 1
-        fi
-        if [ ! -f "dist/main.js" ]; then
-          echo "Error: dist/main.js not found"
-          exit 1
-        fi
-        echo "Build successful - dist/main.js exists"
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20.x
+          cache: npm
 
-  validate-package:
-    name: Validate Package
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit runtime dependencies
+        run: npm audit --omit=dev
+
+      - name: Build
+        run: npm run build
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Test with coverage
+        run: npm run test:coverage -- --runInBand
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: node-20
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  compatibility:
+    name: Compatibility (Node 22)
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v5
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v5
-      with:
-        node-version: '20.x'
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Build
-      run: npm run build
-    
-    - name: Validate package contents
-      run: |
-        # Check that all files specified in package.json "files" exist
-        npm pack --dry-run
-    
-    - name: Test prepublishOnly script
-      run: npm run prepublishOnly
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test -- --runInBand
+
+  package:
+    name: Package contents
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Validate package contents
+        run: npm pack --dry-run
